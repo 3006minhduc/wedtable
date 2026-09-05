@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --pr: #C8A24A;
+  --pr-d: #9C7A2A;
+  --pr-l: #FFF8ED;
+  --rose: #C9676A;
+  --sage: #52A56E;
+  --ink: #1E2D3D;
+  --bg: #F5F5F5;
+  --surface: #FFFFFF;
+  --border: #EBEBEB;
+  --text: #1A1A2E;
+  --muted: #6B7280;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}
