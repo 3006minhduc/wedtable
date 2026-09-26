@@ -1,7 +1,14 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
+import QrScanner from "@/components/checkin/QrScanner"
 import { seatsUsed, useEvents } from "@/lib/useEvents"
+
+function extractCode(text: string) {
+  const t = text.trim()
+  const m = t.match(/\/invite\/([A-Za-z0-9]+)/)
+  return (m ? m[1] : t).toUpperCase()
+}
 
 export default function CheckinPage() {
   const { eventId, loading } = useEvents()
@@ -35,6 +42,37 @@ export default function CheckinPage() {
     const d = await res.json()
     setMsg(res.ok ? (undo ? "Đã hoàn tác check-in" : "Check-in thành công") : d.message ?? "Lỗi")
     load()
+  }
+
+  const [scanning, setScanning] = useState(false)
+  const [autoCheckin, setAutoCheckin] = useState(true)
+  const lastScan = useRef<{ code: string; at: number }>({ code: "", at: 0 })
+  const guestsRef = useRef<any[]>([])
+  guestsRef.current = guests
+
+  function handleScan(text: string) {
+    const code = extractCode(text)
+    const now = Date.now()
+    if (lastScan.current.code === code && now - lastScan.current.at < 4000) return
+    lastScan.current = { code, at: now }
+
+    const g = guestsRef.current.find((x) => x.code === code)
+    if (!g) {
+      setMsg(`Không tìm thấy khách với mã ${code}`)
+      return
+    }
+    if (g.checked_in) {
+      setMsg(`${g.name} đã check-in trước đó`)
+      setQuery(g.code)
+      return
+    }
+    if (autoCheckin) {
+      checkin(g.id)
+      setMsg(`Đã check-in: ${g.name}`)
+    } else {
+      setScanning(false)
+      setQuery(g.code)
+    }
   }
 
   async function addWalkin() {
@@ -81,8 +119,23 @@ export default function CheckinPage() {
         </div>
       )}
 
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          <button
+            onClick={() => setScanning((s) => !s)}
+            className={"rounded-pill px-4 py-2 text-sm font-medium " + (scanning ? "border border-border text-muted" : "bg-pr text-ink")}
+          >
+            {scanning ? "Tắt camera" : "Quét QR bằng camera"}
+          </button>
+          <label className="flex items-center gap-2 text-sm text-muted">
+            <input type="checkbox" checked={autoCheckin} onChange={(e) => setAutoCheckin(e.target.checked)} />
+            Tự động check-in khi quét
+          </label>
+        </div>
+        {scanning && <QrScanner onScan={handleScan} />}
+      </div>
+
       <input
-        autoFocus
         className={input}
         placeholder="Tìm theo tên, số điện thoại hoặc nhập mã QR của khách..."
         value={query}
@@ -117,7 +170,7 @@ export default function CheckinPage() {
 
       <section className="bg-surface border border-border rounded-card p-4 flex flex-col gap-3">
         <h2 className="font-semibold text-text">Khách vãng lai</h2>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <input className={input} placeholder="Tên khách" value={walk.name} onChange={(e) => setWalk({ ...walk, name: e.target.value })} />
           <input className={input} placeholder="Số điện thoại (không bắt buộc)" value={walk.phone} onChange={(e) => setWalk({ ...walk, phone: e.target.value })} />
           <select className={input} value={walk.table_id} onChange={(e) => setWalk({ ...walk, table_id: e.target.value })}>

@@ -13,7 +13,7 @@ function Pill({ label, value }: { label: string; value: string | number }) {
   )
 }
 
-export default function Topbar() {
+export default function Topbar({ onMenu }: { onMenu?: () => void }) {
   const { events, eventId, setEventId } = useEvents()
   const [detail, setDetail] = useState<any>(null)
 
@@ -56,11 +56,19 @@ export default function Topbar() {
   const pct = stats && stats.total ? Math.round((stats.confirmed / stats.total) * 100) : 0
 
   return (
-    <header className="h-14 border-b border-border bg-surface flex items-center justify-between px-6 sticky top-0 z-10 gap-3">
+    <header className="h-14 border-b border-border bg-surface flex items-center justify-between px-3 md:px-6 sticky top-0 z-10 gap-3">
       <div className="flex items-center gap-2 min-w-0">
+        <button
+          onClick={onMenu}
+          aria-label="Mở menu"
+          className="md:hidden border border-border rounded-card w-9 h-9 flex items-center justify-center text-lg"
+        >
+          ☰
+        </button>
+
         {events.length > 0 ? (
           <select
-            className="border border-border rounded-card px-2 py-1 text-sm max-w-[220px]"
+            className="border border-border rounded-card px-2 py-1 text-sm max-w-[150px] sm:max-w-[220px]"
             value={eventId ?? ""}
             onChange={(e) => setEventId(e.target.value)}
           >

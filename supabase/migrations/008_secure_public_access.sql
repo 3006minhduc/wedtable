@@ -21,7 +21,7 @@ BEGIN
         'id', f.id, 'name', f.name, 'order_index', f.order_index,
         'tables', COALESCE((
           SELECT json_agg(json_build_object(
-            'id', t.id, 'name', t.name, 'seats', t.seats, 'vip', t.vip,
+            'id', t.id, 'name', t.name, 'seats', t.seats, 'vip', t.vip, 'x_pct', t.x_pct, 'y_pct', t.y_pct,
             'used', (SELECT COALESCE(SUM(1 + x.companions), 0) FROM guests x WHERE x.table_id = t.id AND x.no_show = false AND x.id <> g.id)
           ) ORDER BY t.name) FROM tables t WHERE t.floor_id = f.id
         ), '[]'::json)

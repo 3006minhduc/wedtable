@@ -1,8 +1,9 @@
 "use client"
 
-import { useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { DndProvider, useDrag, useDrop } from "react-dnd"
 import { HTML5Backend } from "react-dnd-html5-backend"
+import { TouchBackend } from "react-dnd-touch-backend"
 
 type Table = {
   id: string
@@ -54,9 +55,10 @@ function TableNode({
         transform: "translate(-50%, -50%)",
         opacity: isDragging ? 0.5 : 1,
         cursor: "grab",
+        touchAction: "none",
       }}
       className={
-        "w-20 h-20 rounded-full border-2 flex flex-col items-center justify-center text-xs font-medium " +
+        "w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 flex flex-col items-center justify-center text-[11px] sm:text-xs font-medium select-none " +
         (table.vip
           ? "border-pr bg-pr-l text-pr-d"
           : full
@@ -80,8 +82,19 @@ type CanvasProps = {
 }
 
 export default function SeatingCanvas(props: CanvasProps) {
+  const [touch, setTouch] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    setTouch("ontouchstart" in window || navigator.maxTouchPoints > 0)
+  }, [])
+
+  if (touch === null) return <div className="w-full h-[420px] sm:h-[600px] bg-surface border border-border rounded-card" />
+
   return (
-    <DndProvider backend={HTML5Backend}>
+    <DndProvider
+      backend={(touch ? TouchBackend : HTML5Backend) as any}
+      options={touch ? { enableMouseEvents: true, delayTouchStart: 120 } : undefined}
+    >
       <Canvas {...props} />
     </DndProvider>
   )
@@ -108,7 +121,7 @@ function Canvas({ tables, guests, onTableMove, onTableClick }: CanvasProps) {
         canvasRef.current = node
         drop(node as any)
       }}
-      className="relative w-full h-[600px] bg-surface border border-border rounded-card overflow-hidden"
+      className="relative w-full h-[420px] sm:h-[600px] bg-surface border border-border rounded-card overflow-hidden"
     >
       <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-ink text-white text-xs px-4 py-2 rounded-card">
         Sân khấu
