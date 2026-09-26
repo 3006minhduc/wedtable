@@ -61,8 +61,74 @@ export default function GuestTable({
   onQr?: (guest: Guest) => void
   onCompanions?: (guestId: string, value: number) => void
 }) {
+  const badge = (g: Guest) =>
+    g.checked_in ? (
+      <span className="text-xs bg-pr-l text-pr-d px-2 py-1 rounded-pill">ĐÃ CHECK-IN</span>
+    ) : g.no_show ? (
+      <span className="text-xs bg-rose/10 text-rose px-2 py-1 rounded-pill">KHÔNG ĐẾN</span>
+    ) : g.confirmed ? (
+      <span className="text-xs bg-sage/10 text-sage px-2 py-1 rounded-pill">ĐÃ XÁC NHẬN</span>
+    ) : (
+      <span className="text-xs bg-muted/10 text-muted px-2 py-1 rounded-pill">CHƯA PHẢN HỒI</span>
+    )
+
   return (
-    <div className="bg-surface border border-border rounded-card overflow-x-auto">
+    <>
+      <div className="md:hidden flex flex-col gap-2">
+        {guests.length === 0 && <p className="text-center text-muted text-sm py-6">Không có khách nào.</p>}
+        {guests.map((g) => (
+          <div key={g.id} className="bg-surface border border-border rounded-card p-3 flex flex-col gap-2">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-8 h-8 shrink-0 rounded-full bg-pr-l text-pr-d flex items-center justify-center text-xs font-semibold">
+                  {g.name.charAt(0).toUpperCase()}
+                </div>
+                <div className="min-w-0">
+                  <div className="text-text font-medium truncate">{g.name}</div>
+                  <div className="text-muted text-xs">
+                    {g.phone} · {g.code}
+                  </div>
+                </div>
+              </div>
+              {badge(g)}
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <select
+                className="border border-border rounded-card text-xs px-2 py-1.5 flex-1 min-w-[120px]"
+                value={g.table_id ?? ""}
+                onChange={(e) => onAssignTable(g.id, e.target.value)}
+              >
+                <option value="">-- Chưa gán bàn --</option>
+                {tables.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+              <span className="text-xs text-muted">Đi kèm</span>
+              {onCompanions ? <CompanionsInput value={g.companions} onChange={(v) => onCompanions(g.id, v)} /> : <span>{g.companions}</span>}
+            </div>
+            <div className="flex gap-4 text-xs pt-1 border-t border-border">
+              {onQr && (
+                <button className="text-pr-d py-1" onClick={() => onQr(g)}>
+                  QR
+                </button>
+              )}
+              <button className="text-pr-d py-1" onClick={() => onRemind(g.id)}>
+                Nhắc
+              </button>
+              <button className="text-muted py-1" onClick={() => onToggleNoShow(g.id, !g.no_show)}>
+                {g.no_show ? "Có đến" : "Vắng"}
+              </button>
+              <button className="text-rose py-1" onClick={() => onDelete(g.id)}>
+                Xóa
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+    <div className="hidden md:block bg-surface border border-border rounded-card overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-border text-left text-muted">
@@ -151,5 +217,6 @@ export default function GuestTable({
         </tbody>
       </table>
     </div>
+    </>
   )
 }
