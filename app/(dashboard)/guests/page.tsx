@@ -24,6 +24,7 @@ export default function GuestsPage() {
   const [newName, setNewName] = useState("")
   const [newPhone, setNewPhone] = useState("")
   const [notice, setNotice] = useState("")
+  const [importMenu, setImportMenu] = useState(false)
   const [qr, setQr] = useState<{ guest: any; url: string; img: string } | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -53,8 +54,25 @@ export default function GuestsPage() {
     })
   }
 
+  function downloadTemplate() {
+    const rows = [
+      { "Tên": "Nguyễn Văn A", "SĐT": "0901234567" },
+      { "Tên": "Trần Thị B", "SĐT": "0912345678" },
+      { "Tên": "Lê Văn C", "SĐT": "" },
+    ]
+    const sheet = XLSX.utils.json_to_sheet(rows)
+    sheet["!cols"] = [{ wch: 28 }, { wch: 16 }]
+    const book = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(book, sheet, "Khach moi")
+    XLSX.writeFile(book, "mau-danh-sach-khach-moi.xlsx")
+    setImportMenu(false)
+  }
+
   async function handleAdd() {
-    if (!newName.trim()) return
+    if (!newName.trim()) {
+      setNotice("Vui lòng nhập tên khách.")
+      return
+    }
     const res = await fetch(`/api/events/${eventId}/guests`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -148,9 +166,32 @@ export default function GuestsPage() {
         <h1 className="text-xl font-semibold text-text">Khách mời ({guests.length})</h1>
         <div className="flex gap-2 flex-wrap">
           <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleImportFile} />
-          <button className="border border-border rounded-pill px-3 py-1.5 text-sm" onClick={() => fileInputRef.current?.click()}>
-            Import Excel
-          </button>
+          <div className="relative">
+            <button className="border border-border rounded-pill px-3 py-1.5 text-sm" onClick={() => setImportMenu((o) => !o)}>
+              Import Excel ▾
+            </button>
+            {importMenu && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setImportMenu(false)} />
+                <div className="absolute left-0 mt-2 w-72 bg-surface border border-border rounded-card shadow-lg z-20 overflow-hidden">
+                  <button
+                    className="w-full text-left px-4 py-3 text-sm text-text hover:bg-bg"
+                    onClick={() => {
+                      setImportMenu(false)
+                      fileInputRef.current?.click()
+                    }}
+                  >
+                    <div className="font-medium">Chọn file để import</div>
+                    <div className="text-xs text-muted">Hỗ trợ .xlsx, .xls, .csv</div>
+                  </button>
+                  <button className="w-full text-left px-4 py-3 text-sm text-text hover:bg-bg border-t border-border" onClick={downloadTemplate}>
+                    <div className="font-medium">Tải file mẫu</div>
+                    <div className="text-xs text-muted">File Excel có sẵn cột Tên, SĐT. Xóa các dòng mẫu trước khi import.</div>
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
           <a className="border border-border rounded-pill px-3 py-1.5 text-sm" href={`/api/events/${eventId}/guests/export?format=xlsx`}>
             Xuất Excel
           </a>
@@ -166,7 +207,7 @@ export default function GuestsPage() {
       <div className="flex gap-2 flex-wrap items-center bg-surface border border-border rounded-card p-3">
         <input className={input} placeholder="Tên khách" value={newName} onChange={(e) => setNewName(e.target.value)} />
         <input className={input} placeholder="Số điện thoại" value={newPhone} onChange={(e) => setNewPhone(e.target.value)} />
-        <button className="bg-pr text-ink font-medium rounded-pill px-4 py-2 text-sm disabled:opacity-50" disabled={!newName.trim()} onClick={handleAdd}>
+        <button className="bg-pr text-ink font-medium rounded-pill px-4 py-2 text-sm" onClick={handleAdd}>
           + Thêm khách
         </button>
       </div>

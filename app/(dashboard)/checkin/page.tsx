@@ -75,20 +75,38 @@ export default function CheckinPage() {
     }
   }
 
+  const [walkMsg, setWalkMsg] = useState<{ ok: boolean; text: string } | null>(null)
+  const [walkSaving, setWalkSaving] = useState(false)
+
   async function addWalkin() {
-    const res = await fetch("/api/checkin/walkin", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ event_id: eventId, ...walk, companions: Number(walk.companions) }),
-    })
-    const d = await res.json()
-    if (res.ok) {
-      setMsg(`Đã thêm khách vãng lai: ${walk.name}`)
-      setWalk({ name: "", phone: "", table_id: "", companions: 0 })
-      load()
-    } else {
-      setMsg(d.message ?? "Lỗi")
+    if (!walk.name.trim()) {
+      setWalkMsg({ ok: false, text: "Vui lòng nhập tên khách." })
+      return
     }
+    if (tables.length > 0 && !walk.table_id) {
+      setWalkMsg({ ok: false, text: "Vui lòng chọn bàn cho khách." })
+      return
+    }
+    setWalkSaving(true)
+    setWalkMsg(null)
+    try {
+      const res = await fetch("/api/checkin/walkin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ event_id: eventId, ...walk, name: walk.name.trim(), companions: Number(walk.companions) || 0 }),
+      })
+      const d = await res.json()
+      if (res.ok) {
+        setWalkMsg({ ok: true, text: `Đã thêm và check-in: ${walk.name.trim()}` })
+        setWalk({ name: "", phone: "", table_id: "", companions: 0 })
+        load()
+      } else {
+        setWalkMsg({ ok: false, text: d.message ?? "Không thêm được khách." })
+      }
+    } catch {
+      setWalkMsg({ ok: false, text: "Lỗi kết nối, vui lòng thử lại." })
+    }
+    setWalkSaving(false)
   }
 
   if (loading) return <p className="text-muted">Đang tải...</p>
@@ -175,17 +193,24 @@ export default function CheckinPage() {
           <input className={input} placeholder="Số điện thoại (không bắt buộc)" value={walk.phone} onChange={(e) => setWalk({ ...walk, phone: e.target.value })} />
           <select className={input} value={walk.table_id} onChange={(e) => setWalk({ ...walk, table_id: e.target.value })}>
             <option value="">-- Chọn bàn --</option>
-            {tables.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name} (còn {t.seats - seatsUsed(guests, t.id)})
-              </option>
-            ))}
+            {tables.map((t) => {
+              const left = t.seats - seatsUsed(guests, t.id)
+              return (
+                <option key={t.id} value={t.id} disabled={left < 1 + (Number(walk.companions) || 0)}>
+                  {t.name} (còn {Math.max(0, left)} chỗ)
+                </option>
+              )
+            })}
           </select>
           <input className={input} type="number" min={0} placeholder="Người đi kèm" value={walk.companions} onChange={(e) => setWalk({ ...walk, companions: Number(e.target.value) })} />
         </div>
-        <button disabled={!walk.name.trim()} onClick={addWalkin} className="bg-pr text-ink font-medium rounded-pill px-4 py-2 text-sm w-fit disabled:opacity-50">
-          Thêm và check-in
-        </button>
+        <div className="flex items-center gap-3 flex-wrap">
+          <button disabled={walkSaving} onClick={addWalkin} className="bg-pr text-ink font-medium rounded-pill px-4 py-2 text-sm disabled:opacity-50">
+            {walkSaving ? "Đang thêm..." : "Thêm và check-in"}
+          </button>
+          {walkMsg && <span className={"text-sm " + (walkMsg.ok ? "text-sage" : "text-rose")}>{walkMsg.text}</span>}
+        </div>
+        {tables.length === 0 && <p className="text-xs text-muted">Chưa có bàn nào, khách sẽ được thêm mà chưa gán bàn.</p>}
       </section>
     </div>
   )
