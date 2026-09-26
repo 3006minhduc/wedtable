@@ -11,22 +11,17 @@ function createClient() {
   )
 }
 
-async function getGuest(guestCode: string) {
-  const supabase = createClient()
-  const { data: guest } = await supabase
-    .from("guests")
-    .select("*, events(*), tables(*, floors(*))")
-    .eq("code", guestCode)
-    .single()
-  return guest
+async function getInvite(guestCode: string) {
+  const { data } = await createClient().rpc("get_invite", { p_code: guestCode })
+  return data as { guest: any; event: any; floors: any[] } | null
 }
 
 export async function generateMetadata({ params }: { params: { guestCode: string } }) {
-  const guest = await getGuest(params.guestCode)
-  if (!guest || !guest.events) {
+  const invite = await getInvite(params.guestCode)
+  if (!invite) {
     return { title: "Thiệp mời - WebTable" }
   }
-  const event = guest.events
+  const event = invite.event
   return {
     title: `Thiệp mời - ${event.bride_name} & ${event.groom_name}`,
     description: `Bạn được mời đến đám cưới ngày ${event.event_date}`,
@@ -37,29 +32,15 @@ export async function generateMetadata({ params }: { params: { guestCode: string
 }
 
 export default async function InvitePage({ params }: { params: { guestCode: string } }) {
-  const guest = await getGuest(params.guestCode)
+  const invite = await getInvite(params.guestCode)
 
-  if (!guest || !guest.events) {
+  if (!invite) {
     notFound()
   }
 
-  const event = guest.events
-  const lockAt = event && event.lock_at
+  const { guest, event, floors } = invite
+  const lockAt = event.lock_at
   const locked = lockAt ? new Date(lockAt).getTime() < Date.now() : false
 
-  const supabase = createClient()
-  const { data: floors } = await supabase
-    .from("floors")
-    .select("*, tables(*)")
-    .eq("event_id", event.id)
-    .order("order_index", { ascending: true })
-
-  return (
-    <InviteClient
-      guest={guest}
-      event={event}
-      floors={floors ?? []}
-      locked={locked}
-    />
-  )
+  return <InviteClient guest={guest} event={event} floors={floors ?? []} locked={locked} />
 }

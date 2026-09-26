@@ -51,6 +51,7 @@ export default function InviteClient({
         <div className="text-left mb-4">
           <p className="text-sm text-text mb-1">Xin chào, {guest.name}</p>
           <p className="text-xs text-muted">Mã mời: {guest.code}</p>
+          {guest.confirmed && <p className="text-xs text-sage mt-1">Bạn đã xác nhận tham dự. Có thể đổi bàn bên dưới.</p>}
         </div>
 
         {locked ? (
@@ -66,8 +67,8 @@ export default function InviteClient({
             >
               <option value="">-- Chọn bàn --</option>
               {allTables.map((t: any) => (
-                <option key={t.id} value={t.id}>
-                  {t.name}
+                <option key={t.id} value={t.id} disabled={t.seats - (t.used ?? 0) < 1}>
+                  {t.name} (còn {Math.max(0, t.seats - (t.used ?? 0))} chỗ)
                 </option>
               ))}
             </select>

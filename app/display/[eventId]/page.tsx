@@ -15,33 +15,20 @@ export default function DisplayPage({ params }: { params: { eventId: string } })
   const [floorIdx, setFloorIdx] = useState(0)
 
   const load = useCallback(async () => {
-    const supabase = createClient()
-    const { data, error } = await supabase
-      .from("events")
-      .select("*, floors(*, tables(*)), guests(*)")
-      .eq("id", params.eventId)
-      .single()
+    const { data, error } = await createClient().rpc("display_data", { p_event_id: params.eventId })
     if (error || !data) {
       setError("Không tìm thấy sự kiện hoặc sự kiện chưa được publish.")
       return
     }
-    data.floors = [...(data.floors ?? [])].sort((a: any, b: any) => a.order_index - b.order_index)
-    setEvent(data)
+    setError("")
+    setEvent({ ...data.event, floors: data.floors ?? [], guests: data.guests ?? [] })
   }, [params.eventId])
 
   useEffect(() => {
     load()
-    const supabase = createClient()
-    const channel = (supabase.channel("display-" + params.eventId) as any)
-      .on("postgres_changes", { event: "*", schema: "public", table: "guests", filter: `event_id=eq.${params.eventId}` }, () => load())
-      .on("postgres_changes", { event: "*", schema: "public", table: "tables", filter: `event_id=eq.${params.eventId}` }, () => load())
-      .subscribe()
-    const poll = setInterval(load, 15000)
-    return () => {
-      clearInterval(poll)
-      supabase.removeChannel(channel)
-    }
-  }, [load, params.eventId])
+    const poll = setInterval(load, 5000)
+    return () => clearInterval(poll)
+  }, [load])
 
   if (error) return <div className="min-h-screen flex items-center justify-center text-muted">{error}</div>
   if (!event) return <div className="min-h-screen flex items-center justify-center text-muted">Đang tải...</div>

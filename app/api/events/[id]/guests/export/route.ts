@@ -28,6 +28,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
     Ten: g.name,
     SDT: g.phone,
     Ma: g.code,
+    LinkMoi: `${new URL(request.url).origin}/invite/${g.code}`,
     Ban: g.tables?.name ?? "",
     SoNguoiDiKem: g.companions,
     XacNhan: g.confirmed ? "Da xac nhan" : "Chua phan hoi",
