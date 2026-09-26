@@ -76,6 +76,49 @@ export default function SettingsPage() {
     e.target.value = ""
   }
 
+  const [giftQr, setGiftQr] = useState("")
+  const [uploadingQr, setUploadingQr] = useState(false)
+
+  async function uploadGiftQr(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingQr(true)
+    setMsg("")
+    try {
+      const supabase = createClient()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) throw new Error("Chưa đăng nhập")
+      const blob = await resizeImage(file, 900)
+      const path = `${user.id}/${eventId}/gift-qr-${Date.now()}.jpg`
+      const { error } = await supabase.storage.from(BUCKET).upload(path, blob, { contentType: "image/jpeg" })
+      if (error) throw new Error(error.message)
+      const url = supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl
+      const res = await fetch(`/api/events/${eventId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ gift_qr_url: url }),
+      })
+      if (!res.ok) throw new Error((await res.json()).message ?? "Không lưu được")
+      setGiftQr(url)
+      setMsg("Đã cập nhật mã QR mừng cưới")
+    } catch (err: any) {
+      setMsg(err.message ?? "Lỗi tải QR")
+    }
+    setUploadingQr(false)
+    e.target.value = ""
+  }
+
+  async function removeGiftQr() {
+    await fetch(`/api/events/${eventId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ gift_qr_url: "" }),
+    })
+    setGiftQr("")
+  }
+
   async function removePhoto(url: string) {
     if (!confirm("Xóa ảnh này?")) return
     const marker = `/object/public/${BUCKET}/`
@@ -92,6 +135,7 @@ export default function SettingsPage() {
       .then((r) => r.json())
       .then((e) => {
         setGallery(Array.isArray(e.gallery) ? e.gallery : [])
+        setGiftQr(e.gift_qr_url ?? "")
         return e
       })
       .then((e) =>
@@ -190,6 +234,24 @@ export default function SettingsPage() {
         <label className="border border-border rounded-pill px-4 py-2 text-sm w-fit cursor-pointer">
           {uploading ? "Đang tải lên..." : "+ Tải ảnh lên"}
           <input type="file" accept="image/*" multiple className="hidden" disabled={uploading} onChange={handleUpload} />
+        </label>
+      </section>
+
+      <section className="bg-surface border border-border rounded-card p-4 flex flex-col gap-3">
+        <h2 className="font-semibold text-text">Mã QR mừng cưới</h2>
+        <p className="text-xs text-muted">Tải ảnh QR ngân hàng/ví của cô dâu chú rể. Khách mở thiệp sẽ thấy và quét để mừng.</p>
+        {giftQr && (
+          <div className="flex items-end gap-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={giftQr} alt="QR mừng cưới" className="w-40 h-40 object-contain border border-border rounded-card bg-white" />
+            <button onClick={removeGiftQr} className="text-xs text-rose hover:underline">
+              Xóa QR
+            </button>
+          </div>
+        )}
+        <label className="border border-border rounded-pill px-4 py-2 text-sm w-fit cursor-pointer">
+          {uploadingQr ? "Đang tải lên..." : giftQr ? "Đổi ảnh QR" : "+ Tải ảnh QR"}
+          <input type="file" accept="image/*" className="hidden" disabled={uploadingQr} onChange={uploadGiftQr} />
         </label>
       </section>
 

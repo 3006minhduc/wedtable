@@ -111,6 +111,15 @@ export default function InviteClient({
           </div>
         )}
 
+        {event.gift_qr_url && (
+          <div className="mt-6 pt-4 border-t border-border">
+            <p className="text-sm font-medium text-text mb-2">Mừng cưới</p>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={event.gift_qr_url} alt="QR mừng cưới" className="mx-auto w-48 h-48 object-contain rounded-card border border-border bg-white" />
+            <p className="text-xs text-muted mt-2">Quét mã để gửi lời chúc và mừng cưới</p>
+          </div>
+        )}
+
         {event.video_url && (
           <a href={event.video_url} target="_blank" rel="noreferrer" className="block mt-4 text-sm text-pr-d underline">
             Xem video cưới

@@ -1,0 +1,1 @@
+ALTER TABLE events ADD COLUMN IF NOT EXISTS gift_qr_url TEXT DEFAULT '';
