@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import * as XLSX from "xlsx"
 import QRCode from "qrcode"
 import GuestTable from "@/components/guests/GuestTable"
+import Link from "next/link"
 import { useEvents } from "@/lib/useEvents"
 
 const FILTERS = [
@@ -25,6 +26,7 @@ export default function GuestsPage() {
   const [newPhone, setNewPhone] = useState("")
   const [notice, setNotice] = useState("")
   const [importMenu, setImportMenu] = useState(false)
+  const [published, setPublished] = useState(true)
   const [qr, setQr] = useState<{ guest: any; url: string; img: string } | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -36,6 +38,7 @@ export default function GuestsPage() {
     ])
     const event = await eventRes.json()
     const guestsData = await guestsRes.json()
+    setPublished(!!event.published)
     setTables((event.floors ?? []).flatMap((f: any) => f.tables ?? []))
     setGuests(guestsData.guests ?? [])
     setLoading(false)
@@ -162,6 +165,16 @@ export default function GuestsPage() {
 
   return (
     <div className="flex flex-col gap-4">
+      {!published && (
+        <div className="bg-rose/10 border border-rose/30 text-rose rounded-card px-4 py-3 text-sm flex items-center justify-between gap-3 flex-wrap">
+          <span>
+            <strong>Sự kiện chưa Publish.</strong> Khách bấm vào link mời sẽ chưa xem được thiệp.
+          </span>
+          <Link href="/settings" className="underline font-medium whitespace-nowrap">
+            Vào Cài đặt để Publish
+          </Link>
+        </div>
+      )}
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-xl font-semibold text-text">Khách mời ({guests.length})</h1>
         <div className="flex gap-2 flex-wrap">

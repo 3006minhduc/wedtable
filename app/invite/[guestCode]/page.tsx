@@ -13,12 +13,12 @@ function createClient() {
 
 async function getInvite(guestCode: string) {
   const { data } = await createClient().rpc("get_invite", { p_code: guestCode })
-  return data as { guest: any; event: any; floors: any[] } | null
+  return data as { error?: string; guest: any; event: any; floors: any[] } | null
 }
 
 export async function generateMetadata({ params }: { params: { guestCode: string } }) {
   const invite = await getInvite(params.guestCode)
-  if (!invite) {
+  if (!invite || invite.error) {
     return { title: "Thiệp mời - WedTable" }
   }
   const event = invite.event
@@ -36,6 +36,18 @@ export default async function InvitePage({ params }: { params: { guestCode: stri
 
   if (!invite) {
     notFound()
+  }
+
+  if (invite.error === "NOT_PUBLISHED") {
+    return (
+      <div className="min-h-screen bg-bg flex items-center justify-center p-4">
+        <div className="max-w-sm bg-surface border border-border rounded-card p-8 text-center">
+          <div className="text-3xl mb-3">💌</div>
+          <h1 className="text-lg font-semibold text-text mb-2">Thiệp mời chưa được công bố</h1>
+          <p className="text-sm text-muted">Chủ tiệc chưa mở thiệp mời này. Vui lòng quay lại sau hoặc liên hệ trực tiếp với cô dâu chú rể.</p>
+        </div>
+      </div>
+    )
   }
 
   const { guest, event, floors } = invite
