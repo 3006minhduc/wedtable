@@ -1,5 +1,7 @@
 "use client"
 
+import { useEffect, useState } from "react"
+
 type Guest = {
   id: string
   name: string
@@ -14,6 +16,32 @@ type Guest = {
 
 type Table = { id: string; name: string }
 
+function CompanionsInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const [v, setV] = useState(String(value))
+
+  useEffect(() => {
+    setV(String(value))
+  }, [value])
+
+  useEffect(() => {
+    const n = Number(v)
+    if (v === "" || Number.isNaN(n) || n === value || n < 0) return
+    const t = setTimeout(() => onChange(n), 500)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [v])
+
+  return (
+    <input
+      type="number"
+      min={0}
+      className="border border-border rounded-card text-xs px-2 py-1 w-16"
+      value={v}
+      onChange={(e) => setV(e.target.value)}
+    />
+  )
+}
+
 export default function GuestTable({
   guests,
   tables,
@@ -21,6 +49,8 @@ export default function GuestTable({
   onToggleNoShow,
   onRemind,
   onDelete,
+  onQr,
+  onCompanions,
 }: {
   guests: Guest[]
   tables: Table[]
@@ -28,9 +58,11 @@ export default function GuestTable({
   onToggleNoShow: (guestId: string, value: boolean) => void
   onRemind: (guestId: string) => void
   onDelete: (guestId: string) => void
+  onQr?: (guest: Guest) => void
+  onCompanions?: (guestId: string, value: number) => void
 }) {
   return (
-    <div className="bg-surface border border-border rounded-card overflow-hidden">
+    <div className="bg-surface border border-border rounded-card overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-border text-left text-muted">
@@ -42,6 +74,13 @@ export default function GuestTable({
           </tr>
         </thead>
         <tbody>
+          {guests.length === 0 && (
+            <tr>
+              <td colSpan={5} className="px-4 py-6 text-center text-muted">
+                Không có khách nào.
+              </td>
+            </tr>
+          )}
           {guests.map((g) => (
             <tr key={g.id} className="border-b border-border last:border-0">
               <td className="px-4 py-3">
@@ -51,12 +90,16 @@ export default function GuestTable({
                   </div>
                   <div>
                     <div className="text-text font-medium">{g.name}</div>
-                    <div className="text-muted text-xs">{g.phone}</div>
+                    <div className="text-muted text-xs">
+                      {g.phone} · {g.code}
+                    </div>
                   </div>
                 </div>
               </td>
               <td className="px-4 py-3">
-                {g.no_show ? (
+                {g.checked_in ? (
+                  <span className="text-xs bg-pr-l text-pr-d px-2 py-1 rounded-pill">ĐÃ CHECK-IN</span>
+                ) : g.no_show ? (
                   <span className="text-xs bg-rose/10 text-rose px-2 py-1 rounded-pill">KHÔNG ĐẾN</span>
                 ) : g.confirmed ? (
                   <span className="text-xs bg-sage/10 text-sage px-2 py-1 rounded-pill">ĐÃ XÁC NHẬN</span>
@@ -78,17 +121,25 @@ export default function GuestTable({
                   ))}
                 </select>
               </td>
-              <td className="px-4 py-3 text-text">{g.companions}</td>
+              <td className="px-4 py-3 text-text">
+                {onCompanions ? (
+                  <CompanionsInput value={g.companions} onChange={(v) => onCompanions(g.id, v)} />
+                ) : (
+                  g.companions
+                )}
+              </td>
               <td className="px-4 py-3">
-                <div className="flex gap-2 text-xs">
+                <div className="flex gap-3 text-xs">
+                  {onQr && (
+                    <button className="text-pr-d hover:underline" onClick={() => onQr(g)}>
+                      QR
+                    </button>
+                  )}
                   <button className="text-pr-d hover:underline" onClick={() => onRemind(g.id)}>
                     Nhắc
                   </button>
-                  <button
-                    className="text-muted hover:underline"
-                    onClick={() => onToggleNoShow(g.id, !g.no_show)}
-                  >
-                    Vắng
+                  <button className="text-muted hover:underline" onClick={() => onToggleNoShow(g.id, !g.no_show)}>
+                    {g.no_show ? "Có đến" : "Vắng"}
                   </button>
                   <button className="text-rose hover:underline" onClick={() => onDelete(g.id)}>
                     Xóa

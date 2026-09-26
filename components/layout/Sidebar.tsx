@@ -7,6 +7,7 @@ const NAV_ITEMS = [
   { href: "/", label: "Tổng quan" },
   { href: "/seating", label: "Sơ đồ bàn" },
   { href: "/guests", label: "Khách mời" },
+  { href: "/checkin", label: "Check-in" },
   { href: "/settings", label: "Cài đặt" },
 ]
 

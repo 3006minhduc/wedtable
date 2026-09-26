@@ -1,8 +1,144 @@
+"use client"
+
+import { useEffect, useState } from "react"
+import { useEvents } from "@/lib/useEvents"
+
+function toLocalInput(iso: string | null) {
+  if (!iso) return ""
+  const d = new Date(iso)
+  const p = (n: number) => String(n).padStart(2, "0")
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`
+}
+
 export default function SettingsPage() {
+  const { eventId, loading, reload } = useEvents()
+  const [form, setForm] = useState<any>(null)
+  const [msg, setMsg] = useState("")
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (!eventId) return
+    fetch(`/api/events/${eventId}`)
+      .then((r) => r.json())
+      .then((e) =>
+        setForm({
+          bride_name: e.bride_name ?? "",
+          groom_name: e.groom_name ?? "",
+          event_date: e.event_date ?? "",
+          event_time: e.event_time ?? "",
+          venue_name: e.venue_name ?? "",
+          menu: e.menu ?? "",
+          video_url: e.video_url ?? "",
+          template: e.template ?? "co-dien",
+          published: !!e.published,
+          show_guest_names_on_map: !!e.show_guest_names_on_map,
+          lock_at: toLocalInput(e.lock_at),
+        })
+      )
+  }, [eventId])
+
+  async function save() {
+    setSaving(true)
+    setMsg("")
+    const body = {
+      ...form,
+      event_date: form.event_date || null,
+      event_time: form.event_time || null,
+      lock_at: form.lock_at ? new Date(form.lock_at).toISOString() : null,
+    }
+    const res = await fetch(`/api/events/${eventId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    })
+    const d = await res.json()
+    setSaving(false)
+    setMsg(res.ok ? "Đã lưu cài đặt" : d.message ?? "Lỗi khi lưu")
+    if (res.ok) reload()
+  }
+
+  async function deleteEvent() {
+    if (!confirm("Xóa vĩnh viễn đám cưới này cùng toàn bộ bàn và khách?")) return
+    await fetch(`/api/events/${eventId}`, { method: "DELETE" })
+    try {
+      localStorage.removeItem("wt_event")
+    } catch {}
+    window.location.href = "/"
+  }
+
+  if (loading || (eventId && !form)) return <p className="text-muted">Đang tải...</p>
+  if (!eventId) return <p className="text-muted">Bạn chưa có sự kiện nào. Tạo ở trang Tổng quan.</p>
+
+  const set = (k: string, v: any) => setForm({ ...form, [k]: v })
+  const input = "border border-border rounded-card px-3 py-2 text-sm w-full"
+  const origin = typeof window !== "undefined" ? window.location.origin : ""
+  const displayUrl = `${origin}/display/${eventId}`
+
   return (
-    <div>
-      <h1 className="text-xl font-semibold text-text mb-2">Cài đặt sự kiện</h1>
-      <p className="text-muted">Tính năng đang được phát triển.</p>
+    <div className="max-w-2xl flex flex-col gap-6">
+      <h1 className="text-xl font-semibold text-text">Cài đặt sự kiện</h1>
+
+      <section className="bg-surface border border-border rounded-card p-4 flex flex-col gap-3">
+        <h2 className="font-semibold text-text">Thông tin</h2>
+        <div className="grid grid-cols-2 gap-3">
+          <input className={input} placeholder="Tên cô dâu" value={form.bride_name} onChange={(e) => set("bride_name", e.target.value)} />
+          <input className={input} placeholder="Tên chú rể" value={form.groom_name} onChange={(e) => set("groom_name", e.target.value)} />
+          <input className={input} type="date" value={form.event_date} onChange={(e) => set("event_date", e.target.value)} />
+          <input className={input} type="time" value={form.event_time} onChange={(e) => set("event_time", e.target.value)} />
+        </div>
+        <input className={input} placeholder="Địa điểm" value={form.venue_name} onChange={(e) => set("venue_name", e.target.value)} />
+        <textarea className={input} rows={3} placeholder="Thực đơn" value={form.menu} onChange={(e) => set("menu", e.target.value)} />
+        <input className={input} placeholder="Link video (YouTube...)" value={form.video_url} onChange={(e) => set("video_url", e.target.value)} />
+        <select className={input} value={form.template} onChange={(e) => set("template", e.target.value)}>
+          <option value="co-dien">Cổ điển</option>
+          <option value="hien-dai">Hiện đại</option>
+          <option value="toi-gian">Tối giản</option>
+        </select>
+      </section>
+
+      <section className="bg-surface border border-border rounded-card p-4 flex flex-col gap-3">
+        <h2 className="font-semibold text-text">Công khai &amp; khóa danh sách</h2>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={form.published} onChange={(e) => set("published", e.target.checked)} />
+          Publish (khách mở được thiệp mời, màn hình realtime hoạt động)
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={form.show_guest_names_on_map} onChange={(e) => set("show_guest_names_on_map", e.target.checked)} />
+          Hiện tên khách trên sơ đồ bàn (màn hình realtime)
+        </label>
+        <div>
+          <label className="text-sm text-muted block mb-1">Khóa thay đổi từ thời điểm</label>
+          <input className={input} type="datetime-local" value={form.lock_at} onChange={(e) => set("lock_at", e.target.value)} />
+          <p className="text-xs text-muted mt-1">Sau thời điểm này khách không tự đổi bàn được nữa. Để trống = không khóa.</p>
+        </div>
+      </section>
+
+      <div className="flex items-center gap-3">
+        <button disabled={saving} onClick={save} className="bg-pr text-ink font-medium rounded-pill px-5 py-2 text-sm disabled:opacity-50">
+          {saving ? "Đang lưu..." : "Lưu cài đặt"}
+        </button>
+        {msg && <span className="text-sm text-sage">{msg}</span>}
+      </div>
+
+      <section className="bg-surface border border-border rounded-card p-4 flex flex-col gap-2">
+        <h2 className="font-semibold text-text">Màn hình trình chiếu (TV/máy chiếu)</h2>
+        <p className="text-sm text-muted break-all">{displayUrl}</p>
+        <div className="flex gap-2">
+          <a className="border border-border rounded-pill px-3 py-1.5 text-sm" href={displayUrl} target="_blank" rel="noreferrer">
+            Mở màn hình
+          </a>
+          <button className="border border-border rounded-pill px-3 py-1.5 text-sm" onClick={() => navigator.clipboard.writeText(displayUrl).then(() => setMsg("Đã copy link"))}>
+            Copy link
+          </button>
+        </div>
+      </section>
+
+      <section className="border border-rose/40 rounded-card p-4">
+        <h2 className="font-semibold text-rose mb-2">Vùng nguy hiểm</h2>
+        <button onClick={deleteEvent} className="border border-rose text-rose rounded-pill px-4 py-2 text-sm">
+          Xóa đám cưới này
+        </button>
+      </section>
     </div>
   )
 }

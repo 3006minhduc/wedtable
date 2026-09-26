@@ -1,70 +1,100 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import * as XLSX from "xlsx"
+import QRCode from "qrcode"
 import GuestTable from "@/components/guests/GuestTable"
+import { useEvents } from "@/lib/useEvents"
+
+const FILTERS = [
+  { key: "all", label: "Tất cả" },
+  { key: "confirmed", label: "Đã xác nhận" },
+  { key: "pending", label: "Chưa phản hồi" },
+  { key: "checked_in", label: "Đã check-in" },
+  { key: "no_show", label: "Không đến" },
+]
 
 export default function GuestsPage() {
-  const [eventId, setEventId] = useState<string | null>(null)
+  const { eventId, loading: eventsLoading } = useEvents()
   const [guests, setGuests] = useState<any[]>([])
   const [tables, setTables] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [filter, setFilter] = useState("all")
+  const [search, setSearch] = useState("")
+  const [newName, setNewName] = useState("")
+  const [newPhone, setNewPhone] = useState("")
+  const [notice, setNotice] = useState("")
+  const [qr, setQr] = useState<{ guest: any; url: string; img: string } | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
-    init()
-  }, [])
-
-  async function init() {
-    setLoading(true)
-    const eventsRes = await fetch("/api/events")
-    const events = await eventsRes.json()
-    if (!Array.isArray(events) || events.length === 0) {
-      setLoading(false)
-      return
-    }
-    const id = events[0].id
-    setEventId(id)
-    const eventRes = await fetch(`/api/events/${id}`)
+  const load = useCallback(async () => {
+    if (!eventId) return
+    const [eventRes, guestsRes] = await Promise.all([
+      fetch(`/api/events/${eventId}`),
+      fetch(`/api/events/${eventId}/guests`),
+    ])
     const event = await eventRes.json()
-    setTables((event.floors ?? []).flatMap((f: any) => f.tables ?? []))
-    const guestsRes = await fetch(`/api/events/${id}/guests`)
     const guestsData = await guestsRes.json()
+    setTables((event.floors ?? []).flatMap((f: any) => f.tables ?? []))
     setGuests(guestsData.guests ?? [])
     setLoading(false)
-  }
+  }, [eventId])
 
-  async function handleAssignTable(guestId: string, tableId: string) {
-    if (!eventId) return
-    setGuests((prev) => prev.map((g) => (g.id === guestId ? { ...g, table_id: tableId || null } : g)))
-    await fetch(`/api/events/${eventId}/guests/${guestId}`, {
+  useEffect(() => {
+    load()
+  }, [load])
+
+  function patchGuest(guestId: string, body: any) {
+    setGuests((prev) => prev.map((g) => (g.id === guestId ? { ...g, ...body } : g)))
+    return fetch(`/api/events/${eventId}/guests/${guestId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ table_id: tableId || null }),
+      body: JSON.stringify(body),
     })
   }
 
-  async function handleToggleNoShow(guestId: string, value: boolean) {
-    if (!eventId) return
-    setGuests((prev) => prev.map((g) => (g.id === guestId ? { ...g, no_show: value } : g)))
-    await fetch(`/api/events/${eventId}/guests/${guestId}`, {
-      method: "PATCH",
+  async function handleAdd() {
+    if (!newName.trim()) return
+    const res = await fetch(`/api/events/${eventId}/guests`, {
+      method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ no_show: value }),
+      body: JSON.stringify({ name: newName.trim(), phone: newPhone.trim() }),
     })
+    if (res.ok) {
+      setNewName("")
+      setNewPhone("")
+      load()
+    } else {
+      const d = await res.json()
+      setNotice(d.message ?? "Không thêm được khách")
+    }
   }
 
   async function handleRemind(guestId: string) {
-    if (!eventId) return
-    await fetch(`/api/events/${eventId}/guests/remind`, {
+    const res = await fetch(`/api/events/${eventId}/guests/remind`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ guest_ids: [guestId] }),
     })
+    const d = await res.json()
+    setNotice(res.ok ? `Đã gửi ${d.sent}, lỗi ${d.failed}` : d.message ?? "Lỗi nhắc")
+    load()
+  }
+
+  async function handleRemindAll() {
+    if (!confirm("Nhắc tất cả khách chưa xác nhận qua Zalo?")) return
+    const res = await fetch(`/api/events/${eventId}/guests/remind`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    })
+    const d = await res.json()
+    setNotice(res.ok ? `Đã gửi ${d.sent}, lỗi ${d.failed}` : d.message ?? "Lỗi nhắc")
+    load()
   }
 
   async function handleDelete(guestId: string) {
-    if (!eventId) return
+    if (!confirm("Xóa khách này?")) return
     setGuests((prev) => prev.filter((g) => g.id !== guestId))
     await fetch(`/api/events/${eventId}/guests/${guestId}`, { method: "DELETE" })
   }
@@ -77,49 +107,123 @@ export default function GuestsPage() {
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
     const rows: any[] = XLSX.utils.sheet_to_json(sheet)
     const parsed = rows.map((r) => ({
-      name: r.Ten ?? r.Name ?? r.name ?? "",
-      phone: r.SDT ?? r.Phone ?? r.phone ?? "",
+      name: String(r.Ten ?? r["Tên"] ?? r.Name ?? r.name ?? "").trim(),
+      phone: String(r.SDT ?? r["SĐT"] ?? r.Phone ?? r.phone ?? "").trim(),
     }))
-    await fetch(`/api/events/${eventId}/guests/import`, {
+    const res = await fetch(`/api/events/${eventId}/guests/import`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ guests: parsed }),
     })
+    const d = await res.json()
+    setNotice(res.ok ? `Import: thêm ${d.added}, bỏ qua ${d.skipped}` : d.message ?? "Lỗi import")
     if (fileInputRef.current) fileInputRef.current.value = ""
-    init()
+    load()
   }
 
-  if (loading) return <p className="text-muted">Đang tải...</p>
-  if (!eventId) return <p className="text-muted">Bạn chưa có sự kiện nào.</p>
+  async function openQr(guest: any) {
+    const url = `${window.location.origin}/invite/${guest.code}`
+    const img = await QRCode.toDataURL(url, { width: 240, margin: 1 })
+    setQr({ guest, url, img })
+  }
+
+  const visible = guests.filter((g) => {
+    if (filter === "confirmed" && !g.confirmed) return false
+    if (filter === "pending" && (g.confirmed || g.no_show)) return false
+    if (filter === "checked_in" && !g.checked_in) return false
+    if (filter === "no_show" && !g.no_show) return false
+    const q = search.trim().toLowerCase()
+    if (q && !(g.name.toLowerCase().includes(q) || (g.phone ?? "").includes(q) || g.code.toLowerCase().includes(q))) return false
+    return true
+  })
+
+  if (eventsLoading || loading) return <p className="text-muted">Đang tải...</p>
+  if (!eventId) return <p className="text-muted">Bạn chưa có sự kiện nào. Tạo ở trang Tổng quan.</p>
+
+  const input = "border border-border rounded-card px-3 py-2 text-sm"
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-xl font-semibold text-text">Khách mời</h1>
-        <div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".xlsx,.xls,.csv"
-            className="hidden"
-            onChange={handleImportFile}
-          />
-          <button
-            className="bg-pr text-ink font-medium rounded-pill px-4 py-2 text-sm"
-            onClick={() => fileInputRef.current?.click()}
-          >
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <h1 className="text-xl font-semibold text-text">Khách mời ({guests.length})</h1>
+        <div className="flex gap-2 flex-wrap">
+          <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleImportFile} />
+          <button className="border border-border rounded-pill px-3 py-1.5 text-sm" onClick={() => fileInputRef.current?.click()}>
             Import Excel
+          </button>
+          <a className="border border-border rounded-pill px-3 py-1.5 text-sm" href={`/api/events/${eventId}/guests/export?format=xlsx`}>
+            Xuất Excel
+          </a>
+          <a className="border border-border rounded-pill px-3 py-1.5 text-sm" href={`/api/events/${eventId}/guests/export?format=csv`}>
+            Xuất CSV
+          </a>
+          <button className="bg-pr text-ink font-medium rounded-pill px-3 py-1.5 text-sm" onClick={handleRemindAll}>
+            Nhắc tất cả chưa xác nhận
           </button>
         </div>
       </div>
+
+      <div className="flex gap-2 flex-wrap items-center bg-surface border border-border rounded-card p-3">
+        <input className={input} placeholder="Tên khách" value={newName} onChange={(e) => setNewName(e.target.value)} />
+        <input className={input} placeholder="Số điện thoại" value={newPhone} onChange={(e) => setNewPhone(e.target.value)} />
+        <button className="bg-pr text-ink font-medium rounded-pill px-4 py-2 text-sm disabled:opacity-50" disabled={!newName.trim()} onClick={handleAdd}>
+          + Thêm khách
+        </button>
+      </div>
+
+      {notice && (
+        <div className="text-sm bg-pr-l text-pr-d rounded-card px-3 py-2 flex justify-between">
+          <span>{notice}</span>
+          <button onClick={() => setNotice("")}>✕</button>
+        </div>
+      )}
+
+      <div className="flex gap-2 flex-wrap items-center">
+        {FILTERS.map((f) => (
+          <button
+            key={f.key}
+            onClick={() => setFilter(f.key)}
+            className={"rounded-pill px-3 py-1 text-sm border " + (filter === f.key ? "bg-pr border-pr text-ink" : "border-border text-muted")}
+          >
+            {f.label}
+          </button>
+        ))}
+        <input className={input + " ml-auto"} placeholder="Tìm tên / SĐT / mã..." value={search} onChange={(e) => setSearch(e.target.value)} />
+      </div>
+
       <GuestTable
-        guests={guests}
+        guests={visible}
         tables={tables}
-        onAssignTable={handleAssignTable}
-        onToggleNoShow={handleToggleNoShow}
+        onAssignTable={(id, tableId) => patchGuest(id, { table_id: tableId || null })}
+        onToggleNoShow={(id, v) => patchGuest(id, { no_show: v })}
+        onCompanions={(id, v) => patchGuest(id, { companions: v })}
         onRemind={handleRemind}
         onDelete={handleDelete}
+        onQr={openQr}
       />
+
+      {qr && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-20" onClick={() => setQr(null)}>
+          <div className="bg-surface rounded-card p-6 text-center max-w-xs" onClick={(e) => e.stopPropagation()}>
+            <div className="font-semibold text-text mb-1">{qr.guest.name}</div>
+            <div className="text-xs text-muted mb-3">Mã: {qr.guest.code}</div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={qr.img} alt="QR" className="mx-auto mb-3" />
+            <div className="text-xs text-muted break-all mb-3">{qr.url}</div>
+            <div className="flex gap-2 justify-center">
+              <button
+                className="bg-pr text-ink rounded-pill px-3 py-1.5 text-sm"
+                onClick={() => navigator.clipboard.writeText(qr.url).then(() => setNotice("Đã copy link mời"))}
+              >
+                Copy link
+              </button>
+              <button className="border border-border rounded-pill px-3 py-1.5 text-sm" onClick={() => setQr(null)}>
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
