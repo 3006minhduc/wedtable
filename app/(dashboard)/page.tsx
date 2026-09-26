@@ -89,7 +89,7 @@ export default function DashboardHome() {
   if (events.length === 0) {
     return (
       <div>
-        <h1 className="text-xl font-semibold text-text mb-2">Chào mừng đến WebTable</h1>
+        <h1 className="text-xl font-semibold text-text mb-2">Chào mừng đến WedTable</h1>
         <p className="text-muted mb-4">Bạn chưa có sự kiện nào. Tạo đám cưới đầu tiên để bắt đầu.</p>
         <CreateEventForm onCreated={handleCreated} />
       </div>

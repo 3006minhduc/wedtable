@@ -86,7 +86,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-bg flex items-center justify-center p-4">
       <div className="w-full max-w-sm bg-surface rounded-card border border-border p-6">
-        <h1 className="text-lg font-semibold text-text mb-1">WebTable</h1>
+        <h1 className="text-lg font-semibold text-text mb-1">WedTable</h1>
         <p className="text-sm text-muted mb-5">Quản lý bàn tiệc cưới. Đăng nhập để bắt đầu.</p>
 
         {error && <div className="mb-3 text-sm text-rose bg-rose/10 rounded-card px-3 py-2">{error}</div>}

@@ -19,7 +19,7 @@ async function getInvite(guestCode: string) {
 export async function generateMetadata({ params }: { params: { guestCode: string } }) {
   const invite = await getInvite(params.guestCode)
   if (!invite) {
-    return { title: "Thiệp mời - WebTable" }
+    return { title: "Thiệp mời - WedTable" }
   }
   const event = invite.event
   return {

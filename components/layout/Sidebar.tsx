@@ -4,37 +4,35 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 
 const NAV_ITEMS = [
-  { href: "/", label: "Tổng quan" },
-  { href: "/seating", label: "Sơ đồ bàn" },
-  { href: "/guests", label: "Khách mời" },
-  { href: "/checkin", label: "Check-in" },
-  { href: "/settings", label: "Cài đặt" },
+  { href: "/", label: "Tổng quan", icon: "▦" },
+  { href: "/seating", label: "Sơ đồ bàn", icon: "◍" },
+  { href: "/guests", label: "Khách mời", icon: "☺" },
+  { href: "/checkin", label: "Check-in", icon: "✓" },
+  { href: "/settings", label: "Cài đặt", icon: "⚙" },
 ]
 
 export default function Sidebar() {
   const pathname = usePathname()
 
   return (
-    <aside className="w-[230px] shrink-0 bg-ink min-h-screen p-4">
-      <div className="text-white font-semibold text-lg mb-6 px-2">WebTable</div>
-      <nav className="flex flex-col gap-1">
-        {NAV_ITEMS.map((item) => {
-          const active = pathname === item.href
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={
-                active
-                  ? "px-3 py-2 rounded-card bg-pr text-ink font-medium text-sm"
-                  : "px-3 py-2 rounded-card text-white/80 hover:bg-white/10 text-sm"
-              }
-            >
-              {item.label}
-            </Link>
-          )
-        })}
-      </nav>
+    <aside className="w-[230px] h-full bg-ink p-3 flex flex-col gap-1">
+      <div className="text-[11px] uppercase tracking-wider text-white/40 px-3 pt-2 pb-1">Quản lý</div>
+      {NAV_ITEMS.map((item) => {
+        const active = pathname === item.href
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={
+              "flex items-center gap-3 px-3 py-2 rounded-card text-sm " +
+              (active ? "bg-pr text-ink font-medium" : "text-white/80 hover:bg-white/10")
+            }
+          >
+            <span className="w-4 text-center">{item.icon}</span>
+            {item.label}
+          </Link>
+        )
+      })}
     </aside>
   )
 }
