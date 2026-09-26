@@ -1,7 +1,28 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { createClient } from "@/lib/supabase/client"
 import { useEvents } from "@/lib/useEvents"
+
+const BUCKET = "wedding-media"
+
+function resizeImage(file: File, max: number): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      const scale = Math.min(1, max / Math.max(img.width, img.height))
+      const canvas = document.createElement("canvas")
+      canvas.width = Math.round(img.width * scale)
+      canvas.height = Math.round(img.height * scale)
+      canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height)
+      URL.revokeObjectURL(url)
+      canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("resize failed"))), "image/jpeg", 0.85)
+    }
+    img.onerror = () => reject(new Error("Không đọc được ảnh"))
+    img.src = url
+  })
+}
 
 function toLocalInput(iso: string | null) {
   if (!iso) return ""
@@ -15,11 +36,64 @@ export default function SettingsPage() {
   const [form, setForm] = useState<any>(null)
   const [msg, setMsg] = useState("")
   const [saving, setSaving] = useState(false)
+  const [gallery, setGallery] = useState<string[]>([])
+  const [uploading, setUploading] = useState(false)
+
+  async function saveGallery(next: string[]) {
+    setGallery(next)
+    await fetch(`/api/events/${eventId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ gallery: next }),
+    })
+  }
+
+  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? [])
+    if (files.length === 0) return
+    setUploading(true)
+    setMsg("")
+    try {
+      const supabase = createClient()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) throw new Error("Chưa đăng nhập")
+      let next = [...gallery]
+      for (const file of files) {
+        const blob = await resizeImage(file, 1200)
+        const path = `${user.id}/${eventId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`
+        const { error } = await supabase.storage.from(BUCKET).upload(path, blob, { contentType: "image/jpeg" })
+        if (error) throw new Error(error.message)
+        next = [...next, supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl]
+      }
+      await saveGallery(next)
+      setMsg(`Đã tải lên ${files.length} ảnh`)
+    } catch (err: any) {
+      setMsg(err.message ?? "Lỗi tải ảnh")
+    }
+    setUploading(false)
+    e.target.value = ""
+  }
+
+  async function removePhoto(url: string) {
+    if (!confirm("Xóa ảnh này?")) return
+    const marker = `/object/public/${BUCKET}/`
+    const idx = url.indexOf(marker)
+    if (idx >= 0) {
+      await createClient().storage.from(BUCKET).remove([decodeURIComponent(url.slice(idx + marker.length))])
+    }
+    await saveGallery(gallery.filter((u) => u !== url))
+  }
 
   useEffect(() => {
     if (!eventId) return
     fetch(`/api/events/${eventId}`)
       .then((r) => r.json())
+      .then((e) => {
+        setGallery(Array.isArray(e.gallery) ? e.gallery : [])
+        return e
+      })
       .then((e) =>
         setForm({
           bride_name: e.bride_name ?? "",
@@ -94,6 +168,29 @@ export default function SettingsPage() {
           <option value="hien-dai">Hiện đại</option>
           <option value="toi-gian">Tối giản</option>
         </select>
+      </section>
+
+      <section className="bg-surface border border-border rounded-card p-4 flex flex-col gap-3">
+        <h2 className="font-semibold text-text">Ảnh cưới ({gallery.length})</h2>
+        <p className="text-xs text-muted">Ảnh công khai, hiển thị trên thiệp mời của khách. Tự nén về tối đa 1200px.</p>
+        <div className="grid grid-cols-3 gap-2">
+          {gallery.map((url) => (
+            <div key={url} className="relative">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={url} alt="" className="w-full h-24 object-cover rounded-card" />
+              <button
+                onClick={() => removePhoto(url)}
+                className="absolute top-1 right-1 bg-black/60 text-white text-xs rounded-full w-5 h-5"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+        <label className="border border-border rounded-pill px-4 py-2 text-sm w-fit cursor-pointer">
+          {uploading ? "Đang tải lên..." : "+ Tải ảnh lên"}
+          <input type="file" accept="image/*" multiple className="hidden" disabled={uploading} onChange={handleUpload} />
+        </label>
       </section>
 
       <section className="bg-surface border border-border rounded-card p-4 flex flex-col gap-3">

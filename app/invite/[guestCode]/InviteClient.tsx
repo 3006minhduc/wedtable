@@ -25,30 +25,6 @@ export default function InviteClient({
   }, [])
 
   const allTables = floors.flatMap((f) => f.tables ?? [])
-  const [giftAmount, setGiftAmount] = useState(500000)
-  const [giftMsg, setGiftMsg] = useState("")
-  const [giftLoading, setGiftLoading] = useState(false)
-
-  async function handleGift() {
-    setGiftLoading(true)
-    setGiftMsg("")
-    const res = await fetch("/api/payment/create", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        event_id: event.id,
-        amount: giftAmount,
-        message: `Mung cuoi ${event.bride_name} va ${event.groom_name} - ${guest.name}`,
-      }),
-    })
-    const d = await res.json()
-    setGiftLoading(false)
-    if (res.ok && d.payment_url) {
-      window.location.href = d.payment_url
-    } else {
-      setGiftMsg(d.message ?? "Không tạo được thanh toán.")
-    }
-  }
 
   async function handleConfirm() {
     if (!tableId) {
@@ -141,27 +117,6 @@ export default function InviteClient({
           </a>
         )}
 
-        <div className="mt-6 pt-4 border-t border-border text-left">
-          <p className="text-sm font-medium text-text mb-2">Mừng cưới online</p>
-          <div className="flex gap-2">
-            <input
-              type="number"
-              min={10000}
-              step={10000}
-              className="border border-border rounded-card px-3 py-2 text-sm flex-1"
-              value={giftAmount}
-              onChange={(e) => setGiftAmount(Number(e.target.value))}
-            />
-            <button
-              className="bg-ink text-white rounded-pill px-4 py-2 text-sm disabled:opacity-50"
-              disabled={giftLoading}
-              onClick={handleGift}
-            >
-              {giftLoading ? "..." : "Mừng qua VNPay"}
-            </button>
-          </div>
-          {giftMsg && <p className="text-xs text-rose mt-2">{giftMsg}</p>}
-        </div>
       </div>
     </div>
   )
