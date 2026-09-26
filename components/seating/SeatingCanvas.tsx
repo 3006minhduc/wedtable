@@ -83,7 +83,7 @@ export default function SeatingCanvas({
   onTableMove: (id: string, x_pct: number, y_pct: number) => void
   onTableClick?: (table: Table) => void
 }) {
-  const canvasRef = useRef<HTMLDivElement>(null)
+  const canvasRef = useRef<HTMLDivElement | null>(null)
 
   const [, drop] = useDrop({
     accept: "TABLE",
