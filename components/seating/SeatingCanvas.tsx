@@ -72,17 +72,22 @@ function TableNode({
   )
 }
 
-export default function SeatingCanvas({
-  tables,
-  guests,
-  onTableMove,
-  onTableClick,
-}: {
+type CanvasProps = {
   tables: Table[]
   guests: Guest[]
   onTableMove: (id: string, x_pct: number, y_pct: number) => void
   onTableClick?: (table: Table) => void
-}) {
+}
+
+export default function SeatingCanvas(props: CanvasProps) {
+  return (
+    <DndProvider backend={HTML5Backend}>
+      <Canvas {...props} />
+    </DndProvider>
+  )
+}
+
+function Canvas({ tables, guests, onTableMove, onTableClick }: CanvasProps) {
   const canvasRef = useRef<HTMLDivElement | null>(null)
 
   const [, drop] = useDrop({
@@ -98,26 +103,24 @@ export default function SeatingCanvas({
   })
 
   return (
-    <DndProvider backend={HTML5Backend}>
-      <div
-        ref={(node) => {
-          canvasRef.current = node
-          drop(node as any)
-        }}
-        className="relative w-full h-[600px] bg-surface border border-border rounded-card overflow-hidden"
-      >
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-ink text-white text-xs px-4 py-2 rounded-card">
-          Sân khấu
-        </div>
-        {tables.map((table) => (
-          <TableNode
-            key={table.id}
-            table={table}
-            occupied={occupiedSeats(guests, table.id)}
-            onClick={() => onTableClick?.(table)}
-          />
-        ))}
+    <div
+      ref={(node) => {
+        canvasRef.current = node
+        drop(node as any)
+      }}
+      className="relative w-full h-[600px] bg-surface border border-border rounded-card overflow-hidden"
+    >
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-ink text-white text-xs px-4 py-2 rounded-card">
+        Sân khấu
       </div>
-    </DndProvider>
+      {tables.map((table) => (
+        <TableNode
+          key={table.id}
+          table={table}
+          occupied={occupiedSeats(guests, table.id)}
+          onClick={() => onTableClick?.(table)}
+        />
+      ))}
+    </div>
   )
 }
