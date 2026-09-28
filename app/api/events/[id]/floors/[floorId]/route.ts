@@ -9,10 +9,14 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     return Response.json({ error: "UNAUTHORIZED", message: "Chưa đăng nhập." }, { status: 401 })
   }
 
-  const body = await request.json()
+  const raw = await request.json()
+  const ALLOWED = ["name", "elements", "background_url", "background_opacity", "layout_template"]
+  const body: Record<string, any> = {}
+  for (const k of ALLOWED) if (k in raw) body[k] = raw[k]
+
   const { data, error } = await supabase
     .from("floors")
-    .update({ name: body.name })
+    .update(body)
     .eq("id", params.floorId)
     .eq("event_id", params.id)
     .select()
