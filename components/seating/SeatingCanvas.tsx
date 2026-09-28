@@ -91,7 +91,7 @@ function BlockNode({
     item: { id: el.id },
     collect: (monitor) => ({ isDragging: monitor.isDragging() }),
   })
-  const ref = useRef<HTMLDivElement>(null)
+  const ref = useRef<HTMLDivElement | null>(null)
 
   function startResize(e: React.PointerEvent) {
     e.stopPropagation()
