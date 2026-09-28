@@ -1,9 +1,11 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import { createClient } from "@/lib/supabase/client"
 
 const KEY = "wt_event"
 const EVT = "wt-event-change"
+let claimed = false
 
 function readSaved(): string | null {
   try {
@@ -19,6 +21,12 @@ export function useEvents() {
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(async () => {
+    if (!claimed) {
+      claimed = true
+      try {
+        await createClient().rpc("claim_invites")
+      } catch {}
+    }
     const res = await fetch("/api/events")
     if (res.status === 401) {
       window.location.href = "/login"
@@ -54,7 +62,9 @@ export function useEvents() {
     window.dispatchEvent(new Event(EVT))
   }
 
-  return { events, eventId, setEventId, loading, reload: load }
+  const role: string = events.find((e) => e.id === eventId)?._role ?? "owner"
+
+  return { events, eventId, setEventId, loading, reload: load, role }
 }
 
 export function daysLeft(date: string | null | undefined) {
@@ -68,3 +78,22 @@ export function seatsUsed(guests: any[], tableId: string) {
     .filter((g) => g.table_id === tableId && !g.no_show)
     .reduce((s, g) => s + 1 + (g.companions ?? 0), 0)
 }
+
+export const ROLE_LABEL: Record<string, string> = {
+  owner: "Chủ sự kiện",
+  design: "Thiết kế",
+  setup: "Setup",
+  checkin: "Check-in",
+  member: "Thành viên",
+}
+
+export const NAV_BY_ROLE: Record<string, string[]> = {
+  owner: ["/", "/seating", "/guests", "/checkin", "/settings"],
+  design: ["/seating", "/settings"],
+  setup: ["/seating", "/guests"],
+  checkin: ["/checkin"],
+  member: [],
+}
+
+// Routes reachable regardless of role (not part of the role-gated sidebar nav)
+export const EXEMPT_ROUTES = ["/profile"]

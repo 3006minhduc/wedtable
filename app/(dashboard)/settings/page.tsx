@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { useEvents } from "@/lib/useEvents"
+import { ROLE_LABEL, useEvents } from "@/lib/useEvents"
 
 const BUCKET = "wedding-media"
 
@@ -54,8 +54,119 @@ function buildBody(form: any) {
   }
 }
 
+const ROLE_OPTIONS = [
+  { value: "design", label: "Thiết kế", desc: "Sửa nội dung, ảnh, QR mừng cưới, giao diện sơ đồ bàn. Không thấy danh sách khách." },
+  { value: "setup", label: "Setup", desc: "Quản lý bàn và khách mời." },
+  { value: "checkin", label: "Check-in", desc: "Chỉ dùng trang Check-in." },
+]
+
+function MembersSection({ eventId }: { eventId: string }) {
+  const [members, setMembers] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [email, setEmail] = useState("")
+  const [role, setRole] = useState("setup")
+  const [saving, setSaving] = useState(false)
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null)
+
+  async function load() {
+    setLoading(true)
+    const res = await fetch(`/api/events/${eventId}/members`)
+    if (res.ok) setMembers(await res.json())
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    load()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventId])
+
+  async function addMember() {
+    if (!email.trim()) return
+    setSaving(true)
+    setMsg(null)
+    const res = await fetch(`/api/events/${eventId}/members`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: email.trim(), role }),
+    })
+    const d = await res.json()
+    setSaving(false)
+    if (res.ok) {
+      setEmail("")
+      setMsg({ ok: true, text: `Đã mời ${email.trim()}. Họ đăng nhập bằng Google với email này để nhận quyền.` })
+      load()
+    } else {
+      setMsg({ ok: false, text: d.message ?? "Không thêm được thành viên." })
+    }
+  }
+
+  async function removeMember(id: string) {
+    if (!confirm("Gỡ quyền của thành viên này?")) return
+    await fetch(`/api/events/${eventId}/members/${id}`, { method: "DELETE" })
+    load()
+  }
+
+  return (
+    <section className="bg-surface border border-border rounded-card p-4 flex flex-col gap-3">
+      <h2 className="font-semibold text-text">Thành viên hỗ trợ</h2>
+      <p className="text-xs text-muted">
+        Mời người khác hỗ trợ theo vai trò. Họ chỉ cần đăng nhập WedTable bằng Google với đúng email bên dưới.
+      </p>
+
+      {msg && (
+        <div className={"text-sm rounded-card px-3 py-2 flex justify-between " + (msg.ok ? "bg-pr-l text-pr-d" : "bg-rose/10 text-rose")}>
+          <span>{msg.text}</span>
+          <button onClick={() => setMsg(null)}>✕</button>
+        </div>
+      )}
+
+      <div className="flex flex-col sm:flex-row gap-2">
+        <input
+          className="border border-border rounded-card px-3 py-2 text-sm flex-1"
+          placeholder="Email cộng tác viên"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <select className="border border-border rounded-card px-3 py-2 text-sm" value={role} onChange={(e) => setRole(e.target.value)}>
+          {ROLE_OPTIONS.map((r) => (
+            <option key={r.value} value={r.value}>
+              {r.label}
+            </option>
+          ))}
+        </select>
+        <button disabled={saving || !email.trim()} onClick={addMember} className="bg-pr text-ink font-medium rounded-pill px-4 py-2 text-sm disabled:opacity-50 whitespace-nowrap">
+          {saving ? "Đang mời..." : "+ Mời"}
+        </button>
+      </div>
+      <p className="text-xs text-muted">{ROLE_OPTIONS.find((r) => r.value === role)?.desc}</p>
+
+      {loading ? (
+        <p className="text-sm text-muted">Đang tải...</p>
+      ) : members.length === 0 ? (
+        <p className="text-sm text-muted">Chưa có thành viên nào.</p>
+      ) : (
+        <div className="flex flex-col divide-y divide-border">
+          {members.map((m) => (
+            <div key={m.id} className="flex items-center justify-between py-2 text-sm">
+              <div>
+                <div className="text-text">{m.email}</div>
+                <div className="text-xs text-muted">
+                  {ROLE_LABEL[m.role] ?? m.role} · {m.user_id ? "Đã tham gia" : "Đang chờ đăng nhập"}
+                </div>
+              </div>
+              <button onClick={() => removeMember(m.id)} className="text-rose text-xs hover:underline">
+                Gỡ
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  )
+}
+
 export default function SettingsPage() {
-  const { eventId, loading } = useEvents()
+  const { eventId, loading, role } = useEvents()
   const [form, setForm] = useState<any>(null)
   const [published, setPublished] = useState(false)
   const [tablesCount, setTablesCount] = useState(0)
@@ -293,37 +404,45 @@ export default function SettingsPage() {
         </div>
       )}
 
-      <section ref={publishRef} className={"rounded-card p-4 flex flex-col gap-3 border " + (published ? "bg-sage/10 border-sage/40" : "bg-surface border-border")}>
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div>
-            <h2 className="font-semibold text-text">Publish sự kiện</h2>
-            <p className="text-sm text-muted">
-              {published
-                ? "Sự kiện đã publish. Khách mở được thiệp mời và màn hình trình chiếu."
-                : "Sự kiện chưa publish. Khách chưa mở được link mời."}
-            </p>
-          </div>
-          {published ? (
-            <button disabled={publishing} onClick={unpublish} className="border border-border text-muted rounded-pill px-4 py-2 text-sm disabled:opacity-50">
-              Hủy publish
-            </button>
-          ) : (
-            <button disabled={publishing} onClick={publish} className="bg-pr text-ink font-medium rounded-pill px-5 py-2 text-sm disabled:opacity-50">
-              {publishing ? "Đang publish..." : "Publish sự kiện"}
-            </button>
-          )}
+      {role !== "owner" && (
+        <div className="text-sm bg-pr-l text-pr-d rounded-card px-3 py-2">
+          Bạn đang hỗ trợ với vai trò <strong>{ROLE_LABEL[role] ?? role}</strong>. Một số mục chỉ chủ sự kiện mới thấy.
         </div>
-        {!published && missing.length > 0 && (
-          <div className="bg-rose/10 border border-rose/30 rounded-card px-3 py-3 text-sm text-rose">
-            <div className="font-medium mb-1">Chưa thể publish, còn thông tin bắt buộc đang trống:</div>
-            <ul className="list-disc pl-5">
-              {missing.map((m) => (
-                <li key={m}>{m}</li>
-              ))}
-            </ul>
+      )}
+
+      {role === "owner" && (
+        <section ref={publishRef} className={"rounded-card p-4 flex flex-col gap-3 border " + (published ? "bg-sage/10 border-sage/40" : "bg-surface border-border")}>
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <h2 className="font-semibold text-text">Publish sự kiện</h2>
+              <p className="text-sm text-muted">
+                {published
+                  ? "Sự kiện đã publish. Khách mở được thiệp mời và màn hình trình chiếu."
+                  : "Sự kiện chưa publish. Khách chưa mở được link mời."}
+              </p>
+            </div>
+            {published ? (
+              <button disabled={publishing} onClick={unpublish} className="border border-border text-muted rounded-pill px-4 py-2 text-sm disabled:opacity-50">
+                Hủy publish
+              </button>
+            ) : (
+              <button disabled={publishing} onClick={publish} className="bg-pr text-ink font-medium rounded-pill px-5 py-2 text-sm disabled:opacity-50">
+                {publishing ? "Đang publish..." : "Publish sự kiện"}
+              </button>
+            )}
           </div>
-        )}
-      </section>
+          {!published && missing.length > 0 && (
+            <div className="bg-rose/10 border border-rose/30 rounded-card px-3 py-3 text-sm text-rose">
+              <div className="font-medium mb-1">Chưa thể publish, còn thông tin bắt buộc đang trống:</div>
+              <ul className="list-disc pl-5">
+                {missing.map((m) => (
+                  <li key={m}>{m}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </section>
+      )}
 
       <section className="bg-surface border border-border rounded-card p-4 flex flex-col gap-3">
         <h2 className="font-semibold text-text">Thông tin</h2>
@@ -449,12 +568,16 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      <section className="border border-rose/40 rounded-card p-4">
-        <h2 className="font-semibold text-rose mb-2">Vùng nguy hiểm</h2>
-        <button onClick={deleteEvent} className="border border-rose text-rose rounded-pill px-4 py-2 text-sm">
-          Xóa đám cưới này
-        </button>
-      </section>
+      {role === "owner" && <MembersSection eventId={eventId} />}
+
+      {role === "owner" && (
+        <section className="border border-rose/40 rounded-card p-4">
+          <h2 className="font-semibold text-rose mb-2">Vùng nguy hiểm</h2>
+          <button onClick={deleteEvent} className="border border-rose text-rose rounded-pill px-4 py-2 text-sm">
+            Xóa đám cưới này
+          </button>
+        </section>
+      )}
     </div>
   )
 }

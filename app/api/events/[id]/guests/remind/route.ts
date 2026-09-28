@@ -14,12 +14,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
   const body = await request.json().catch(() => ({}))
   const guestIds: string[] | undefined = body.guest_ids
 
-  const { data: event } = await supabase
-    .from("events")
-    .select("*")
-    .eq("id", params.id)
-    .eq("user_id", user.id)
-    .single()
+  const { data: event } = await supabase.from("events").select("*").eq("id", params.id).single()
 
   if (!event) {
     return Response.json({ error: "EVENT_NOT_FOUND", message: "Không tìm thấy sự kiện." }, { status: 404 })

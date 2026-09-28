@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
+import { NAV_BY_ROLE, useEvents } from "@/lib/useEvents"
 
 export function displayName(user: any) {
   const md = user?.user_metadata ?? {}
@@ -30,6 +31,8 @@ export default function UserMenu() {
   const [user, setUser] = useState<any>(null)
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const { role } = useEvents()
+  const canSettings = (NAV_BY_ROLE[role] ?? NAV_BY_ROLE.owner).includes("/settings")
 
   useEffect(() => {
     const supabase = createClient()
@@ -87,9 +90,11 @@ export default function UserMenu() {
           <Link href="/profile" className={item} onClick={() => setOpen(false)}>
             Hồ sơ của tôi
           </Link>
-          <Link href="/settings" className={item} onClick={() => setOpen(false)}>
-            Cài đặt sự kiện
-          </Link>
+          {canSettings && (
+            <Link href="/settings" className={item} onClick={() => setOpen(false)}>
+              Cài đặt sự kiện
+            </Link>
+          )}
           <div className="border-t border-border" />
           <button onClick={logout} className={item + " text-rose"}>
             Đăng xuất

@@ -1,5 +1,11 @@
 import { createClient } from "@/lib/supabase/server"
 
+async function getRole(supabase: any, eventId: string, event: any, userId: string) {
+  if (event.user_id === userId) return "owner"
+  const { data: m } = await supabase.from("event_members").select("role").eq("event_id", eventId).maybeSingle()
+  return m?.role ?? "member"
+}
+
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   const supabase = createClient()
   const {
@@ -14,7 +20,6 @@ export async function GET(request: Request, { params }: { params: { id: string }
     .from("events")
     .select("*, floors(*, tables(*)), guests(*)")
     .eq("id", params.id)
-    .eq("user_id", user.id)
     .single()
 
   if (error || !event) {
@@ -30,7 +35,9 @@ export async function GET(request: Request, { params }: { params: { id: string }
     checked_in: guests.filter((g: any) => g.checked_in).length,
   }
 
-  return Response.json({ ...event, _stats: stats })
+  const role = await getRole(supabase, params.id, event, user.id)
+
+  return Response.json({ ...event, _stats: stats, _role: role })
 }
 
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
@@ -52,12 +59,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   for (const k of ALLOWED) if (k in raw) body[k] = raw[k]
 
   if (body.published === true) {
-    const { data: current } = await supabase
-      .from("events")
-      .select("*")
-      .eq("id", params.id)
-      .eq("user_id", user.id)
-      .single()
+    const { data: current } = await supabase.from("events").select("*").eq("id", params.id).single()
     if (!current) {
       return Response.json({ error: "EVENT_NOT_FOUND", message: "Không tìm thấy sự kiện." }, { status: 404 })
     }
@@ -78,13 +80,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     }
   }
 
-  const { data, error } = await supabase
-    .from("events")
-    .update(body)
-    .eq("id", params.id)
-    .eq("user_id", user.id)
-    .select()
-    .single()
+  const { data, error } = await supabase.from("events").update(body).eq("id", params.id).select().single()
 
   if (error) {
     return Response.json({ error: "INTERNAL_ERROR", message: error.message }, { status: 500 })
