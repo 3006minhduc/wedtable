@@ -46,7 +46,7 @@ function buildBody(form: any) {
     event_date: form.event_date || null,
     event_time: form.event_time || null,
     venue_name: form.venue_name,
-    menu: form.menu,
+    invite_message: form.invite_message,
     video_url: form.video_url,
     template: form.template,
     show_guest_names_on_map: form.show_guest_names_on_map,
@@ -88,7 +88,7 @@ export default function SettingsPage() {
           event_date: e.event_date ?? "",
           event_time: e.event_time ? String(e.event_time).slice(0, 5) : "",
           venue_name: e.venue_name ?? "",
-          menu: e.menu ?? "",
+          invite_message: e.invite_message ?? "",
           video_url: e.video_url ?? "",
           template: e.template ?? "co-dien",
           show_guest_names_on_map: !!e.show_guest_names_on_map,
@@ -350,8 +350,15 @@ export default function SettingsPage() {
           <input className={cls("venue_name")} value={form.venue_name} onChange={(e) => set("venue_name", e.target.value)} />
         </div>
         <div>
-          <Label text="Thực đơn" />
-          <textarea className={cls("menu")} rows={3} value={form.menu} onChange={(e) => set("menu", e.target.value)} />
+          <Label text="Lời mời gửi khách" />
+          <textarea
+            className={cls("invite_message")}
+            rows={3}
+            placeholder="Để trống sẽ dùng lời mời mặc định ấm áp, trân trọng."
+            value={form.invite_message}
+            onChange={(e) => set("invite_message", e.target.value)}
+          />
+          <p className="text-xs text-muted mt-1">Đoạn văn ngắn hiển thị đầu thiệp mời, thay cho lời mời mặc định.</p>
         </div>
         <div>
           <Label text="Link video (YouTube...)" />

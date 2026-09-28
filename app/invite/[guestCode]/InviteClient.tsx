@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { confirmSeat, markViewed } from "./actions"
+import { formatInviteDate, daysUntil } from "@/lib/formatDate"
 
 function TableMap({
   floors,
@@ -70,6 +71,9 @@ function TableMap({
   )
 }
 
+const DEFAULT_MESSAGE =
+  "Tình yêu của chúng tôi sẽ trọn vẹn hơn khi có sự hiện diện và lời chúc phúc từ bạn. Rất mong được đón tiếp bạn trong ngày trọng đại này."
+
 export default function InviteClient({
   guest,
   event,
@@ -92,6 +96,7 @@ export default function InviteClient({
   }, [])
 
   const allTables = floors.flatMap((f) => f.tables ?? [])
+  const left = daysUntil(event.event_date)
 
   async function handleConfirm() {
     if (!tableId) {
@@ -106,18 +111,28 @@ export default function InviteClient({
 
   return (
     <div className="min-h-screen bg-bg flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-surface rounded-card border border-border p-6 text-center">
-        <p className="text-pr-d text-sm mb-1">Trân trọng kính mời</p>
-        <h1 className="text-2xl font-semibold text-text mb-1">
-          {event.bride_name} &amp; {event.groom_name}
+      <div className="w-full max-w-md bg-surface rounded-card border border-border p-6 sm:p-8 text-center">
+        <p className="text-pr-d text-xs tracking-[0.2em] uppercase mb-2">Trân trọng kính mời</p>
+        <h1 className="text-3xl font-semibold text-text mb-2 leading-tight">
+          {event.bride_name}
+          <span className="text-pr mx-2">&</span>
+          {event.groom_name}
         </h1>
-        <p className="text-muted text-sm mb-6">
-          {event.event_date} · {event.venue_name}
-        </p>
+        <div className="w-10 h-px bg-border mx-auto mb-3" />
+        <p className="text-text text-sm font-medium">{formatInviteDate(event.event_date, event.event_time)}</p>
+        <p className="text-muted text-sm mb-1">{event.venue_name}</p>
+        {left !== null && left >= 0 && (
+          <p className="text-pr-d text-xs mt-2">
+            {left === 0 ? "Hôm nay là ngày trọng đại!" : `Còn ${left} ngày nữa đến ngày cưới`}
+          </p>
+        )}
 
-        <div className="text-left mb-4">
-          <p className="text-sm text-text mb-1">Xin chào, {guest.name}</p>
-          <p className="text-xs text-muted">Mã mời: {guest.code}</p>
+        <p className="text-sm text-text leading-relaxed mt-5 mb-6">{event.invite_message || DEFAULT_MESSAGE}</p>
+
+        <div className="text-left mb-4 bg-pr-l/40 rounded-card px-4 py-3">
+          <p className="text-sm text-text">
+            Kính gửi: <span className="font-medium">{guest.name}</span>
+          </p>
           {guest.confirmed && <p className="text-xs text-sage mt-1">Bạn đã xác nhận tham dự. Có thể đổi bàn bên dưới.</p>}
         </div>
 
@@ -127,6 +142,7 @@ export default function InviteClient({
           </div>
         ) : (
           <div className="flex flex-col gap-3">
+            <p className="text-sm font-medium text-text text-left">Xác nhận sự hiện diện của bạn</p>
             <div className="flex items-center gap-2 text-left">
               <label className="text-sm text-muted whitespace-nowrap">Số người đi kèm</label>
               <input
@@ -158,12 +174,8 @@ export default function InviteClient({
             >
               {loading ? "Đang xác nhận..." : "Xác nhận tham dự"}
             </button>
-            {status?.error && (
-              <p className="text-sm text-rose">{status.message}</p>
-            )}
-            {status?.success && (
-              <p className="text-sm text-sage">Đã xác nhận, hẹn gặp bạn tại tiệc cưới!</p>
-            )}
+            {status?.error && <p className="text-sm text-rose">{status.message}</p>}
+            {status?.success && <p className="text-sm text-sage">Đã xác nhận, hẹn gặp bạn tại tiệc cưới!</p>}
           </div>
         )}
 
@@ -176,16 +188,9 @@ export default function InviteClient({
           </div>
         )}
 
-        {event.menu && (
-          <div className="text-left mt-6">
-            <p className="text-sm font-medium text-text mb-1">Thực đơn</p>
-            <p className="text-sm text-muted whitespace-pre-line">{event.menu}</p>
-          </div>
-        )}
-
         {event.gift_qr_url && (
           <div className="mt-6 pt-4 border-t border-border">
-            <p className="text-sm font-medium text-text mb-2">Mừng cưới</p>
+            <p className="text-sm font-medium text-text mb-2">Hộp mừng cưới</p>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={event.gift_qr_url} alt="QR mừng cưới" className="mx-auto w-48 h-48 object-contain rounded-card border border-border bg-white" />
             <p className="text-xs text-muted mt-2">Quét mã để gửi lời chúc và mừng cưới</p>
@@ -198,6 +203,9 @@ export default function InviteClient({
           </a>
         )}
 
+        <div className="mt-8 pt-4 border-t border-border">
+          <p className="text-xs text-muted italic">Sự hiện diện của bạn là niềm vinh hạnh của chúng tôi.</p>
+        </div>
       </div>
     </div>
   )

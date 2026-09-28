@@ -45,7 +45,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 
   const raw = await request.json()
   const ALLOWED = [
-    "bride_name", "groom_name", "event_date", "event_time", "venue_name", "venue_type", "menu",
+    "bride_name", "groom_name", "event_date", "event_time", "venue_name", "venue_type", "menu", "invite_message",
     "published", "lock_at", "template", "gallery", "video_url", "show_guest_names_on_map", "gift_qr_url",
   ]
   const body: Record<string, any> = {}
