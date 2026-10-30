@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { confirmSeat, markViewed } from "./actions"
 import { formatInviteDate, daysUntil } from "@/lib/formatDate"
+import FloorLayers from "@/components/seating/FloorLayers"
 
 function TableMap({
   floors,
@@ -37,7 +38,7 @@ function TableMap({
         </div>
       )}
       <div className="relative w-full h-72 sm:h-80 bg-bg border border-border rounded-card overflow-hidden">
-        <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-ink text-white text-[10px] px-3 py-1 rounded-card">Sân khấu</div>
+        <FloorLayers floor={floor} theme="light" />
         {(floor.tables ?? []).map((t: any) => {
           const left = t.seats - (t.used ?? 0)
           const full = left < 1 + companions

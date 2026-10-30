@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
+import FloorLayers from "@/components/seating/FloorLayers"
 
 function used(guests: any[], tableId: string, onlyCheckedIn = false) {
   return guests
@@ -82,7 +83,7 @@ export default function DisplayPage({ params }: { params: { eventId: string } })
       )}
 
       <div className="relative w-full h-[70vh] bg-white/5 border border-white/10 rounded-card overflow-hidden">
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-white/10 text-xs px-4 py-2 rounded-card">Sân khấu</div>
+        <FloorLayers floor={floor} theme="dark" />
         {(floor?.tables ?? []).map((t: any) => {
           const total = used(guests, t.id)
           const here = used(guests, t.id, true)
