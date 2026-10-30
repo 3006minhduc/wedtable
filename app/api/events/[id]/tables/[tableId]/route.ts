@@ -13,7 +13,10 @@ export async function PATCH(
     return Response.json({ error: "UNAUTHORIZED", message: "Chưa đăng nhập." }, { status: 401 })
   }
 
-  const body = await request.json()
+  const raw = await request.json()
+  const ALLOWED = ["name", "seats", "vip", "x_pct", "y_pct", "shape", "floor_id"]
+  const body: Record<string, any> = {}
+  for (const k of ALLOWED) if (k in raw) body[k] = raw[k]
 
   const { data, error } = await supabase
     .from("tables")

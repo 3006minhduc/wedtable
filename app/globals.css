@@ -14,6 +14,19 @@
   --border: #EBEBEB;
   --text: #1A1A2E;
   --muted: #6B7280;
+
+  /* Same colors as "R G B" triplets so Tailwind can apply opacity (bg-rose/10) */
+  --pr-rgb: 200 162 74;
+  --pr-d-rgb: 156 122 42;
+  --pr-l-rgb: 255 248 237;
+  --rose-rgb: 201 103 106;
+  --sage-rgb: 82 165 110;
+  --ink-rgb: 30 45 61;
+  --bg-rgb: 245 245 245;
+  --surface-rgb: 255 255 255;
+  --border-rgb: 235 235 235;
+  --text-rgb: 26 26 46;
+  --muted-rgb: 107 114 128;
 }
 
 body {

@@ -12,17 +12,21 @@ export async function POST(request: Request, { params }: { params: { id: string 
 
   const body = await request.json()
 
+  const row: Record<string, any> = {
+    event_id: params.id,
+    floor_id: body.floor_id,
+    name: body.name ?? "Bàn mới",
+    seats: body.seats ?? 10,
+    x_pct: body.x_pct ?? 50,
+    y_pct: body.y_pct ?? 50,
+    vip: body.vip ?? false,
+  }
+  // Only send shape when it isn't the default, so this works before migration 014 runs
+  if (body.shape === "rect") row.shape = "rect"
+
   const { data, error } = await supabase
     .from("tables")
-    .insert({
-      event_id: params.id,
-      floor_id: body.floor_id,
-      name: body.name ?? "Bàn mới",
-      seats: body.seats ?? 10,
-      x_pct: body.x_pct ?? 50,
-      y_pct: body.y_pct ?? 50,
-      vip: body.vip ?? false,
-    })
+    .insert(row)
     .select()
     .single()
 

@@ -51,7 +51,8 @@ function TableMap({
               onClick={() => onChange(t.id)}
               style={{ left: `${t.x_pct}%`, top: `${t.y_pct}%`, transform: "translate(-50%, -50%)" }}
               className={
-                "absolute w-14 h-14 rounded-full border-2 flex flex-col items-center justify-center text-[10px] leading-tight " +
+                "absolute border-2 flex flex-col items-center justify-center text-[10px] leading-tight " +
+                (t.shape === "rect" ? "w-24 h-11 rounded-card " : "w-14 h-14 rounded-full ") +
                 (selected
                   ? "bg-pr border-pr-d text-ink font-semibold"
                   : full

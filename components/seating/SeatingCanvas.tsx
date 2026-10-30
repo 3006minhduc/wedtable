@@ -1,258 +1,322 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
-import { DndProvider, useDrag, useDrop } from "react-dnd"
-import { HTML5Backend } from "react-dnd-html5-backend"
-import { TouchBackend } from "react-dnd-touch-backend"
+// Seating editor canvas. Pointer-event based (mouse + touch): drag to move,
+// Shift/click to multi-select, drag on empty space for a selection box,
+// snap to grid, zoom, resize blocks, drop guests onto tables.
+// Positions are % of the canvas, same as public views (FloorLayers).
 
-type Table = { id: string; name: string; seats: number; x_pct: number; y_pct: number; vip: boolean }
-type Guest = { id: string; table_id: string | null; companions: number; no_show: boolean }
-type Element = { id: string; type: "stage" | "path" | "decor"; label: string; x_pct: number; y_pct: number; w_pct: number; h_pct: number }
+import { useRef, useState } from "react"
 
-function occupiedSeats(guests: Guest[], tableId: string) {
+export type Table = { id: string; name: string; seats: number; x_pct: number; y_pct: number; vip: boolean; shape?: string }
+export type Guest = { id: string; table_id: string | null; companions: number; no_show: boolean }
+export type Block = { id: string; type: string; label: string; x_pct: number; y_pct: number; w_pct: number; h_pct: number }
+export type Tool = "select" | "round" | "rect" | "stage" | "path" | "decor"
+export type Move = { key: string; x_pct: number; y_pct: number }
+
+export const BASE_HEIGHT = 600
+export const GRID_PX = 20
+
+export function occupiedSeats(guests: Guest[], tableId: string) {
   return guests.filter((g) => g.table_id === tableId && !g.no_show).reduce((sum, g) => sum + 1 + (g.companions ?? 0), 0)
 }
 
-function TableNode({
-  table,
-  occupied,
-  selected,
-  selectMode,
-  onClick,
-}: {
-  table: Table
-  occupied: number
-  selected: boolean
-  selectMode: boolean
-  onClick: () => void
-}) {
-  const [{ isDragging }, drag] = useDrag({
-    type: "TABLE",
-    item: { id: table.id },
-    collect: (monitor) => ({ isDragging: monitor.isDragging() }),
-  })
-
-  const full = occupied >= table.seats
-
-  return (
-    <div
-      ref={drag as any}
-      onClick={onClick}
-      style={{
-        position: "absolute",
-        left: `${table.x_pct}%`,
-        top: `${table.y_pct}%`,
-        transform: "translate(-50%, -50%)",
-        opacity: isDragging ? 0.5 : 1,
-        cursor: "grab",
-        touchAction: "none",
-      }}
-      className={
-        "relative w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 flex flex-col items-center justify-center text-[11px] sm:text-xs font-medium select-none " +
-        (selected
-          ? "border-ink ring-2 ring-ink bg-pr-l"
-          : table.vip
-          ? "border-pr bg-pr-l text-pr-d"
-          : full
-          ? "border-rose bg-rose/10 text-rose"
-          : "border-border bg-surface text-text")
-      }
-    >
-      {selectMode && (
-        <span className={"absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full border text-[9px] flex items-center justify-center bg-surface " + (selected ? "border-ink bg-ink text-white" : "border-muted")}>
-          {selected ? "✓" : ""}
-        </span>
-      )}
-      <span>{table.name}</span>
-      <span className="text-[10px] text-muted">
-        {occupied}/{table.seats}
-      </span>
-    </div>
-  )
+export function tableSize(t: Table) {
+  return t.shape === "rect" ? { w: 132, h: 52 } : { w: 72, h: 72 }
 }
 
-const TYPE_ICON: Record<string, string> = { stage: "🎤", path: "↕", decor: "✦" }
-
-function BlockNode({
-  el,
-  selected,
-  selectMode,
-  onClick,
-  onResize,
-}: {
-  el: Element
-  selected: boolean
-  selectMode: boolean
-  onClick: () => void
-  onResize: (w_pct: number, h_pct: number) => void
-}) {
-  const [{ isDragging }, drag] = useDrag({
-    type: "BLOCK",
-    item: { id: el.id },
-    collect: (monitor) => ({ isDragging: monitor.isDragging() }),
-  })
-  const ref = useRef<HTMLDivElement | null>(null)
-
-  function startResize(e: React.PointerEvent) {
-    e.stopPropagation()
-    e.preventDefault()
-    const parent = ref.current?.parentElement
-    if (!parent) return
-    const rect = parent.getBoundingClientRect()
-    const startX = e.clientX
-    const startY = e.clientY
-    const startW = el.w_pct
-    const startH = el.h_pct
-    function onMove(ev: PointerEvent) {
-      const dW = ((ev.clientX - startX) / rect.width) * 100
-      const dH = ((ev.clientY - startY) / rect.height) * 100
-      onResize(Math.max(6, startW + dW), Math.max(6, startH + dH))
-    }
-    function onUp() {
-      window.removeEventListener("pointermove", onMove)
-      window.removeEventListener("pointerup", onUp)
-    }
-    window.addEventListener("pointermove", onMove)
-    window.addEventListener("pointerup", onUp)
-  }
-
-  return (
-    <div
-      ref={(node) => {
-        ref.current = node
-        drag(node as any)
-      }}
-      onClick={onClick}
-      style={{
-        position: "absolute",
-        left: `${el.x_pct}%`,
-        top: `${el.y_pct}%`,
-        width: `${el.w_pct}%`,
-        height: `${el.h_pct}%`,
-        transform: "translate(-50%, -50%)",
-        opacity: isDragging ? 0.5 : 1,
-        touchAction: "none",
-      }}
-      className={
-        "flex items-center justify-center gap-1 rounded-card border-2 border-dashed text-xs font-medium select-none cursor-grab " +
-        (selected ? "border-ink bg-ink/10 text-ink" : "border-muted/60 bg-muted/10 text-muted")
-      }
-    >
-      <span>{TYPE_ICON[el.type] ?? "▭"}</span>
-      <span className="truncate max-w-[80%]">{el.label}</span>
-      {selectMode && (
-        <span className={"absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full border text-[9px] flex items-center justify-center bg-surface " + (selected ? "border-ink bg-ink text-white" : "border-muted")}>
-          {selected ? "✓" : ""}
-        </span>
-      )}
-      {!selectMode && (
-        <div
-          onPointerDown={startResize}
-          className="absolute -bottom-1.5 -right-1.5 w-4 h-4 rounded-full bg-ink cursor-nwse-resize"
-        />
-      )}
-    </div>
-  )
+const BLOCK_STYLE: Record<string, string> = {
+  stage: "bg-pr/20 border-pr text-pr-d",
+  path: "bg-surface/60 border-muted/60 border-dashed text-muted",
+  decor: "bg-sage/10 border-sage/60 text-sage",
 }
+const BLOCK_ICON: Record<string, string> = { stage: "🎤", path: "↕", decor: "✦" }
 
-type CanvasProps = {
+type Props = {
   tables: Table[]
   guests: Guest[]
-  elements: Element[]
+  elements: Block[]
   backgroundUrl?: string
   backgroundOpacity?: number
-  onTableMove: (id: string, x_pct: number, y_pct: number) => void
-  onElementMove: (id: string, x_pct: number, y_pct: number) => void
-  onElementResize: (id: string, w_pct: number, h_pct: number) => void
-  onTableClick?: (table: Table) => void
-  onElementClick?: (el: Element) => void
-  selectMode?: boolean
-  selected?: Set<string>
+  tool: Tool
+  zoom: number
+  snap: boolean
+  selected: Set<string>
+  onSelect: (keys: Set<string>) => void
+  onMove: (moves: Move[], done: boolean) => void
+  onResize: (id: string, w_pct: number, h_pct: number, done: boolean) => void
+  onPlace: (tool: Tool, x_pct: number, y_pct: number) => void
+  onDropGuest: (guestId: string, tableId: string) => void
 }
 
-export default function SeatingCanvas(props: CanvasProps) {
-  const [touch, setTouch] = useState<boolean | null>(null)
+type Drag =
+  | { kind: "move"; startX: number; startY: number; rect: DOMRect; origin: Move[]; moved: boolean; clickKey: string; shift: boolean }
+  | { kind: "box"; startX: number; startY: number; rect: DOMRect; shift: boolean; curX: number; curY: number }
+  | { kind: "resize"; id: string; startX: number; startY: number; rect: DOMRect; w: number; h: number }
 
-  useEffect(() => {
-    setTouch("ontouchstart" in window || navigator.maxTouchPoints > 0)
-  }, [])
+export default function SeatingCanvas(p: Props) {
+  const worldRef = useRef<HTMLDivElement | null>(null)
+  const drag = useRef<Drag | null>(null)
+  const [box, setBox] = useState<{ x: number; y: number; w: number; h: number } | null>(null)
+  const [dropTarget, setDropTarget] = useState<string | null>(null)
 
-  if (touch === null) return <div className="w-full h-[420px] sm:h-[600px] bg-surface border border-border rounded-card" />
+  const height = BASE_HEIGHT * p.zoom
+  const gridPx = GRID_PX * p.zoom
+
+  function pos(key: string) {
+    const [kind, id] = key.split(":")
+    const src: any = kind === "t" ? p.tables.find((t) => t.id === id) : p.elements.find((e) => e.id === id)
+    return src ? { key, x_pct: src.x_pct, y_pct: src.y_pct } : null
+  }
+
+  function snapPct(v: number, sizePx: number) {
+    if (!p.snap) return v
+    const step = (gridPx / sizePx) * 100
+    return Math.round(v / step) * step
+  }
+
+  const clamp = (v: number) => Math.max(1, Math.min(99, v))
+
+  function itemDown(e: React.PointerEvent, key: string) {
+    if (p.tool !== "select") return
+    e.stopPropagation()
+    const rect = worldRef.current!.getBoundingClientRect()
+    let sel = p.selected
+    if (e.shiftKey) {
+      sel = new Set(sel)
+      if (sel.has(key)) sel.delete(key)
+      else sel.add(key)
+      p.onSelect(sel)
+    } else if (!sel.has(key)) {
+      sel = new Set([key])
+      p.onSelect(sel)
+    }
+    const origin = Array.from(sel).map(pos).filter(Boolean) as Move[]
+    drag.current = { kind: "move", startX: e.clientX, startY: e.clientY, rect, origin, moved: false, clickKey: key, shift: e.shiftKey }
+    worldRef.current!.setPointerCapture(e.pointerId)
+  }
+
+  function resizeDown(e: React.PointerEvent, b: Block) {
+    e.stopPropagation()
+    const rect = worldRef.current!.getBoundingClientRect()
+    drag.current = { kind: "resize", id: b.id, startX: e.clientX, startY: e.clientY, rect, w: b.w_pct, h: b.h_pct }
+    worldRef.current!.setPointerCapture(e.pointerId)
+  }
+
+  function worldDown(e: React.PointerEvent) {
+    const rect = worldRef.current!.getBoundingClientRect()
+    const x_pct = ((e.clientX - rect.left) / rect.width) * 100
+    const y_pct = ((e.clientY - rect.top) / rect.height) * 100
+    if (p.tool !== "select") {
+      p.onPlace(p.tool, clamp(snapPct(x_pct, rect.width)), clamp(snapPct(y_pct, rect.height)))
+      return
+    }
+    drag.current = { kind: "box", startX: e.clientX, startY: e.clientY, rect, shift: e.shiftKey, curX: e.clientX, curY: e.clientY }
+    worldRef.current!.setPointerCapture(e.pointerId)
+  }
+
+  function onMove(e: React.PointerEvent) {
+    const d = drag.current
+    if (!d) return
+    const dx = e.clientX - d.startX
+    const dy = e.clientY - d.startY
+    if (d.kind === "move") {
+      if (!d.moved && Math.abs(dx) + Math.abs(dy) < 4) return
+      d.moved = true
+      const dxp = (dx / d.rect.width) * 100
+      const dyp = (dy / d.rect.height) * 100
+      // Snap the grabbed item; move the rest of the group by the same offset
+      const anchor = d.origin.find((o) => o.key === d.clickKey) ?? d.origin[0]
+      const ax = clamp(snapPct(anchor.x_pct + dxp, d.rect.width))
+      const ay = clamp(snapPct(anchor.y_pct + dyp, d.rect.height))
+      const ox = ax - anchor.x_pct
+      const oy = ay - anchor.y_pct
+      p.onMove(d.origin.map((o) => ({ key: o.key, x_pct: clamp(o.x_pct + ox), y_pct: clamp(o.y_pct + oy) })), false)
+    } else if (d.kind === "resize") {
+      const w = Math.max(4, d.w + (dx / d.rect.width) * 200)
+      const h = Math.max(4, d.h + (dy / d.rect.height) * 200)
+      p.onResize(d.id, snapPct(w, d.rect.width), snapPct(h, d.rect.height), false)
+    } else {
+      d.curX = e.clientX
+      d.curY = e.clientY
+      setBox({
+        x: Math.min(d.startX, e.clientX) - d.rect.left,
+        y: Math.min(d.startY, e.clientY) - d.rect.top,
+        w: Math.abs(dx),
+        h: Math.abs(dy),
+      })
+    }
+  }
+
+  function onUp(e: React.PointerEvent) {
+    const d = drag.current
+    drag.current = null
+    if (!d) return
+    if (d.kind === "move") {
+      if (d.moved) {
+        const last = d.origin.map((o) => pos(o.key)).filter(Boolean) as Move[]
+        p.onMove(last, true)
+      } else if (!d.shift) {
+        p.onSelect(new Set([d.clickKey]))
+      }
+    } else if (d.kind === "resize") {
+      const b = p.elements.find((x) => x.id === d.id)
+      if (b) p.onResize(b.id, b.w_pct, b.h_pct, true)
+    } else {
+      setBox(null)
+      const x1 = ((Math.min(d.startX, d.curX) - d.rect.left) / d.rect.width) * 100
+      const x2 = ((Math.max(d.startX, d.curX) - d.rect.left) / d.rect.width) * 100
+      const y1 = ((Math.min(d.startY, d.curY) - d.rect.top) / d.rect.height) * 100
+      const y2 = ((Math.max(d.startY, d.curY) - d.rect.top) / d.rect.height) * 100
+      const tiny = Math.abs(d.curX - d.startX) + Math.abs(d.curY - d.startY) < 4
+      if (tiny) {
+        if (!d.shift) p.onSelect(new Set())
+        return
+      }
+      const inside = (x: number, y: number) => x >= x1 && x <= x2 && y >= y1 && y <= y2
+      const next = new Set(d.shift ? p.selected : [])
+      p.tables.forEach((t) => inside(t.x_pct, t.y_pct) && next.add("t:" + t.id))
+      p.elements.forEach((b) => inside(b.x_pct, b.y_pct) && next.add("el:" + b.id))
+      p.onSelect(next)
+    }
+  }
+
+  const single = p.selected.size === 1 ? Array.from(p.selected)[0] : null
 
   return (
-    <DndProvider
-      backend={(touch ? TouchBackend : HTML5Backend) as any}
-      options={touch ? { enableMouseEvents: true, delayTouchStart: 120 } : undefined}
-    >
-      <Canvas {...props} />
-    </DndProvider>
-  )
-}
+    <div className="relative w-full overflow-auto rounded-card border border-border bg-bg" style={{ height: "min(70vh, 640px)", minHeight: 380 }}>
+      <div
+        ref={worldRef}
+        onPointerDown={worldDown}
+        onPointerMove={onMove}
+        onPointerUp={onUp}
+        onPointerCancel={onUp}
+        className={"relative select-none " + (p.tool === "select" ? "cursor-default" : "cursor-crosshair")}
+        style={{
+          width: `${p.zoom * 100}%`,
+          minWidth: 560 * p.zoom,
+          height,
+          touchAction: "none",
+          backgroundColor: "rgb(var(--surface-rgb))",
+          backgroundImage: "radial-gradient(rgb(var(--muted-rgb) / 0.28) 1px, transparent 1px)",
+          backgroundSize: `${gridPx}px ${gridPx}px`,
+        }}
+      >
+        {p.backgroundUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={p.backgroundUrl} alt="" className="absolute inset-0 w-full h-full object-cover pointer-events-none" style={{ opacity: p.backgroundOpacity ?? 0.4 }} />
+        )}
 
-function Canvas({
-  tables,
-  guests,
-  elements,
-  backgroundUrl,
-  backgroundOpacity = 0.4,
-  onTableMove,
-  onElementMove,
-  onElementResize,
-  onTableClick,
-  onElementClick,
-  selectMode = false,
-  selected = new Set(),
-}: CanvasProps) {
-  const canvasRef = useRef<HTMLDivElement | null>(null)
+        {p.elements.map((b) => {
+          const key = "el:" + b.id
+          const sel = p.selected.has(key)
+          return (
+            <div
+              key={b.id}
+              onPointerDown={(e) => itemDown(e, key)}
+              className={
+                "absolute flex items-center justify-center gap-1.5 rounded-card border-2 text-xs font-medium overflow-hidden " +
+                (BLOCK_STYLE[b.type] ?? BLOCK_STYLE.decor) +
+                (sel ? " ring-2 ring-ink ring-offset-2" : "") +
+                (p.tool === "select" ? " cursor-move" : "")
+              }
+              style={{ left: `${b.x_pct}%`, top: `${b.y_pct}%`, width: `${b.w_pct}%`, height: `${b.h_pct}%`, transform: "translate(-50%, -50%)" }}
+            >
+              <span aria-hidden>{BLOCK_ICON[b.type] ?? "▭"}</span>
+              <span className="truncate">{b.label}</span>
+              {sel && single === key && (
+                <div
+                  onPointerDown={(e) => resizeDown(e, b)}
+                  className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 rounded-sm bg-ink cursor-nwse-resize"
+                  title="Kéo để đổi kích thước"
+                />
+              )}
+            </div>
+          )
+        })}
 
-  const [, drop] = useDrop({
-    accept: ["TABLE", "BLOCK"],
-    drop: (item: { id: string }, monitor) => {
-      const type = monitor.getItemType()
-      const offset = monitor.getClientOffset()
-      const rect = canvasRef.current?.getBoundingClientRect()
-      if (!offset || !rect) return
-      const x_pct = ((offset.x - rect.left) / rect.width) * 100
-      const y_pct = ((offset.y - rect.top) / rect.height) * 100
-      const cx = Math.max(0, Math.min(100, x_pct))
-      const cy = Math.max(0, Math.min(100, y_pct))
-      if (type === "BLOCK") onElementMove(item.id, cx, cy)
-      else onTableMove(item.id, cx, cy)
-    },
-  })
+        {p.tables.map((t) => {
+          const key = "t:" + t.id
+          const sel = p.selected.has(key)
+          const used = occupiedSeats(p.guests, t.id)
+          const { w, h } = tableSize(t)
+          const over = used > t.seats
+          const empty = used === 0
+          const tone = over
+            ? "border-rose bg-rose/10 text-rose"
+            : t.vip
+            ? "border-pr bg-pr-l text-pr-d"
+            : empty
+            ? "border-muted/50 border-dashed bg-surface text-muted"
+            : "border-ink/30 bg-surface text-text"
+          return (
+            <div
+              key={t.id}
+              onPointerDown={(e) => itemDown(e, key)}
+              onDragOver={(e) => {
+                if (e.dataTransfer.types.includes("text/guest")) {
+                  e.preventDefault()
+                  setDropTarget(t.id)
+                }
+              }}
+              onDragLeave={() => setDropTarget((cur) => (cur === t.id ? null : cur))}
+              onDrop={(e) => {
+                const gid = e.dataTransfer.getData("text/guest")
+                setDropTarget(null)
+                if (gid) p.onDropGuest(gid, t.id)
+              }}
+              className={
+                "absolute flex flex-col items-center justify-center border-2 leading-tight transition-shadow " +
+                (t.shape === "rect" ? "rounded-card " : "rounded-full ") +
+                tone +
+                (sel ? " ring-2 ring-ink ring-offset-2" : "") +
+                (dropTarget === t.id ? " ring-4 ring-sage/60" : "") +
+                (p.tool === "select" ? " cursor-move" : "")
+              }
+              style={{ left: `${t.x_pct}%`, top: `${t.y_pct}%`, width: w * p.zoom, height: h * p.zoom, transform: "translate(-50%, -50%)" }}
+            >
+              <SeatDots table={t} used={used} w={w * p.zoom} h={h * p.zoom} />
+              <span className="font-medium truncate max-w-[90%]" style={{ fontSize: 12 * Math.min(1.2, Math.max(0.8, p.zoom)) }}>
+                {t.name}
+              </span>
+              <span className="opacity-80" style={{ fontSize: 11 * Math.min(1.2, Math.max(0.8, p.zoom)) }}>
+                {used}/{t.seats}
+              </span>
+            </div>
+          )
+        })}
 
-  return (
-    <div
-      ref={(node) => {
-        canvasRef.current = node
-        drop(node as any)
-      }}
-      className="relative w-full h-[420px] sm:h-[600px] bg-surface border border-border rounded-card overflow-hidden"
-    >
-      {backgroundUrl && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={backgroundUrl} alt="" className="absolute inset-0 w-full h-full object-cover" style={{ opacity: backgroundOpacity }} />
-      )}
-      {elements.map((el) => (
-        <BlockNode
-          key={el.id}
-          el={el}
-          selected={selected.has("el:" + el.id)}
-          selectMode={selectMode}
-          onClick={() => onElementClick?.(el)}
-          onResize={(w, h) => onElementResize(el.id, w, h)}
-        />
-      ))}
-      {tables.map((table) => (
-        <TableNode
-          key={table.id}
-          table={table}
-          occupied={occupiedSeats(guests, table.id)}
-          selected={selected.has("t:" + table.id)}
-          selectMode={selectMode}
-          onClick={() => onTableClick?.(table)}
-        />
-      ))}
+        {box && <div className="absolute border border-ink/60 bg-ink/5 pointer-events-none" style={{ left: box.x, top: box.y, width: box.w, height: box.h }} />}
+      </div>
     </div>
   )
+}
+
+// Small dots around the table: filled = taken seat, hollow = free seat
+function SeatDots({ table, used, w, h }: { table: Table; used: number; w: number; h: number }) {
+  const n = Math.min(table.seats, 20)
+  const dots = []
+  for (let i = 0; i < n; i++) {
+    let x: number, y: number
+    if (table.shape === "rect") {
+      const top = Math.ceil(n / 2)
+      const onTop = i < top
+      const count = onTop ? top : n - top
+      const idx = onTop ? i : i - top
+      x = ((idx + 0.5) / count) * w
+      y = onTop ? -6 : h + 6
+    } else {
+      const a = (i / n) * Math.PI * 2 - Math.PI / 2
+      x = w / 2 + Math.cos(a) * (w / 2 + 6)
+      y = h / 2 + Math.sin(a) * (h / 2 + 6)
+    }
+    const taken = i < used
+    dots.push(
+      <span
+        key={i}
+        className={"absolute w-[7px] h-[7px] rounded-full -translate-x-1/2 -translate-y-1/2 " + (taken ? "bg-ink/70" : "border border-muted/60 bg-surface")}
+        style={{ left: x, top: y }}
+      />
+    )
+  }
+  return <>{dots}</>
 }

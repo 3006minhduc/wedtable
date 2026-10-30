@@ -96,10 +96,21 @@ export default function DisplayPage({ params }: { params: { eventId: string } })
               style={{ left: `${t.x_pct}%`, top: `${t.y_pct}%` }}
             >
               <div
-                className="w-20 h-20 rounded-full flex items-center justify-center"
-                style={{ background: `conic-gradient(var(--pr) ${pct}%, rgba(255,255,255,0.15) 0)` }}
+                className={(t.shape === "rect" ? "w-36 h-16 rounded-card" : "w-20 h-20 rounded-full") + " flex items-center justify-center"}
+                style={{
+                  background:
+                    t.shape === "rect"
+                      ? `linear-gradient(90deg, var(--pr) ${pct}%, rgba(255,255,255,0.15) 0)`
+                      : `conic-gradient(var(--pr) ${pct}%, rgba(255,255,255,0.15) 0)`,
+                }}
               >
-                <div className={"w-16 h-16 rounded-full flex flex-col items-center justify-center text-xs " + (t.vip ? "bg-pr-d" : "bg-ink")}>
+                <div
+                  className={
+                    (t.shape === "rect" ? "w-[136px] h-14 rounded-[8px]" : "w-16 h-16 rounded-full") +
+                    " flex flex-col items-center justify-center text-xs " +
+                    (t.vip ? "bg-pr-d" : "bg-ink")
+                  }
+                >
                   <span className="font-medium">{t.name}</span>
                   <span className="text-white/60 text-[10px]">
                     {here}/{total || t.seats}
