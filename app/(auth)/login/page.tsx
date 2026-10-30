@@ -105,6 +105,8 @@ export default function LoginPage() {
           Đăng nhập bằng Google
         </button>
 
+        {/* Dev-only sign-in: shown on `npm run dev`, stripped from the production build */}
+        {process.env.NODE_ENV === "development" && (
         <details className="mt-6 pt-4 border-t border-border">
           <summary className="text-xs text-muted cursor-pointer">Cách đăng nhập khác (dành cho phát triển)</summary>
 
@@ -135,6 +137,7 @@ export default function LoginPage() {
             </div>
           </div>
         </details>
+        )}
       </div>
     </div>
   )
