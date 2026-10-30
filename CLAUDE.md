@@ -29,17 +29,17 @@ Skill hướng dẫn kèm theo: `.claude/skills/webtable-fullstack/` (schema, AP
 - Phân quyền: bảng `event_members` + hàm `has_event_role(event_id, roles[])`; RLS ép ở database. Vai trò: `owner`, `design` (nội dung/ảnh/QR/sơ đồ, không thấy khách), `setup` (bàn + khách), `checkin` (chỉ check-in). `claim_invites()` gắn lời mời vào user theo email khi họ đăng nhập. Ẩn/hiện menu theo vai trò: `NAV_BY_ROLE` trong `lib/useEvents.ts`.
 - API route (`app/api/events/...`) dùng client cookie nên chịu RLS. Đừng thêm `.eq("user_id", user.id)` vào route mà cộng tác viên cần dùng, nó chặn họ; để RLS quyết định. Xóa sự kiện và quản lý thành viên thì giữ kiểm tra chủ sự kiện.
 - Publish (`PATCH /api/events/[id]` với `published:true`): server kiểm tra bắt buộc tên cô dâu/chú rể, ngày, giờ, địa điểm, ≥1 bàn.
-- Sơ đồ bàn: `components/seating/SeatingCanvas.tsx` (react-dnd, tự đổi sang TouchBackend trên màn hình cảm ứng), mẫu bố cục `lib/seatingTemplates.ts`. Cột `floors.elements` (khối sân khấu/lối đi/khu vực), `background_url`, `background_opacity`, `layout_template`.
+- Sơ đồ bàn (làm lại 2026-10-31): `components/seating/SeatingCanvas.tsx` tự xử lý pointer events (không còn dùng react-dnd): kéo, bắt lưới (`GRID_PX`), zoom, Shift/kéo khung chọn nhiều, resize khối, thả khách (HTML5 drag `text/guest`) vào bàn. Trang `app/(dashboard)/seating/page.tsx`: thanh công cụ trái (chọn công cụ rồi bấm sơ đồ để đặt), bảng thuộc tính phải tự lưu (debounce 500ms), hoàn tác Ctrl+Z (chỉ vị trí + khối, không hoàn tác thêm/xóa bàn), phím Delete/Esc/mũi tên. Bàn có `tables.shape` = `round` | `rect` (migration 014). Mẫu bố cục `lib/seatingTemplates.ts`. Cột `floors.elements` (khối sân khấu/lối đi/khu vực), `background_url`, `background_opacity`, `layout_template`.
 - Ảnh: bucket public `wedding-media`, đường dẫn `${userId}/${eventId}/...` (policy cũ theo thư mục = uid người tải).
 
 ## Migration
-`supabase/migrations/001…013`. Chúng được chạy **thủ công** trong Supabase SQL Editor (không dùng CLI), file trong repo chỉ là bản ghi. Thứ tự áp dụng thực tế đã đủ tới 013 (013 thay `display_data` và `get_invite`, trả thêm `elements`/`background_url`/`background_opacity` của tầng). Chạy lại an toàn (`CREATE OR REPLACE`). Claude bị chặn tự bấm Run trên database thật: dán SQL vào editor rồi để người dùng bấm Run.
+`supabase/migrations/001…014`. Chúng được chạy **thủ công** trong Supabase SQL Editor (không dùng CLI), file trong repo chỉ là bản ghi. Thứ tự áp dụng thực tế đã đủ tới 013 (013 thay `display_data` và `get_invite`, trả thêm `elements`/`background_url`/`background_opacity` của tầng). Chạy lại an toàn (`CREATE OR REPLACE`). Claude bị chặn tự bấm Run trên database thật: dán SQL vào editor rồi để người dùng bấm Run.
 Mẹo SQL Editor khi tự động hóa: đặt nội dung bằng `window.monaco.editor.getEditors()[0].setValue(sql)`, chạy bằng Ctrl+Enter; câu có `DROP POLICY` sẽ hiện hộp xác nhận.
 
 ## Bẫy đã gặp (đừng lặp lại)
 - `useRef<HTMLDivElement>(null)` rồi gán `ref.current = node` trong callback ref → lỗi build "read-only". Dùng `useRef<HTMLDivElement | null>(null)`. (Đã dính 2 lần.)
 - Truy vấn Supabase trong Server Component có thể bị Next cache; client công khai ở `invite/[guestCode]/page.tsx` và `actions.ts` phải truyền `global.fetch` với `cache: "no-store"`, nếu không publish xong trang mời vẫn 404.
-- `useDrop`/`useDrag` phải nằm trong `DndProvider` (tách component con).
+- Bắt sự kiện kéo trên canvas bằng `setPointerCapture` trên khung world; item phải `stopPropagation` ở `onPointerDown` để không kích hoạt kéo khung.
 - Chọn bàn qua `get_invite` trả `used` đã loại khách đang xem, nên khách sửa lại lựa chọn không bị tính trùng.
 
 ## Còn dở / chưa làm
@@ -47,8 +47,8 @@ Mẹo SQL Editor khi tự động hóa: đặt nội dung bằng `window.monaco.
 - Gắn tên miền riêng (đã mua ở Tenten, chưa gắn).
 - Máy mới (2026-10-31): đã cài Git + Node, `npm run build` chạy được tại máy. Các git hook cũ của công ty (git-secrets) đã đổi tên thành `*.disabled` trong `.git/hooks` vì máy này không có chương trình quét; tự kiểm tra không có khóa bí mật trước khi commit.
 - Thiệp mời và `/display` đã vẽ khối + ảnh nền qua `components/seating/FloorLayers.tsx` (chỉ xem).
-- Lỗi màu: màu thương hiệu khai báo bằng `var(--x)` trong `tailwind.config.ts` nên `bg-rose/10`, `bg-muted/10`... KHÔNG được tạo ra (nền nhạt bị mất khắp app). Sửa bằng cách khai báo màu dạng `rgb(var(--x-rgb) / <alpha-value>)`, hoặc tạm dùng hex `bg-[#C9676A]/10`.
-- Giao diện Sơ đồ bàn cần làm lại (người dùng thấy xấu, khó dùng).
+- Màu thương hiệu trong `tailwind.config.ts` dùng `rgb(var(--x-rgb) / <alpha-value>)` (bộ ba RGB khai báo trong `globals.css`) để `bg-rose/10`... hoạt động. Đổi màu thì sửa cả `--x` lẫn `--x-rgb`.
+- `react-dnd*` trong package.json không còn dùng, có thể gỡ.
 - Chưa kiểm tra tay trên thiết bị thật: quét QR bằng camera điện thoại, kéo bàn bằng cảm ứng, Import Excel bằng file thật, tải ảnh/QR mừng cưới.
 - Thanh toán VNPay/MoMo: đã bỏ theo yêu cầu. Cổng B2B cho nhà hàng, analytics: chưa làm.
 
