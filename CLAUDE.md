@@ -33,7 +33,7 @@ Skill hướng dẫn kèm theo: `.claude/skills/webtable-fullstack/` (schema, AP
 - Ảnh: bucket public `wedding-media`, đường dẫn `${userId}/${eventId}/...` (policy cũ theo thư mục = uid người tải).
 
 ## Migration
-`supabase/migrations/001…012`. Chúng được chạy **thủ công** trong Supabase SQL Editor (không dùng CLI), file trong repo chỉ là bản ghi. Thứ tự áp dụng thực tế đã đủ tới 012. Chạy lại `012` an toàn (`CREATE OR REPLACE`).
+`supabase/migrations/001…013`. Chúng được chạy **thủ công** trong Supabase SQL Editor (không dùng CLI), file trong repo chỉ là bản ghi. Thứ tự áp dụng thực tế đã đủ tới 013 (013 thay `display_data` và `get_invite`, trả thêm `elements`/`background_url`/`background_opacity` của tầng). Chạy lại an toàn (`CREATE OR REPLACE`). Claude bị chặn tự bấm Run trên database thật: dán SQL vào editor rồi để người dùng bấm Run.
 Mẹo SQL Editor khi tự động hóa: đặt nội dung bằng `window.monaco.editor.getEditors()[0].setValue(sql)`, chạy bằng Ctrl+Enter; câu có `DROP POLICY` sẽ hiện hộp xác nhận.
 
 ## Bẫy đã gặp (đừng lặp lại)
@@ -46,7 +46,9 @@ Mẹo SQL Editor khi tự động hóa: đặt nội dung bằng `window.monaco.
 - Zalo nhắc khách: cần Zalo OA + token, và code đang dùng SĐT làm Zalo user id (sai, gửi sẽ lỗi).
 - Gắn tên miền riêng (đã mua ở Tenten, chưa gắn).
 - Máy mới (2026-10-31): đã cài Git + Node, `npm run build` chạy được tại máy. Các git hook cũ của công ty (git-secrets) đã đổi tên thành `*.disabled` trong `.git/hooks` vì máy này không có chương trình quét; tự kiểm tra không có khóa bí mật trước khi commit.
-- Trang thiệp mời và `/display` chưa vẽ khối trang trí tùy chỉnh (chỉ có nhãn "Sân khấu" cố định).
+- Thiệp mời và `/display` đã vẽ khối + ảnh nền qua `components/seating/FloorLayers.tsx` (chỉ xem).
+- Lỗi màu: màu thương hiệu khai báo bằng `var(--x)` trong `tailwind.config.ts` nên `bg-rose/10`, `bg-muted/10`... KHÔNG được tạo ra (nền nhạt bị mất khắp app). Sửa bằng cách khai báo màu dạng `rgb(var(--x-rgb) / <alpha-value>)`, hoặc tạm dùng hex `bg-[#C9676A]/10`.
+- Giao diện Sơ đồ bàn cần làm lại (người dùng thấy xấu, khó dùng).
 - Chưa kiểm tra tay trên thiết bị thật: quét QR bằng camera điện thoại, kéo bàn bằng cảm ứng, Import Excel bằng file thật, tải ảnh/QR mừng cưới.
 - Thanh toán VNPay/MoMo: đã bỏ theo yêu cầu. Cổng B2B cho nhà hàng, analytics: chưa làm.
 
