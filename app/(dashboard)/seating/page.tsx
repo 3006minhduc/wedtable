@@ -568,7 +568,7 @@ export default function SeatingPage() {
               <span className="inline-flex items-center gap-1">{snap && <Icon name="check" size={13} />}Bắt lưới</span>
             </button>
             <div className="flex items-center gap-3 text-muted ml-1">
-              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-pr" /> VIP</span>
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-brand-soft border border-brand" /> VIP</span>
               <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full border border-dashed border-muted" /> Trống</span>
               <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-rose" /> Quá chỗ</span>
             </div>
