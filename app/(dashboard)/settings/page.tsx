@@ -525,7 +525,7 @@ export default function SettingsPage() {
         </section>
       )}
 
-      <div role="tablist" aria-label="Nhóm cài đặt" className="flex gap-1 overflow-x-auto border-b border-border -mb-2">
+      <div role="tablist" aria-label="Nhóm cài đặt" className="flex gap-1 overflow-x-auto overflow-y-hidden [scrollbar-width:none] border-b border-border -mb-2">
         {TABS.filter((t) => !t.ownerOnly || role === "owner").map((t) => {
           const active = tab === t.id
           const alert = t.id === "info" && attempted && !published && missing.length > 0
