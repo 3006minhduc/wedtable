@@ -46,13 +46,18 @@ export default function Countdown({
   const box =
     tone === "dark" ? "bg-white/10 border-white/15 text-white" : "bg-surface border-border text-text"
   const label = tone === "dark" ? "text-white/70" : "text-muted"
-  const num = size === "lg" ? "text-5xl md:text-6xl" : size === "sm" ? "text-2xl" : "text-4xl"
-  const w = size === "lg" ? "min-w-[84px] md:min-w-[104px] py-4" : size === "sm" ? "min-w-[56px] py-2" : "min-w-[72px] py-3"
+  const num = size === "lg" ? "text-[34px] sm:text-5xl md:text-6xl" : size === "sm" ? "text-2xl" : "text-[30px] sm:text-4xl"
+  const w =
+    size === "lg"
+      ? "w-[62px] sm:w-auto sm:min-w-[84px] md:min-w-[104px] py-3 sm:py-4"
+      : size === "sm"
+      ? "min-w-[52px] py-2"
+      : "w-[60px] sm:w-auto sm:min-w-[72px] py-3"
 
   return (
-    <div className={"flex items-stretch gap-2 sm:gap-3 " + className} role="timer" aria-live="off">
+    <div className={"flex items-stretch gap-1.5 sm:gap-3 " + className} role="timer" aria-live="off">
       {cells.map((x, i) => (
-        <div key={x.l} className="flex items-center gap-2 sm:gap-3">
+        <div key={x.l} className="flex items-center gap-1.5 sm:gap-3">
           <div className={"rounded-lg border text-center px-2 " + box + " " + w}>
             <div className={"font-serif leading-none tabular-nums " + num}>{x.v}</div>
             <div className={"text-xs mt-1.5 " + label}>{x.l}</div>
