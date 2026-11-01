@@ -102,6 +102,15 @@ function TimelineEditor({ items, onChange }: { items: any[]; onChange: (next: an
   )
 }
 
+type TabId = "info" | "invite" | "options" | "members"
+
+const TABS: { id: TabId; label: string; hash: string; ownerOnly?: boolean }[] = [
+  { id: "info", label: "Thông tin chung", hash: "thong-tin" },
+  { id: "invite", label: "Thiệp mời", hash: "thiep-moi" },
+  { id: "options", label: "Tùy chọn & trình chiếu", hash: "tuy-chon" },
+  { id: "members", label: "Thành viên", hash: "thanh-vien", ownerOnly: true },
+]
+
 const ROLE_OPTIONS = [
   { value: "design", label: "Thiết kế", desc: "Sửa nội dung, ảnh, QR mừng cưới, giao diện sơ đồ bàn. Không thấy danh sách khách." },
   { value: "setup", label: "Setup", desc: "Quản lý bàn và khách mời." },
@@ -228,6 +237,19 @@ export default function SettingsPage() {
   const [giftQr, setGiftQr] = useState("")
   const [uploadingQr, setUploadingQr] = useState(false)
   const dirty = useRef(false)
+  const [tab, setTabState] = useState<TabId>("info")
+
+  // Remember the open tab in the URL (#thiep-moi...) so reload/back keeps it
+  useEffect(() => {
+    const fromHash = TABS.find((t) => "#" + t.hash === window.location.hash)
+    if (fromHash) setTabState(fromHash.id)
+  }, [])
+
+  function setTab(id: TabId) {
+    setTabState(id)
+    const t = TABS.find((x) => x.id === id)
+    if (t) history.replaceState(null, "", "#" + t.hash)
+  }
   const publishRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
@@ -307,6 +329,7 @@ export default function SettingsPage() {
     if (tablesCount === 0) list.push("Ít nhất 1 bàn (trong Sơ đồ bàn)")
     setMissing(list)
     if (list.length > 0) {
+      setTab("info")
       publishRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
       return
     }
@@ -320,6 +343,7 @@ export default function SettingsPage() {
         setNotice({ ok: true, text: "Đã publish sự kiện. Khách mở được link mời." })
       } else if (d.missing) {
         setMissing(d.missing)
+        setTab("info")
       } else {
         setNotice({ ok: false, text: d.message ?? "Không publish được." })
       }
@@ -501,6 +525,29 @@ export default function SettingsPage() {
         </section>
       )}
 
+      <div role="tablist" aria-label="Nhóm cài đặt" className="flex gap-1 overflow-x-auto border-b border-border -mb-2">
+        {TABS.filter((t) => !t.ownerOnly || role === "owner").map((t) => {
+          const active = tab === t.id
+          const alert = t.id === "info" && attempted && !published && missing.length > 0
+          return (
+            <button
+              key={t.id}
+              role="tab"
+              aria-selected={active}
+              onClick={() => setTab(t.id)}
+              className={
+                "relative whitespace-nowrap px-4 py-2.5 text-sm border-b-2 -mb-px transition-colors " +
+                (active ? "border-pr text-text font-medium" : "border-transparent text-muted hover:text-text")
+              }
+            >
+              {t.label}
+              {alert && <span className="absolute top-2 right-1.5 w-1.5 h-1.5 rounded-full bg-rose" />}
+            </button>
+          )
+        })}
+      </div>
+
+      {tab === "info" && (
       <section className="bg-surface border border-border rounded-card p-4 flex flex-col gap-3">
         <h2 className="font-semibold text-text">Thông tin</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -550,6 +597,10 @@ export default function SettingsPage() {
         </div>
       </section>
 
+      )}
+
+      {tab === "invite" && (
+      <>
       <section className="bg-surface border border-border rounded-card p-4 flex flex-col gap-4">
         <div className="flex items-center justify-between gap-2">
           <h2 className="font-semibold text-text">Nội dung thiệp mời</h2>
@@ -688,6 +739,11 @@ export default function SettingsPage() {
         </label>
       </section>
 
+      </>
+      )}
+
+      {tab === "options" && (
+      <>
       <section className="bg-surface border border-border rounded-card p-4 flex flex-col gap-3">
         <h2 className="font-semibold text-text">Tùy chọn</h2>
         <label className="flex items-center gap-2 text-sm">
@@ -717,9 +773,12 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      {role === "owner" && <MembersSection eventId={eventId} />}
+      </>
+      )}
 
-      {role === "owner" && (
+      {tab === "members" && role === "owner" && <MembersSection eventId={eventId} />}
+
+      {tab === "options" && role === "owner" && (
         <section className="border border-rose/40 rounded-card p-4">
           <h2 className="font-semibold text-rose mb-2">Vùng nguy hiểm</h2>
           <button onClick={deleteEvent} className="border border-rose text-rose rounded-pill px-4 py-2 text-sm">
