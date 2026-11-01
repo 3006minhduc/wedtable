@@ -191,7 +191,7 @@ function MembersSection({ eventId }: { eventId: string }) {
             </option>
           ))}
         </select>
-        <button disabled={saving || !email.trim()} onClick={addMember} className="bg-brand text-white hover:bg-brand-hover font-medium rounded-pill px-4 py-2 text-sm disabled:opacity-50 whitespace-nowrap">
+        <button disabled={saving || !email.trim()} onClick={addMember} className="bg-text text-surface hover:bg-text/90 font-medium rounded-pill px-4 py-2 text-sm disabled:opacity-50 whitespace-nowrap">
           {saving ? "Đang mời..." : "+ Mời"}
         </button>
       </div>

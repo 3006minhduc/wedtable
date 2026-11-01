@@ -63,13 +63,13 @@ export default function GuestTable({
 }) {
   const badge = (g: Guest) =>
     g.checked_in ? (
-      <span className="text-xs bg-pr-l text-pr-d px-2 py-1 rounded-pill">ĐÃ CHECK-IN</span>
+      <span className="text-xs bg-pr-l text-pr-d px-2 py-1 rounded-pill">Đã check-in</span>
     ) : g.no_show ? (
-      <span className="text-xs bg-rose/10 text-rose px-2 py-1 rounded-pill">KHÔNG ĐẾN</span>
+      <span className="text-xs bg-rose/10 text-rose px-2 py-1 rounded-pill">Không đến</span>
     ) : g.confirmed ? (
-      <span className="text-xs bg-sage/10 text-sage px-2 py-1 rounded-pill">ĐÃ XÁC NHẬN</span>
+      <span className="text-xs bg-sage/10 text-sage px-2 py-1 rounded-pill">Đã xác nhận</span>
     ) : (
-      <span className="text-xs bg-muted/10 text-muted px-2 py-1 rounded-pill">CHƯA PHẢN HỒI</span>
+      <span className="text-xs bg-muted/10 text-muted px-2 py-1 rounded-pill">Chưa phản hồi</span>
     )
 
   return (
@@ -164,13 +164,13 @@ export default function GuestTable({
               </td>
               <td className="px-4 py-3">
                 {g.checked_in ? (
-                  <span className="text-xs bg-pr-l text-pr-d px-2 py-1 rounded-pill">ĐÃ CHECK-IN</span>
+                  <span className="text-xs bg-pr-l text-pr-d px-2 py-1 rounded-pill">Đã check-in</span>
                 ) : g.no_show ? (
-                  <span className="text-xs bg-rose/10 text-rose px-2 py-1 rounded-pill">KHÔNG ĐẾN</span>
+                  <span className="text-xs bg-rose/10 text-rose px-2 py-1 rounded-pill">Không đến</span>
                 ) : g.confirmed ? (
-                  <span className="text-xs bg-sage/10 text-sage px-2 py-1 rounded-pill">ĐÃ XÁC NHẬN</span>
+                  <span className="text-xs bg-sage/10 text-sage px-2 py-1 rounded-pill">Đã xác nhận</span>
                 ) : (
-                  <span className="text-xs bg-muted/10 text-muted px-2 py-1 rounded-pill">CHƯA PHẢN HỒI</span>
+                  <span className="text-xs bg-muted/10 text-muted px-2 py-1 rounded-pill">Chưa phản hồi</span>
                 )}
               </td>
               <td className="px-4 py-3">

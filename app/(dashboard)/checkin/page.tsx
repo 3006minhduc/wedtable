@@ -178,7 +178,7 @@ export default function CheckinPage() {
                 Đã check-in · hoàn tác
               </button>
             ) : (
-              <button onClick={() => checkin(g.id)} className="bg-brand text-white hover:bg-brand-hover font-medium rounded-pill px-4 py-1.5 text-sm">
+              <button onClick={() => checkin(g.id)} className="bg-brand-soft text-brand hover:bg-brand/15 font-medium rounded-pill px-4 py-1.5 text-sm">
                 Check-in
               </button>
             )}
@@ -205,7 +205,7 @@ export default function CheckinPage() {
           <input className={input} type="number" min={0} placeholder="Người đi kèm" value={walk.companions} onChange={(e) => setWalk({ ...walk, companions: Number(e.target.value) })} />
         </div>
         <div className="flex items-center gap-3 flex-wrap">
-          <button disabled={walkSaving} onClick={addWalkin} className="bg-brand text-white hover:bg-brand-hover font-medium rounded-pill px-4 py-2 text-sm disabled:opacity-50">
+          <button disabled={walkSaving} onClick={addWalkin} className="bg-text text-surface hover:bg-text/90 font-medium rounded-pill px-4 py-2 text-sm disabled:opacity-50">
             {walkSaving ? "Đang thêm..." : "Thêm và check-in"}
           </button>
           {walkMsg && <span className={"text-sm " + (walkMsg.ok ? "text-sage" : "text-rose")}>{walkMsg.text}</span>}

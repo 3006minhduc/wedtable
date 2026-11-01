@@ -211,8 +211,8 @@ export default function GuestsPage() {
           <a className="border border-border rounded-pill px-3 py-1.5 text-sm" href={`/api/events/${eventId}/guests/export?format=csv`}>
             Xuất CSV
           </a>
-          <button className="bg-brand text-white hover:bg-brand-hover font-medium rounded-pill px-3 py-1.5 text-sm" onClick={handleRemindAll}>
-            Nhắc tất cả chưa xác nhận
+          <button className="border border-border bg-surface hover:bg-surface-hover hover:border-border-hover rounded-pill px-3 py-1.5 text-sm" onClick={handleRemindAll}>
+            Nhắc khách chưa xác nhận
           </button>
         </div>
       </div>
@@ -237,7 +237,7 @@ export default function GuestsPage() {
           <button
             key={f.key}
             onClick={() => setFilter(f.key)}
-            className={"rounded-pill px-3 py-1 text-sm border " + (filter === f.key ? "bg-brand border-brand text-white" : "border-border text-muted")}
+            className={"rounded-pill px-3 py-1 text-sm border " + (filter === f.key ? "bg-text border-text text-surface" : "border-border text-muted hover:text-text hover:border-border-hover bg-surface")}
           >
             {f.label}
           </button>

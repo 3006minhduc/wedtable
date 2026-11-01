@@ -39,7 +39,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         </div>
         {open && <div className="fixed inset-0 top-14 bg-ink/30 z-20 md:hidden" onClick={() => setOpen(false)} />}
         <main key={pathname} className="page-enter flex-1 min-w-0 px-4 py-5 md:px-8 md:py-7">
-          <div className="max-w-[1200px] mx-auto">{children}</div>
+          <div className="max-w-[1200px]">{children}</div>
         </main>
       </div>
     </div>

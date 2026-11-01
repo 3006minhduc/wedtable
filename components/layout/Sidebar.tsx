@@ -49,7 +49,7 @@ export default function Sidebar({ role = "owner" }: { role?: string }) {
             className="flex items-center gap-2.5 px-3 min-h-[38px] rounded-lg text-sm text-muted hover:bg-surface-alt hover:text-text"
           >
             <Icon name="display" />
-            Màn hình trình chiếu
+            Trình chiếu
             <Icon name="external" size={14} className="ml-auto text-faint" />
           </a>
         </div>
