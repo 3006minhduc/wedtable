@@ -22,6 +22,13 @@ Skill hướng dẫn kèm theo: `.claude/skills/webtable-fullstack/` (schema, AP
 - Đăng nhập: Google OAuth (Supabase → Auth → Providers). Site URL = https://wedtable.vercel.app, redirect `/auth/callback`. Mục "Cách đăng nhập khác" trên trang login (OTP SĐT + email/mật khẩu) chỉ hiện khi `npm run dev` (`NODE_ENV === "development"`), web thật chỉ có nút Google. Nhà cung cấp Email/Phone ở Supabase vẫn đang bật. OTP SMS chưa có nhà cung cấp.
 - Máy công ty cũ không cài được Node nên trước giờ không chạy `npm` local; kiểm tra build bằng cách push rồi xem Vercel → Deployments. Máy mới nếu có Node thì chạy `npm install && npm run build` trước khi push để bắt lỗi sớm.
 
+## Thiết kế (đọc DESIGN.md trước khi sửa giao diện)
+- Hướng "ảnh thật + sản phẩm thật" (2026-11-02), rút ra từ Zola, Joy, Riley & Grey, Resy, OpenTable…; người dùng đã chê các hướng kem/vàng, vầng sáng mờ, chữ nghiêng tô màu, nút viên thuốc, bento là "trông AI". Quy chuẩn đầy đủ ở `DESIGN.md`; skill `web-design` ở `.claude/skills/web-design`.
+- Token màu ở `app/globals.css` (đỏ đô `--brand`), Tailwind map ở `tailwind.config.ts` (bí danh cũ `pr`/`rose`/`sage` vẫn chạy). Font Newsreader + Be Vietnam Pro nạp ở `app/layout.tsx` (`font-serif`, `font-sans`).
+- Khung app: `components/layout/*` (sidebar sáng), icon `components/ui/Icon.tsx` (không dùng emoji làm icon), logo `components/ui/Logo.tsx`.
+- Trang giới thiệu `components/landing/Landing.tsx` ở `/welcome`; `middleware.ts` cho người chưa đăng nhập vào `/` thấy trang này. Ảnh Unsplash khai báo ở `lib/brandImages.ts`.
+- Quy tắc: 1 nút đỏ mỗi màn hình, nhãn viết thường chữ đầu câu, không hex trong component (trừ `lib/inviteThemes.ts`).
+
 ## Kiến trúc
 - Next.js 14 App Router + Tailwind. Route group `(auth)`, `(dashboard)`; trang công khai `/invite/[guestCode]`, `/display/[eventId]`.
 - Supabase client: `lib/supabase/client.ts` (trình duyệt), `server.ts` (cookie, chỉ cho route cần đăng nhập), `admin.ts` (service role, chưa dùng).
