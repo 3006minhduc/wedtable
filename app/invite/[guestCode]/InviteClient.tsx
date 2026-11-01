@@ -195,21 +195,12 @@ export default function InviteClient({ guest, event, floors, locked }: { guest: 
 
       <main className="max-w-md mx-auto shadow-[0_0_60px_rgba(126,65,82,0.08)]" style={{ background: IV.paper }}>
         {/* ---------- Hero ---------- */}
-        <section className="relative min-h-[100svh] flex flex-col items-center justify-center text-center px-8 overflow-hidden">
-          {cover && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={cover} alt="" className="absolute inset-0 w-full h-full object-cover" />
-          )}
-          <div
-            className="absolute inset-0"
-            style={{
-              background: cover
-                ? "linear-gradient(180deg, rgba(252,248,246,0.92) 0%, rgba(252,248,246,0.55) 45%, rgba(252,248,246,0.9) 100%)"
-                : `radial-gradient(ellipse at top, ${IV.blush} 0%, ${IV.paper} 60%)`,
-            }}
-          />
+        <section
+          className="relative min-h-[100svh] flex flex-col items-center justify-center text-center px-8 pt-20 pb-20 overflow-hidden"
+          style={{ background: `radial-gradient(ellipse at top, ${IV.blush} 0%, ${IV.paper} 62%)` }}
+        >
           <Garland className="absolute top-0 left-0 opacity-90" />
-          <div className="relative flex flex-col items-center">
+          <div className="relative flex flex-col items-center w-full">
             <Reveal>
               <p className="text-[11px] tracking-[0.35em] uppercase mb-6" style={{ color: IV.rose }}>
                 Trân trọng kính mời
@@ -235,6 +226,14 @@ export default function InviteClient({ guest, event, floors, locked }: { guest: 
                 </p>
               )}
             </Reveal>
+            {cover && (
+              <Reveal delay={450} className="w-full mt-8">
+                <div className="mx-auto w-[78%] p-2 rounded-t-[999px] rounded-b-2xl border border-[#E3CCD0] bg-white shadow-sm">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={cover} alt="" className="w-full h-60 object-cover rounded-t-[999px] rounded-b-xl" />
+                </div>
+              </Reveal>
+            )}
           </div>
           <div className="absolute bottom-6 flex flex-col items-center gap-1 text-[10px] tracking-[0.3em] uppercase animate-bounce" style={{ color: IV.rose }}>
             <span>Cuộn xuống</span>
