@@ -188,7 +188,8 @@ function Timeline({ items }: { items: any[] }) {
 }
 
 export default function InviteClient(props: { guest: any; event: any; floors: any[]; locked: boolean }) {
-  const palette = (THEMES[props.event.invite_theme] ?? THEMES.blush).p
+  // Free plan: only the classic color set (DESIGN.md / lib/plan.ts)
+  const palette = (props.event.plan === "premium" ? THEMES[props.event.invite_theme] ?? THEMES.blush : THEMES.classic).p
   return (
     <PaletteProvider value={palette}>
       <Invite {...props} />
@@ -222,7 +223,8 @@ function Invite({ guest, event, floors, locked }: { guest: any; event: any; floo
   const cover = gallery[0]
   const storyPhoto = gallery[1]
   const albumPhotos = gallery.slice(storyPhoto && event.love_story ? 2 : 1, 8)
-  const timeline: any[] = (Array.isArray(event.timeline) ? event.timeline : []).filter((t: any) => t?.time || t?.title)
+  const premium = event.plan === "premium"
+  const timeline: any[] = premium ? (Array.isArray(event.timeline) ? event.timeline : []).filter((t: any) => t?.time || t?.title) : []
   const dressColors: string[] = Array.isArray(event.dress_colors) ? event.dress_colors.filter(Boolean) : []
   const start = eventStart(event.event_date, event.event_time)
   const initials = `${initialOf(event.bride_name)}&${initialOf(event.groom_name)}`
@@ -389,7 +391,7 @@ function Invite({ guest, event, floors, locked }: { guest: any; event: any; floo
         )}
 
         {/* ---------- Dress code ---------- */}
-        {(event.dress_code || dressColors.length > 0) && (
+        {premium && (event.dress_code || dressColors.length > 0) && (
           <section className="px-8 py-14 text-center" style={{ background: IV.bg }}>
             <Reveal>
               <SectionTitle kicker="Trang phục">Dress code</SectionTitle>
@@ -406,7 +408,7 @@ function Invite({ guest, event, floors, locked }: { guest: any; event: any; floo
         )}
 
         {/* ---------- Love story ---------- */}
-        {event.love_story && (
+        {premium && event.love_story && (
           <section className="px-8 py-14 text-center">
             <Reveal>
               <SectionTitle kicker="Câu chuyện">Chuyện của chúng mình</SectionTitle>
@@ -513,7 +515,7 @@ function Invite({ guest, event, floors, locked }: { guest: any; event: any; floo
         </section>
 
         {/* ---------- Gift ---------- */}
-        {event.gift_qr_url && (
+        {premium && event.gift_qr_url && (
           <section className="px-8 py-14 text-center">
             <Reveal>
               <SectionTitle kicker="Gửi yêu thương">Hộp mừng cưới</SectionTitle>

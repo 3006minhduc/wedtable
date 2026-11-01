@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import Icon from "@/components/ui/Icon"
+import PremiumNote from "@/components/ui/PremiumNote"
+import { isPremium } from "@/lib/plan"
 import QrScanner from "@/components/checkin/QrScanner"
 import { seatsUsed, useEvents } from "@/lib/useEvents"
 
@@ -15,6 +17,7 @@ export default function CheckinPage() {
   const { eventId, loading } = useEvents()
   const [guests, setGuests] = useState<any[]>([])
   const [tables, setTables] = useState<any[]>([])
+  const [premium, setPremium] = useState(true)
   const [query, setQuery] = useState("")
   const [msg, setMsg] = useState("")
   const [walk, setWalk] = useState({ name: "", phone: "", table_id: "", companions: 0 })
@@ -25,6 +28,7 @@ export default function CheckinPage() {
     if (!res.ok) return
     const e = await res.json()
     setGuests(e.guests ?? [])
+    setPremium(isPremium(e))
     setTables((e.floors ?? []).flatMap((f: any) => f.tables ?? []))
   }, [eventId])
 
@@ -146,6 +150,7 @@ export default function CheckinPage() {
                 onChange={(e) => setQuery(e.target.value)}
               />
             </div>
+            {premium ? (
             <div className="flex items-center gap-3 flex-wrap">
               <button
                 onClick={() => setScanning((s) => !s)}
@@ -162,6 +167,9 @@ export default function CheckinPage() {
                 Tự động check-in khi quét
               </label>
             </div>
+            ) : (
+              <PremiumNote compact>Quét QR bằng camera có trong gói Premium. Gói Miễn phí check-in bằng tìm tên.</PremiumNote>
+            )}
             {scanning && (
               <div className="rounded-lg overflow-hidden border border-border">
                 <QrScanner onScan={handleScan} />
@@ -241,6 +249,7 @@ export default function CheckinPage() {
             </p>
           </section>
 
+          {premium ? (
           <section className="bg-surface border border-border rounded-card p-5 flex flex-col gap-3">
             <div className="flex items-center gap-2">
               <Icon name="userPlus" size={18} className="text-faint" />
@@ -280,6 +289,9 @@ export default function CheckinPage() {
             {walkMsg && <p className={"text-sm " + (walkMsg.ok ? "text-success" : "text-error")}>{walkMsg.text}</p>}
             {tables.length === 0 && <p className="text-xs text-muted">Chưa có bàn nào, khách sẽ được thêm mà chưa gán bàn.</p>}
           </section>
+          ) : (
+            <PremiumNote title="Khách vãng lai">Thêm và check-in khách không có trong danh sách là tính năng Premium.</PremiumNote>
+          )}
         </aside>
       </div>
     </div>

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import Icon from "@/components/ui/Icon"
+import { isPremium, PROMO_END_TEXT } from "@/lib/plan"
 import { daysLeft, seatsUsed, useEvents } from "@/lib/useEvents"
 
 function CreateEventForm({ onCreated, onCancel }: { onCreated: (id: string) => void; onCancel?: () => void }) {
@@ -159,6 +160,18 @@ function Overview({
             <span className={"inline-flex items-center h-6 px-2 rounded-md text-xs font-medium " + (detail.published ? "bg-success/10 text-success" : "bg-surface-alt text-muted")}>
               {detail.published ? "Thiệp đã publish" : "Thiệp chưa publish"}
             </span>
+            {isPremium(detail) ? (
+              <span
+                className="inline-flex items-center gap-1 h-6 px-2 rounded-md text-xs font-medium bg-brand-soft text-brand"
+                title={detail.plan_source === "promo" ? `Ưu đãi ra mắt: miễn phí cho đám cưới tạo trước ${PROMO_END_TEXT}` : undefined}
+              >
+                <Icon name="sparkle" size={12} /> {detail.plan_source === "promo" ? "Premium · ưu đãi ra mắt" : "Premium"}
+              </span>
+            ) : (
+              <a href="/welcome#bang-gia" className="inline-flex items-center h-6 px-2 rounded-md text-xs font-medium bg-surface-alt text-muted hover:text-text">
+                Gói Miễn phí · Nâng cấp
+              </a>
+            )}
             <button onClick={() => setCreating(true)} className="ml-auto inline-flex items-center gap-1.5 h-9 px-3 rounded-lg border border-border text-sm text-text hover:bg-surface-hover hover:border-border-hover">
               <Icon name="plus" size={16} /> Đám cưới mới
             </button>

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { planErrorResponse } from "@/lib/plan"
 
 export async function PATCH(
   request: Request,
@@ -27,6 +28,8 @@ export async function PATCH(
     .single()
 
   if (error) {
+    const planErr = planErrorResponse(error)
+    if (planErr) return planErr
     return Response.json({ error: "INTERNAL_ERROR", message: error.message }, { status: 500 })
   }
 

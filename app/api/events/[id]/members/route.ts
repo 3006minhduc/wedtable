@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { planErrorResponse } from "@/lib/plan"
 
 async function requireOwner(supabase: any, eventId: string, userId: string) {
   const { data } = await supabase.from("events").select("id").eq("id", eventId).eq("user_id", userId).maybeSingle()
@@ -59,6 +60,8 @@ export async function POST(request: Request, { params }: { params: { id: string 
     .single()
 
   if (error) {
+    const planErr = planErrorResponse(error)
+    if (planErr) return planErr
     return Response.json({ error: "INTERNAL_ERROR", message: error.message }, { status: 500 })
   }
   return Response.json(data)

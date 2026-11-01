@@ -33,6 +33,14 @@ export default function DisplayPage({ params }: { params: { eventId: string } })
 
   if (error) return <div className="min-h-screen flex items-center justify-center text-muted">{error}</div>
   if (!event) return <div className="min-h-screen flex items-center justify-center text-muted">Đang tải...</div>
+  if (event.plan !== "premium") {
+    return (
+      <div className="min-h-screen bg-ink text-white flex flex-col items-center justify-center gap-3 p-6 text-center">
+        <p className="font-serif text-3xl">Màn hình trình chiếu là tính năng Premium</p>
+        <p className="text-white/70">Chủ tiệc nâng cấp đám cưới lên Premium để mở màn hình này.</p>
+      </div>
+    )
+  }
 
   const floors: any[] = event.floors ?? []
   const floor = floors[Math.min(floorIdx, floors.length - 1)]

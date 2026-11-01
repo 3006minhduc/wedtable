@@ -85,6 +85,13 @@ const PATHS: Record<string, React.ReactNode> = {
   ),
   check: <path d="m5 12.5 4.5 4.5L19 7.5" />,
   pointer: <path d="m5 4 13 6.5-5.6 1.7L10.6 18Z" />,
+  lock: (
+    <>
+      <rect x="5" y="10.5" width="14" height="10" rx="1.5" />
+      <path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" />
+    </>
+  ),
+  sparkle: <path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.5 2.5M15.2 15.2l2.5 2.5M6.3 17.7l2.5-2.5M15.2 8.8l2.5-2.5" />,
   tableRound: <circle cx="12" cy="12" r="7" />,
   tableRect: <rect x="3.5" y="8" width="17" height="8" rx="1.5" />,
   stage: (

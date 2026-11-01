@@ -1,5 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 
+const PREMIUM_FIELDS = ["timeline", "dress_code", "dress_colors", "love_story", "gift_qr_url"]
+
 async function getRole(supabase: any, eventId: string, event: any, userId: string) {
   if (event.user_id === userId) return "owner"
   const { data: m } = await supabase.from("event_members").select("role").eq("event_id", eventId).maybeSingle()
@@ -59,6 +61,15 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   ]
   const body: Record<string, any> = {}
   for (const k of ALLOWED) if (k in raw) body[k] = raw[k]
+
+  // Free plan: premium-only invite content is ignored (autosave keeps working for the other fields)
+  if (PREMIUM_FIELDS.some((k) => k in body)) {
+    const { data: ev } = await supabase.from("events").select("plan").eq("id", params.id).maybeSingle()
+    if (ev && ev.plan !== "premium") {
+      for (const k of PREMIUM_FIELDS) delete body[k]
+      if ("invite_theme" in body && body.invite_theme !== "classic") body.invite_theme = "classic"
+    }
+  }
 
   if (body.published === true) {
     const { data: current } = await supabase.from("events").select("*").eq("id", params.id).single()

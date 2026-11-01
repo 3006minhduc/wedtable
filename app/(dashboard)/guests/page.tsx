@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import Icon from "@/components/ui/Icon"
+import { FREE_LIMITS, isPremium } from "@/lib/plan"
 import * as XLSX from "xlsx"
 import QRCode from "qrcode"
 import GuestTable from "@/components/guests/GuestTable"
@@ -28,6 +29,7 @@ export default function GuestsPage() {
   const [notice, setNotice] = useState("")
   const [importMenu, setImportMenu] = useState(false)
   const [published, setPublished] = useState(true)
+  const [premium, setPremium] = useState(true)
   const [qr, setQr] = useState<{ guest: any; url: string; img: string } | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -40,6 +42,7 @@ export default function GuestsPage() {
     const event = await eventRes.json()
     const guestsData = await guestsRes.json()
     setPublished(!!event.published)
+    setPremium(isPremium(event))
     setTables((event.floors ?? []).flatMap((f: any) => f.tables ?? []))
     setGuests(guestsData.guests ?? [])
     setLoading(false)
@@ -206,18 +209,32 @@ export default function GuestsPage() {
               </>
             )}
           </div>
-          <a className="border border-border rounded-pill px-3 py-1.5 text-sm" href={`/api/events/${eventId}/guests/export?format=xlsx`}>
-            Xuất Excel
-          </a>
-          <a className="border border-border rounded-pill px-3 py-1.5 text-sm" href={`/api/events/${eventId}/guests/export?format=csv`}>
-            Xuất CSV
-          </a>
+          {premium ? (
+            <>
+              <a className="border border-border bg-surface hover:bg-surface-hover hover:border-border-hover rounded-pill px-3 py-1.5 text-sm" href={`/api/events/${eventId}/guests/export?format=xlsx`}>
+                Xuất Excel
+              </a>
+              <a className="border border-border bg-surface hover:bg-surface-hover hover:border-border-hover rounded-pill px-3 py-1.5 text-sm" href={`/api/events/${eventId}/guests/export?format=csv`}>
+                Xuất CSV
+              </a>
+            </>
+          ) : (
+            <a href="/welcome#bang-gia" title="Tính năng Premium" className="inline-flex items-center gap-1.5 border border-dashed border-border-hover rounded-pill px-3 py-1.5 text-sm text-muted hover:text-text">
+              <Icon name="lock" size={14} /> Xuất Excel
+            </a>
+          )}
           <button className="border border-border bg-surface hover:bg-surface-hover hover:border-border-hover rounded-pill px-3 py-1.5 text-sm" onClick={handleRemindAll}>
             Nhắc khách chưa xác nhận
           </button>
         </div>
       </div>
 
+      {!premium && (
+        <p className="text-sm text-muted -mb-2">
+          Gói Miễn phí: <span className="text-text font-medium tabular-nums">{guests.length}/{FREE_LIMITS.guests}</span> khách.{" "}
+          <a href="/welcome#bang-gia" className="text-brand hover:underline underline-offset-4">Nâng cấp Premium</a> để thêm không giới hạn.
+        </p>
+      )}
       <div className="flex gap-2 flex-wrap items-center bg-surface border border-border rounded-card p-3">
         <input className={input} placeholder="Tên khách" value={newName} onChange={(e) => setNewName(e.target.value)} />
         <input className={input} placeholder="Số điện thoại" value={newPhone} onChange={(e) => setNewPhone(e.target.value)} />

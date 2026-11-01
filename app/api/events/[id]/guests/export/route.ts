@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { requirePremium } from "@/lib/plan"
 import * as XLSX from "xlsx"
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
@@ -10,6 +11,9 @@ export async function GET(request: Request, { params }: { params: { id: string }
   if (!user) {
     return Response.json({ error: "UNAUTHORIZED", message: "Chưa đăng nhập." }, { status: 401 })
   }
+
+  const notPremium = await requirePremium(supabase, params.id)
+  if (notPremium) return notPremium
 
   const { searchParams } = new URL(request.url)
   const format = searchParams.get("format") ?? "csv"

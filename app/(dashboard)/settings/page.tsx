@@ -5,6 +5,8 @@ import Icon from "@/components/ui/Icon"
 import { createClient } from "@/lib/supabase/client"
 import { ROLE_LABEL, useEvents } from "@/lib/useEvents"
 import { THEMES, TIMELINE_ICONS } from "@/lib/inviteThemes"
+import PremiumNote from "@/components/ui/PremiumNote"
+import { isPremium } from "@/lib/plan"
 
 const BUCKET = "wedding-media"
 
@@ -236,6 +238,7 @@ export default function SettingsPage() {
   const [gallery, setGallery] = useState<string[]>([])
   const [uploading, setUploading] = useState(false)
   const [giftQr, setGiftQr] = useState("")
+  const [premium, setPremium] = useState(true)
   const [uploadingQr, setUploadingQr] = useState(false)
   const dirty = useRef(false)
   const [tab, setTabState] = useState<TabId>("info")
@@ -262,6 +265,7 @@ export default function SettingsPage() {
       .then((e) => {
         setGallery(Array.isArray(e.gallery) ? e.gallery : [])
         setGiftQr(e.gift_qr_url ?? "")
+        setPremium(isPremium(e))
         setPublished(!!e.published)
         setTablesCount((e.floors ?? []).reduce((s: number, f: any) => s + (f.tables?.length ?? 0), 0))
         setForm({
@@ -614,9 +618,12 @@ export default function SettingsPage() {
             {Object.entries(THEMES).map(([key, t]) => (
               <button
                 key={key}
+                disabled={!premium && key !== "classic"}
+                title={!premium && key !== "classic" ? "Bộ màu Premium" : undefined}
                 onClick={() => set("invite_theme", key)}
-                className={"flex items-center gap-2 rounded-pill border px-3 py-1.5 text-sm " + (form.invite_theme === key ? "border-ink ring-1 ring-ink" : "border-border")}
+                className={"flex items-center gap-2 rounded-pill border px-3 py-1.5 text-sm disabled:opacity-45 disabled:cursor-not-allowed " + (form.invite_theme === key ? "border-ink ring-1 ring-ink" : "border-border")}
               >
+                {!premium && key !== "classic" && <Icon name="lock" size={12} className="text-faint" />}
                 <span className="flex -space-x-1">
                   {[t.p.blush, t.p.rose, t.p.wine].map((c) => (
                     <span key={c} className="w-4 h-4 rounded-full border border-white" style={{ background: c }} />
@@ -647,6 +654,8 @@ export default function SettingsPage() {
           </div>
         </div>
 
+        {premium ? (
+        <>
         <div>
           <Label text="Lịch trình ngày cưới" />
           <TimelineEditor items={form.timeline} onChange={(next) => set("timeline", next)} />
@@ -700,6 +709,10 @@ export default function SettingsPage() {
           />
           <p className="text-xs text-muted mt-1">Ảnh thứ 2 trong mục Ảnh cưới sẽ hiện kèm câu chuyện. Ảnh đầu tiên dùng làm ảnh bìa.</p>
         </div>
+        </>
+        ) : (
+          <PremiumNote title="Lịch trình, dress code, câu chuyện">Thêm các phần này vào thiệp mời là tính năng Premium.</PremiumNote>
+        )}
       </section>
 
       <section className="bg-surface border border-border rounded-card p-5 sm:p-6 flex flex-col gap-4">
@@ -725,6 +738,8 @@ export default function SettingsPage() {
       <section className="bg-surface border border-border rounded-card p-5 sm:p-6 flex flex-col gap-4">
         <h2 className="font-semibold text-[15px] text-text">Mã QR mừng cưới</h2>
         <p className="text-xs text-muted">Không bắt buộc. Tải ảnh QR ngân hàng/ví của cô dâu chú rể, khách mở thiệp sẽ thấy và quét để mừng.</p>
+        {premium ? (
+        <>
         {giftQr && (
           <div className="flex items-end gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -738,6 +753,10 @@ export default function SettingsPage() {
           {uploadingQr ? "Đang tải lên..." : giftQr ? "Đổi ảnh QR" : "+ Tải ảnh QR"}
           <input type="file" accept="image/*" className="hidden" disabled={uploadingQr} onChange={uploadGiftQr} />
         </label>
+        </>
+        ) : (
+          <PremiumNote compact>Hộp mừng cưới bằng mã QR là tính năng Premium.</PremiumNote>
+        )}
       </section>
 
       </>
@@ -777,7 +796,7 @@ export default function SettingsPage() {
       </>
       )}
 
-      {tab === "members" && role === "owner" && <MembersSection eventId={eventId} />}
+      {tab === "members" && role === "owner" && (premium ? <MembersSection eventId={eventId} /> : <PremiumNote title="Mời người hỗ trợ">Mời người nhà, bạn bè hỗ trợ thiết kế, xếp bàn, check-in là tính năng Premium.</PremiumNote>)}
 
       {tab === "options" && role === "owner" && (
         <section className="border border-rose/40 rounded-card p-4">

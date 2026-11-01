@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { requirePremium } from "@/lib/plan"
 
 function genCode() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
@@ -22,6 +23,9 @@ export async function POST(request: Request) {
   if (!body.event_id || !body.name) {
     return Response.json({ error: "INVALID", message: "Thiếu tên hoặc sự kiện." }, { status: 400 })
   }
+
+  const notPremium = await requirePremium(supabase, body.event_id)
+  if (notPremium) return notPremium
 
   if (body.table_id) {
     const { data: available } = await supabase.rpc("available_seats", { table_id: body.table_id })

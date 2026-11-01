@@ -9,6 +9,8 @@ import { computeLayout, stageElement, TEMPLATES } from "@/lib/seatingTemplates"
 import type { TemplateKey } from "@/lib/seatingTemplates"
 import { createClient } from "@/lib/supabase/client"
 import { useEvents } from "@/lib/useEvents"
+import { isPremium } from "@/lib/plan"
+import PremiumNote from "@/components/ui/PremiumNote"
 
 const BUCKET = "wedding-media"
 
@@ -74,6 +76,7 @@ export default function SeatingPage() {
   const floor = floors.find((f) => f.id === floorId)
   const tables: Table[] = floor?.tables ?? []
   const elements: Block[] = floor?.elements ?? []
+  const premium = isPremium(detail)
 
   const selKeys = Array.from(selected)
   const selTables = selKeys.filter((k) => k.startsWith("t:")).map((k) => tables.find((t) => t.id === k.slice(2))).filter(Boolean) as Table[]
@@ -458,7 +461,7 @@ export default function SeatingPage() {
               {f.name}
             </button>
           ))}
-          {floors.length < 3 && (
+          {floors.length < (premium ? 3 : 1) && (
             <button onClick={addFloor} className="rounded-pill px-2.5 py-1 text-sm text-muted hover:text-text" title="Thêm tầng">
               +
             </button>
@@ -498,17 +501,18 @@ export default function SeatingPage() {
             <div key={t.tool} className="contents">
               {i === 3 && <div className="w-px lg:w-auto lg:h-px bg-border mx-1 lg:mx-0 lg:my-1 self-stretch" />}
               <button
-                onClick={() => setTool(t.tool)}
-                title={t.label}
+                onClick={() => (!premium && t.tool === "rect" ? flash("Bàn dài là tính năng Premium") : setTool(t.tool))}
+                title={!premium && t.tool === "rect" ? t.label + " (Premium)" : t.label}
                 aria-label={t.label}
-                className={"w-10 h-10 shrink-0 rounded-card flex items-center justify-center text-lg " + (tool === t.tool ? "bg-brand-soft text-brand" : "text-muted hover:bg-surface-alt hover:text-text")}
+                className={"relative w-10 h-10 shrink-0 rounded-card flex items-center justify-center text-lg " + (tool === t.tool ? "bg-brand-soft text-brand" : "text-muted hover:bg-surface-alt hover:text-text")}
               >
                 <Icon name={t.icon} size={20} />
+                {!premium && t.tool === "rect" && <Icon name="lock" size={10} className="absolute bottom-1 right-1 text-faint" />}
               </button>
             </div>
           ))}
           <div className="w-px lg:w-auto lg:h-px bg-border mx-1 lg:mx-0 lg:my-1 self-stretch" />
-          <label title="Ảnh nền (sơ đồ mặt bằng)" className="w-10 h-10 shrink-0 rounded-card flex items-center justify-center text-lg text-muted hover:bg-bg hover:text-text cursor-pointer">
+          <label title={premium ? "Ảnh nền (sơ đồ mặt bằng)" : "Ảnh nền mặt bằng (Premium)"} onClick={(e) => { if (!premium) { e.preventDefault(); flash("Ảnh nền mặt bằng là tính năng Premium") } }} className="relative w-10 h-10 shrink-0 rounded-card flex items-center justify-center text-lg text-muted hover:bg-bg hover:text-text cursor-pointer">
             {uploadingBg ? "…" : <Icon name="image" size={20} />}
             <input type="file" accept="image/*" className="hidden" disabled={uploadingBg} onChange={uploadBackground} />
           </label>
@@ -638,10 +642,14 @@ export default function SeatingPage() {
                     </button>
                   </div>
                 ) : (
+                  premium ? (
                   <label className="text-xs border border-dashed border-border rounded-card px-3 py-3 block text-center text-muted cursor-pointer hover:bg-bg">
                     {uploadingBg ? "Đang tải…" : "Tải ảnh sơ đồ nhà hàng lên để vẽ theo"}
                     <input type="file" accept="image/*" className="hidden" disabled={uploadingBg} onChange={uploadBackground} />
                   </label>
+                  ) : (
+                    <PremiumNote compact>Tải ảnh mặt bằng nhà hàng để vẽ theo là tính năng Premium.</PremiumNote>
+                  )
                 )}
               </div>
 
