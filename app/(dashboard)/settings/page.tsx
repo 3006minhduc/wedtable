@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import Icon from "@/components/ui/Icon"
 import { createClient } from "@/lib/supabase/client"
 import { ROLE_LABEL, useEvents } from "@/lib/useEvents"
 import { THEMES, TIMELINE_ICONS } from "@/lib/inviteThemes"
@@ -88,13 +89,13 @@ function TimelineEditor({ items, onChange }: { items: any[]; onChange: (next: an
           <input className={input + " flex-1 min-w-[140px]"} placeholder="Tên hoạt động" value={it.title ?? ""} onChange={(e) => update(i, { title: e.target.value })} />
           <input className={input + " w-full sm:flex-1"} placeholder="Ghi chú (không bắt buộc)" value={it.note ?? ""} onChange={(e) => update(i, { note: e.target.value })} />
           <button onClick={() => onChange(items.filter((_, idx) => idx !== i))} className="text-rose text-xs px-2" aria-label="Xóa mốc">
-            ✕
+            <Icon name="close" size={14} />
           </button>
         </div>
       ))}
       <button
         onClick={() => onChange([...items, { icon: TIMELINE_ICONS[items.length % TIMELINE_ICONS.length], time: "", title: "", note: "" }])}
-        className="border border-border rounded-pill px-4 py-1.5 text-sm w-fit hover:bg-bg"
+        className="border border-border bg-surface hover:bg-surface-hover hover:border-border-hover rounded-pill px-4 py-1.5 text-sm w-fit hover:bg-bg"
       >
         + Thêm mốc
       </button>
@@ -164,8 +165,8 @@ function MembersSection({ eventId }: { eventId: string }) {
   }
 
   return (
-    <section className="bg-surface border border-border rounded-card p-4 flex flex-col gap-3">
-      <h2 className="font-semibold text-text">Thành viên hỗ trợ</h2>
+    <section className="bg-surface border border-border rounded-card p-5 sm:p-6 flex flex-col gap-4">
+      <h2 className="font-semibold text-[15px] text-text">Thành viên hỗ trợ</h2>
       <p className="text-xs text-muted">
         Mời người khác hỗ trợ theo vai trò. Họ chỉ cần đăng nhập WedTable bằng Google với đúng email bên dưới.
       </p>
@@ -173,7 +174,7 @@ function MembersSection({ eventId }: { eventId: string }) {
       {msg && (
         <div className={"text-sm rounded-card px-3 py-2 flex justify-between " + (msg.ok ? "bg-pr-l text-pr-d" : "bg-rose/10 text-rose")}>
           <span>{msg.text}</span>
-          <button onClick={() => setMsg(null)}>✕</button>
+          <button onClick={() => setMsg(null)}><Icon name="close" size={14} /></button>
         </div>
       )}
 
@@ -454,10 +455,10 @@ export default function SettingsPage() {
   if (loading || (eventId && !form)) return <p className="text-muted">Đang tải...</p>
   if (!eventId) return <p className="text-muted">Bạn chưa có sự kiện nào. Tạo ở trang Tổng quan.</p>
 
-  const base = "border rounded-card px-3 py-2 text-sm w-full "
+  const base = "border rounded-lg min-h-10 px-3 py-2 text-sm w-full bg-surface hover:border-border-hover focus:outline-none focus:border-brand focus:ring-[3px] focus:ring-brand/10 "
   const cls = (key: string) => base + (invalid(key) ? "border-rose bg-rose/5" : "border-border")
   const Label = ({ text, required, k }: { text: string; required?: boolean; k?: string }) => (
-    <label className="text-sm text-muted block mb-1">
+    <label className="text-sm font-medium text-text block mb-1.5">
       {text}
       {required && <span className="text-rose"> *</span>}
       {k && invalid(k) && <span className="text-rose text-xs ml-2">Chưa điền</span>}
@@ -467,7 +468,7 @@ export default function SettingsPage() {
   const displayUrl = `${origin}/display/${eventId}`
 
   return (
-    <div className="max-w-2xl flex flex-col gap-6">
+    <div className="max-w-3xl flex flex-col gap-6">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <h1 className="font-serif text-[28px] leading-tight tracking-[-0.01em] text-text">Cài đặt sự kiện</h1>
         <span className="text-xs text-muted">
@@ -481,7 +482,7 @@ export default function SettingsPage() {
       {notice && (
         <div className={"text-sm rounded-card px-3 py-2 flex justify-between " + (notice.ok ? "bg-pr-l text-pr-d" : "bg-rose/10 text-rose")}>
           <span>{notice.text}</span>
-          <button onClick={() => setNotice(null)}>✕</button>
+          <button onClick={() => setNotice(null)}><Icon name="close" size={14} /></button>
         </div>
       )}
 
@@ -495,7 +496,7 @@ export default function SettingsPage() {
         <section ref={publishRef} className={"rounded-card p-4 flex flex-col gap-3 border " + (published ? "bg-sage/10 border-sage/40" : "bg-surface border-border")}>
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div>
-              <h2 className="font-semibold text-text">Publish sự kiện</h2>
+              <h2 className="font-semibold text-[15px] text-text">Publish sự kiện</h2>
               <p className="text-sm text-muted">
                 {published
                   ? "Sự kiện đã publish. Khách mở được thiệp mời và màn hình trình chiếu."
@@ -548,8 +549,8 @@ export default function SettingsPage() {
       </div>
 
       {tab === "info" && (
-      <section className="bg-surface border border-border rounded-card p-4 flex flex-col gap-3">
-        <h2 className="font-semibold text-text">Thông tin</h2>
+      <section className="bg-surface border border-border rounded-card p-5 sm:p-6 flex flex-col gap-4">
+        <h2 className="font-semibold text-[15px] text-text">Thông tin</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <Label text="Tên cô dâu" required k="bride_name" />
@@ -601,9 +602,9 @@ export default function SettingsPage() {
 
       {tab === "invite" && (
       <>
-      <section className="bg-surface border border-border rounded-card p-4 flex flex-col gap-4">
+      <section className="bg-surface border border-border rounded-card p-5 sm:p-6 flex flex-col gap-5">
         <div className="flex items-center justify-between gap-2">
-          <h2 className="font-semibold text-text">Nội dung thiệp mời</h2>
+          <h2 className="font-semibold text-[15px] text-text">Nội dung thiệp mời</h2>
           <span className="text-xs text-muted">Không bắt buộc. Mục nào để trống sẽ không hiện trên thiệp.</span>
         </div>
 
@@ -676,7 +677,7 @@ export default function SettingsPage() {
                   className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-ink text-white text-[9px]"
                   aria-label="Xóa màu"
                 >
-                  ✕
+                  <Icon name="close" size={14} />
                 </button>
               </span>
             ))}
@@ -701,8 +702,8 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      <section className="bg-surface border border-border rounded-card p-4 flex flex-col gap-3">
-        <h2 className="font-semibold text-text">Ảnh cưới ({gallery.length})</h2>
+      <section className="bg-surface border border-border rounded-card p-5 sm:p-6 flex flex-col gap-4">
+        <h2 className="font-semibold text-[15px] text-text">Ảnh cưới ({gallery.length})</h2>
         <p className="text-xs text-muted">Không bắt buộc. Ảnh công khai, hiển thị trên thiệp mời. Tự nén về tối đa 1200px.</p>
         <div className="grid grid-cols-3 gap-2">
           {gallery.map((url) => (
@@ -710,19 +711,19 @@ export default function SettingsPage() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={url} alt="" className="w-full h-24 object-cover rounded-card" />
               <button onClick={() => removePhoto(url)} className="absolute top-1 right-1 bg-black/60 text-white text-xs rounded-full w-5 h-5">
-                ✕
+                <Icon name="close" size={14} />
               </button>
             </div>
           ))}
         </div>
-        <label className="border border-border rounded-pill px-4 py-2 text-sm w-fit cursor-pointer">
+        <label className="border border-border bg-surface hover:bg-surface-hover hover:border-border-hover rounded-pill px-4 py-2 text-sm w-fit cursor-pointer">
           {uploading ? "Đang tải lên..." : "+ Tải ảnh lên"}
           <input type="file" accept="image/*" multiple className="hidden" disabled={uploading} onChange={handleUpload} />
         </label>
       </section>
 
-      <section className="bg-surface border border-border rounded-card p-4 flex flex-col gap-3">
-        <h2 className="font-semibold text-text">Mã QR mừng cưới</h2>
+      <section className="bg-surface border border-border rounded-card p-5 sm:p-6 flex flex-col gap-4">
+        <h2 className="font-semibold text-[15px] text-text">Mã QR mừng cưới</h2>
         <p className="text-xs text-muted">Không bắt buộc. Tải ảnh QR ngân hàng/ví của cô dâu chú rể, khách mở thiệp sẽ thấy và quét để mừng.</p>
         {giftQr && (
           <div className="flex items-end gap-3">
@@ -733,7 +734,7 @@ export default function SettingsPage() {
             </button>
           </div>
         )}
-        <label className="border border-border rounded-pill px-4 py-2 text-sm w-fit cursor-pointer">
+        <label className="border border-border bg-surface hover:bg-surface-hover hover:border-border-hover rounded-pill px-4 py-2 text-sm w-fit cursor-pointer">
           {uploadingQr ? "Đang tải lên..." : giftQr ? "Đổi ảnh QR" : "+ Tải ảnh QR"}
           <input type="file" accept="image/*" className="hidden" disabled={uploadingQr} onChange={uploadGiftQr} />
         </label>
@@ -744,8 +745,8 @@ export default function SettingsPage() {
 
       {tab === "options" && (
       <>
-      <section className="bg-surface border border-border rounded-card p-4 flex flex-col gap-3">
-        <h2 className="font-semibold text-text">Tùy chọn</h2>
+      <section className="bg-surface border border-border rounded-card p-5 sm:p-6 flex flex-col gap-4">
+        <h2 className="font-semibold text-[15px] text-text">Tùy chọn</h2>
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={form.show_guest_names_on_map} onChange={(e) => set("show_guest_names_on_map", e.target.checked)} />
           Hiện tên khách trên sơ đồ bàn (màn hình trình chiếu)
@@ -757,15 +758,15 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      <section className="bg-surface border border-border rounded-card p-4 flex flex-col gap-2">
-        <h2 className="font-semibold text-text">Màn hình trình chiếu (TV/máy chiếu)</h2>
+      <section className="bg-surface border border-border rounded-card p-5 sm:p-6 flex flex-col gap-3">
+        <h2 className="font-semibold text-[15px] text-text">Màn hình trình chiếu (TV/máy chiếu)</h2>
         <p className="text-sm text-muted break-all">{displayUrl}</p>
         <div className="flex gap-2">
-          <a className="border border-border rounded-pill px-3 py-1.5 text-sm" href={displayUrl} target="_blank" rel="noreferrer">
+          <a className="border border-border bg-surface hover:bg-surface-hover hover:border-border-hover rounded-pill px-3 py-1.5 text-sm" href={displayUrl} target="_blank" rel="noreferrer">
             Mở màn hình
           </a>
           <button
-            className="border border-border rounded-pill px-3 py-1.5 text-sm"
+            className="border border-border bg-surface hover:bg-surface-hover hover:border-border-hover rounded-pill px-3 py-1.5 text-sm"
             onClick={() => navigator.clipboard.writeText(displayUrl).then(() => setNotice({ ok: true, text: "Đã copy link" }))}
           >
             Copy link
@@ -781,7 +782,7 @@ export default function SettingsPage() {
       {tab === "options" && role === "owner" && (
         <section className="border border-rose/40 rounded-card p-4">
           <h2 className="font-semibold text-rose mb-2">Vùng nguy hiểm</h2>
-          <button onClick={deleteEvent} className="border border-rose text-rose rounded-pill px-4 py-2 text-sm">
+          <button onClick={deleteEvent} className="border border-error/40 text-error hover:bg-error/5 rounded-pill px-4 py-2 text-sm">
             Xóa đám cưới này
           </button>
         </section>

@@ -6,6 +6,7 @@
 // Positions are % of the canvas, same as public views (FloorLayers).
 
 import { useRef, useState } from "react"
+import Icon from "@/components/ui/Icon"
 
 export type Table = { id: string; name: string; seats: number; x_pct: number; y_pct: number; vip: boolean; shape?: string }
 export type Guest = { id: string; table_id: string | null; companions: number; no_show: boolean }
@@ -29,7 +30,7 @@ const BLOCK_STYLE: Record<string, string> = {
   path: "bg-surface/60 border-muted/60 border-dashed text-muted",
   decor: "bg-sage/10 border-sage/60 text-sage",
 }
-const BLOCK_ICON: Record<string, string> = { stage: "🎤", path: "↕", decor: "✦" }
+const BLOCK_ICON: Record<string, string> = { stage: "stage", path: "aisle", decor: "zone" }
 
 type Props = {
   tables: Table[]
@@ -221,7 +222,7 @@ export default function SeatingCanvas(p: Props) {
               }
               style={{ left: `${b.x_pct}%`, top: `${b.y_pct}%`, width: `${b.w_pct}%`, height: `${b.h_pct}%`, transform: "translate(-50%, -50%)" }}
             >
-              <span aria-hidden>{BLOCK_ICON[b.type] ?? "▭"}</span>
+              <Icon name={BLOCK_ICON[b.type] ?? "zone"} size={15} />
               <span className="truncate">{b.label}</span>
               {sel && single === key && (
                 <div

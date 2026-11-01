@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import Icon from "@/components/ui/Icon"
 import * as XLSX from "xlsx"
 import QRCode from "qrcode"
 import GuestTable from "@/components/guests/GuestTable"
@@ -228,7 +229,7 @@ export default function GuestsPage() {
       {notice && (
         <div className="text-sm bg-pr-l text-pr-d rounded-card px-3 py-2 flex justify-between">
           <span>{notice}</span>
-          <button onClick={() => setNotice("")}>✕</button>
+          <button onClick={() => setNotice("")}><Icon name="close" size={14} /></button>
         </div>
       )}
 

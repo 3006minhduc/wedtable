@@ -52,9 +52,9 @@ export default function ProfilePage() {
         </div>
 
         <div>
-          <label className="text-sm text-muted block mb-1">Tên hiển thị</label>
+          <label className="text-sm font-medium text-text block mb-1.5">Tên hiển thị</label>
           <input
-            className="border border-border rounded-card px-3 py-2 text-sm w-full"
+            className="border border-border rounded-lg h-10 px-3 text-sm w-full bg-surface hover:border-border-hover focus:outline-none focus:border-brand focus:ring-[3px] focus:ring-brand/10"
             value={name}
             onChange={(e) => setName(e.target.value)}
           />

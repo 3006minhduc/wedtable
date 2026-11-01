@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import Icon from "@/components/ui/Icon"
 import SeatingCanvas, { occupiedSeats } from "@/components/seating/SeatingCanvas"
 import type { Block, Move, Table, Tool } from "@/components/seating/SeatingCanvas"
 import { resizeImage } from "@/lib/image"
@@ -12,12 +13,12 @@ import { useEvents } from "@/lib/useEvents"
 const BUCKET = "wedding-media"
 
 const TOOLS: { tool: Tool; icon: string; label: string }[] = [
-  { tool: "select", icon: "↖", label: "Chọn và kéo (V)" },
-  { tool: "round", icon: "◯", label: "Thêm bàn tròn" },
-  { tool: "rect", icon: "▭", label: "Thêm bàn dài" },
-  { tool: "stage", icon: "🎤", label: "Thêm sân khấu" },
-  { tool: "path", icon: "↕", label: "Thêm lối đi" },
-  { tool: "decor", icon: "✦", label: "Thêm khu vực khác" },
+  { tool: "select", icon: "pointer", label: "Chọn và kéo (V)" },
+  { tool: "round", icon: "tableRound", label: "Thêm bàn tròn" },
+  { tool: "rect", icon: "tableRect", label: "Thêm bàn dài" },
+  { tool: "stage", icon: "stage", label: "Thêm sân khấu" },
+  { tool: "path", icon: "aisle", label: "Thêm lối đi" },
+  { tool: "decor", icon: "zone", label: "Thêm khu vực khác" },
 ]
 
 const BLOCK_TYPES = [
@@ -437,7 +438,7 @@ export default function SeatingPage() {
   ) : saving > 0 ? (
     <span className="text-muted">Đang lưu…</span>
   ) : (
-    <span className="text-sage">✓ Đã lưu</span>
+    <span className="text-sage inline-flex items-center gap-1"><Icon name="check" size={13} /> Đã lưu</span>
   )
 
   return (
@@ -452,7 +453,7 @@ export default function SeatingPage() {
               onClick={() => switchFloor(f.id)}
               onDoubleClick={() => renameFloor(f)}
               title="Bấm đúp để đổi tên"
-              className={"rounded-pill px-3 py-1 text-sm " + (f.id === floorId ? "bg-brand text-white hover:bg-brand-hover font-medium" : "text-muted hover:text-text")}
+              className={"rounded-pill px-3 py-1 text-sm " + (f.id === floorId ? "bg-text text-surface font-medium" : "text-muted hover:text-text")}
             >
               {f.name}
             </button>
@@ -468,7 +469,7 @@ export default function SeatingPage() {
         </span>
         <div className="ml-auto relative">
           <button onClick={() => setShowTemplates((s) => !s)} className="border border-border bg-surface rounded-pill px-3 py-1.5 text-sm hover:bg-bg">
-            Bố cục mẫu: {templateLabel} ▾
+            <span className="inline-flex items-center gap-1.5">Bố cục mẫu: {templateLabel} <Icon name="chevronDown" size={14} /></span>
           </button>
           {showTemplates && (
             <>
@@ -500,15 +501,15 @@ export default function SeatingPage() {
                 onClick={() => setTool(t.tool)}
                 title={t.label}
                 aria-label={t.label}
-                className={"w-10 h-10 shrink-0 rounded-card flex items-center justify-center text-lg " + (tool === t.tool ? "bg-pr/20 text-pr-d ring-1 ring-pr" : "text-muted hover:bg-bg hover:text-text")}
+                className={"w-10 h-10 shrink-0 rounded-card flex items-center justify-center text-lg " + (tool === t.tool ? "bg-brand-soft text-brand" : "text-muted hover:bg-surface-alt hover:text-text")}
               >
-                {t.icon}
+                <Icon name={t.icon} size={20} />
               </button>
             </div>
           ))}
           <div className="w-px lg:w-auto lg:h-px bg-border mx-1 lg:mx-0 lg:my-1 self-stretch" />
           <label title="Ảnh nền (sơ đồ mặt bằng)" className="w-10 h-10 shrink-0 rounded-card flex items-center justify-center text-lg text-muted hover:bg-bg hover:text-text cursor-pointer">
-            {uploadingBg ? "…" : "🖼"}
+            {uploadingBg ? "…" : <Icon name="image" size={20} />}
             <input type="file" accept="image/*" className="hidden" disabled={uploadingBg} onChange={uploadBackground} />
           </label>
           <button
@@ -518,7 +519,7 @@ export default function SeatingPage() {
             aria-label="Hoàn tác"
             className="w-10 h-10 shrink-0 rounded-card flex items-center justify-center text-lg text-muted hover:bg-bg hover:text-text disabled:opacity-30"
           >
-            ↶
+            <Icon name="undo" size={20} />
           </button>
         </div>
 
@@ -562,9 +563,9 @@ export default function SeatingPage() {
             </div>
             <button
               onClick={() => setSnap((s) => !s)}
-              className={"rounded-pill px-3 py-1 border " + (snap ? "bg-pr/15 border-pr text-pr-d" : "bg-surface border-border text-muted")}
+              className={"rounded-pill px-3 py-1 border " + (snap ? "bg-brand-soft border-brand/30 text-brand" : "bg-surface border-border text-muted")}
             >
-              {snap ? "✓ " : ""}Bắt lưới
+              <span className="inline-flex items-center gap-1">{snap && <Icon name="check" size={13} />}Bắt lưới</span>
             </button>
             <div className="flex items-center gap-3 text-muted ml-1">
               <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-pr" /> VIP</span>
@@ -759,7 +760,7 @@ function TablePanel({
                 {g.companions > 0 && <span className="text-muted"> +{g.companions}</span>}
               </span>
               <button onClick={() => onAssign(g.id, null)} className="text-muted hover:text-rose px-1" aria-label={`Bỏ ${g.name} khỏi bàn`}>
-                ✕
+                <Icon name="close" size={14} />
               </button>
             </div>
           ))}
@@ -847,12 +848,12 @@ function MultiPanel({
       <div>
         <div className="text-xs font-medium text-muted mb-1.5">Căn chỉnh</div>
         <div className="grid grid-cols-3 gap-1.5">
-          <button className={btn} onClick={() => onAlign("left")}>⇤ Trái</button>
-          <button className={btn} onClick={() => onAlign("centerX")}>↔ Giữa</button>
-          <button className={btn} onClick={() => onAlign("right")}>⇥ Phải</button>
-          <button className={btn} onClick={() => onAlign("top")}>⤒ Trên</button>
-          <button className={btn} onClick={() => onAlign("centerY")}>↕ Giữa</button>
-          <button className={btn} onClick={() => onAlign("bottom")}>⤓ Dưới</button>
+          <button className={btn} onClick={() => onAlign("left")}><Icon name="alignLeft" size={16} className="mx-auto mb-1" />Trái</button>
+          <button className={btn} onClick={() => onAlign("centerX")}><Icon name="alignCenterX" size={16} className="mx-auto mb-1" />Giữa dọc</button>
+          <button className={btn} onClick={() => onAlign("right")}><Icon name="alignRight" size={16} className="mx-auto mb-1" />Phải</button>
+          <button className={btn} onClick={() => onAlign("top")}><Icon name="alignTop" size={16} className="mx-auto mb-1" />Trên</button>
+          <button className={btn} onClick={() => onAlign("centerY")}><Icon name="alignCenterY" size={16} className="mx-auto mb-1" />Giữa ngang</button>
+          <button className={btn} onClick={() => onAlign("bottom")}><Icon name="alignBottom" size={16} className="mx-auto mb-1" />Dưới</button>
         </div>
       </div>
       <div>
@@ -870,7 +871,7 @@ function MultiPanel({
 }
 
 function UnseatedList({ unseated, hint, compact = false }: { unseated: any[]; hint: string; compact?: boolean }) {
-  if (unseated.length === 0) return compact ? null : <p className="text-xs text-sage">✓ Mọi khách đều đã có bàn.</p>
+  if (unseated.length === 0) return compact ? null : <p className="text-xs text-sage flex items-center gap-1.5"><Icon name="check" size={14} /> Mọi khách đều đã có bàn.</p>
   return (
     <div className={compact ? "border-t border-border pt-3" : ""}>
       <div className="text-xs font-medium text-muted mb-1">Chưa có bàn ({unseated.length})</div>
@@ -886,7 +887,7 @@ function UnseatedList({ unseated, hint, compact = false }: { unseated: any[]; hi
             }}
             className="inline-flex items-center gap-1 bg-bg border border-border rounded-pill px-2.5 py-1 text-xs cursor-grab active:cursor-grabbing"
           >
-            <span className="text-muted" aria-hidden>⋮⋮</span>
+            <Icon name="grip" size={12} className="text-faint" />
             {g.name}
             {g.companions > 0 && <span className="text-muted">+{g.companions}</span>}
           </span>

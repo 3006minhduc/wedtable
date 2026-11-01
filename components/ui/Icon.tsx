@@ -84,6 +84,53 @@ const PATHS: Record<string, React.ReactNode> = {
     </>
   ),
   check: <path d="m5 12.5 4.5 4.5L19 7.5" />,
+  pointer: <path d="m5 4 13 6.5-5.6 1.7L10.6 18Z" />,
+  tableRound: <circle cx="12" cy="12" r="7" />,
+  tableRect: <rect x="3.5" y="8" width="17" height="8" rx="1.5" />,
+  stage: (
+    <>
+      <path d="M3.5 9h17v9.5h-17z" />
+      <path d="M3.5 9 6 5h12l2.5 4M8 18.5V21M16 18.5V21" />
+    </>
+  ),
+  aisle: <path d="M9 3v18M15 3v18M12 6v2M12 11v2M12 16v2" />,
+  zone: <rect x="4" y="4" width="16" height="16" rx="2" strokeDasharray="3 2.5" />,
+  image: (
+    <>
+      <rect x="3.5" y="4.5" width="17" height="15" rx="1.5" />
+      <circle cx="9" cy="10" r="1.8" />
+      <path d="m20.5 16-5-5-8.5 8.5" />
+    </>
+  ),
+  undo: <path d="M9 14 4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H11" />,
+  grip: <path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01" strokeWidth="3" />,
+  alignLeft: <path d="M4 4v16M8 8h10M8 16h6" />,
+  alignRight: <path d="M20 4v16M6 8h10M10 16h6" />,
+  alignCenterX: <path d="M12 4v16M6 8h12M8 16h8" />,
+  alignTop: <path d="M4 4h16M8 8v10M16 8v6" />,
+  alignBottom: <path d="M4 20h16M8 6v10M16 10v6" />,
+  alignCenterY: <path d="M4 12h16M8 6v12M16 8v8" />,
+  distributeX: <path d="M4 4v16M20 4v16M10 8v8M14 8v8" />,
+  distributeY: <path d="M4 4h16M4 20h16M8 10h8M8 14h8" />,
+  trash: <path d="M4 7h16M10 11v6M14 11v6M5.5 7l1 12.5A1.5 1.5 0 0 0 8 21h8a1.5 1.5 0 0 0 1.5-1.5l1-12.5M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7" />,
+  search: (
+    <>
+      <circle cx="11" cy="11" r="6.5" />
+      <path d="m20 20-4.4-4.4" />
+    </>
+  ),
+  camera: (
+    <>
+      <path d="M4 8.5A1.5 1.5 0 0 1 5.5 7h2.3l1.4-2h5.6l1.4 2h2.3A1.5 1.5 0 0 1 20 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5Z" />
+      <circle cx="12" cy="13" r="3.5" />
+    </>
+  ),
+  userPlus: (
+    <>
+      <circle cx="10" cy="8" r="3.5" />
+      <path d="M3.5 20c.6-3.6 3.2-5.5 6.5-5.5 1.6 0 3 .4 4.1 1.2M18 14v6M15 17h6" />
+    </>
+  ),
   plus: <path d="M12 5v14M5 12h14" />,
   external: <path d="M14 4h6v6M20 4l-9 9M18 14v4.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10" />,
 }

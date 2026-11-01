@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import Icon from "@/components/ui/Icon"
 import QrScanner from "@/components/checkin/QrScanner"
 import { seatsUsed, useEvents } from "@/lib/useEvents"
 
@@ -119,99 +120,168 @@ export default function CheckinPage() {
   const tableName = (id: string | null) => tables.find((t) => t.id === id)?.name ?? "Chưa có bàn"
   const checked = guests.filter((g) => g.checked_in)
   const people = checked.reduce((s, g) => s + 1 + (g.companions ?? 0), 0)
-  const input = "border border-border rounded-card px-3 py-2 text-sm w-full"
+  const expected = guests.filter((g) => !g.no_show).reduce((s, g) => s + 1 + (g.companions ?? 0), 0)
+  const pct = expected ? Math.min(100, Math.round((people / expected) * 100)) : 0
+  const field = "border border-border hover:border-border-hover focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-brand/10 rounded-lg h-10 px-3 text-sm w-full bg-surface"
+  const msgOk = /thành công|Đã check-in|Đã hoàn tác/.test(msg)
 
   return (
-    <div className="max-w-2xl flex flex-col gap-5">
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col gap-6">
+      <div>
         <h1 className="font-serif text-[28px] leading-tight tracking-[-0.01em] text-text">Check-in</h1>
-        <div className="text-sm text-muted">
-          {checked.length}/{guests.length} khách · {people} người
-        </div>
+        <p className="text-sm text-muted mt-1">Tìm tên hoặc quét mã QR trên thiệp của khách.</p>
       </div>
 
-      {msg && (
-        <div className="text-sm bg-pr-l text-pr-d rounded-card px-3 py-2 flex justify-between">
-          <span>{msg}</span>
-          <button onClick={() => setMsg("")}>✕</button>
-        </div>
-      )}
-
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center gap-3 flex-wrap">
-          <button
-            onClick={() => setScanning((s) => !s)}
-            className={"rounded-pill px-4 py-2 text-sm font-medium " + (scanning ? "border border-border text-muted" : "bg-brand text-white hover:bg-brand-hover")}
-          >
-            {scanning ? "Tắt camera" : "Quét QR bằng camera"}
-          </button>
-          <label className="flex items-center gap-2 text-sm text-muted">
-            <input type="checkbox" checked={autoCheckin} onChange={(e) => setAutoCheckin(e.target.checked)} />
-            Tự động check-in khi quét
-          </label>
-        </div>
-        {scanning && <QrScanner onScan={handleScan} />}
-      </div>
-
-      <input
-        className={input}
-        placeholder="Tìm theo tên, số điện thoại hoặc nhập mã QR của khách..."
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-      />
-
-      {q && results.length === 0 && <p className="text-sm text-muted">Không tìm thấy khách. Thêm khách vãng lai bên dưới.</p>}
-      <div className="flex flex-col gap-2">
-        {results.map((g) => (
-          <div key={g.id} className="bg-surface border border-border rounded-card p-3 flex items-center justify-between">
-            <div>
-              <div className="font-medium text-text">
-                {g.name}
-                {g.companions > 0 && <span className="text-muted"> +{g.companions}</span>}
-              </div>
-              <div className="text-xs text-muted">
-                {tableName(g.table_id)} · {g.phone} · {g.code}
-              </div>
+      <div className="grid lg:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">
+        {/* Front desk */}
+        <div className="flex flex-col gap-4">
+          <div className="bg-surface border border-border rounded-card p-4 sm:p-5 flex flex-col gap-4">
+            <div className="relative">
+              <Icon name="search" size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-faint" />
+              <input
+                autoFocus
+                className="w-full h-14 pl-12 pr-4 rounded-lg border border-border bg-surface text-base hover:border-border-hover focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-brand/10"
+                placeholder="Tên khách, số điện thoại hoặc mã QR"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
             </div>
-            {g.checked_in ? (
-              <button onClick={() => checkin(g.id, true)} className="text-xs border border-border rounded-pill px-3 py-1.5 text-muted">
-                Đã check-in · hoàn tác
+            <div className="flex items-center gap-3 flex-wrap">
+              <button
+                onClick={() => setScanning((s) => !s)}
+                className={
+                  "inline-flex items-center gap-2 h-10 px-4 rounded-lg text-sm font-medium " +
+                  (scanning ? "border border-border text-text hover:bg-surface-alt" : "bg-brand text-white hover:bg-brand-hover")
+                }
+              >
+                <Icon name="camera" size={18} />
+                {scanning ? "Tắt camera" : "Quét QR bằng camera"}
               </button>
-            ) : (
-              <button onClick={() => checkin(g.id)} className="bg-brand-soft text-brand hover:bg-brand/15 font-medium rounded-pill px-4 py-1.5 text-sm">
-                Check-in
-              </button>
+              <label className="flex items-center gap-2 text-sm text-muted cursor-pointer">
+                <input type="checkbox" checked={autoCheckin} onChange={(e) => setAutoCheckin(e.target.checked)} />
+                Tự động check-in khi quét
+              </label>
+            </div>
+            {scanning && (
+              <div className="rounded-lg overflow-hidden border border-border">
+                <QrScanner onScan={handleScan} />
+              </div>
             )}
           </div>
-        ))}
-      </div>
 
-      <section className="bg-surface border border-border rounded-card p-4 flex flex-col gap-3">
-        <h2 className="font-semibold text-text">Khách vãng lai</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <input className={input} placeholder="Tên khách" value={walk.name} onChange={(e) => setWalk({ ...walk, name: e.target.value })} />
-          <input className={input} placeholder="Số điện thoại (không bắt buộc)" value={walk.phone} onChange={(e) => setWalk({ ...walk, phone: e.target.value })} />
-          <select className={input} value={walk.table_id} onChange={(e) => setWalk({ ...walk, table_id: e.target.value })}>
-            <option value="">-- Chọn bàn --</option>
-            {tables.map((t) => {
-              const left = t.seats - seatsUsed(guests, t.id)
-              return (
-                <option key={t.id} value={t.id} disabled={left < 1 + (Number(walk.companions) || 0)}>
-                  {t.name} (còn {Math.max(0, left)} chỗ)
-                </option>
-              )
-            })}
-          </select>
-          <input className={input} type="number" min={0} placeholder="Người đi kèm" value={walk.companions} onChange={(e) => setWalk({ ...walk, companions: Number(e.target.value) })} />
+          {msg && (
+            <div
+              role="status"
+              className={"text-sm rounded-lg px-4 py-3 flex items-center gap-2 " + (msgOk ? "bg-success/10 text-success" : "bg-surface-alt text-text")}
+            >
+              {msgOk && <Icon name="check" size={16} />}
+              <span className="flex-1">{msg}</span>
+              <button onClick={() => setMsg("")} aria-label="Đóng thông báo" className="text-current/70 hover:text-current">
+                <Icon name="close" size={14} />
+              </button>
+            </div>
+          )}
+
+          {q && results.length === 0 && (
+            <p className="text-sm text-muted px-1">Không tìm thấy khách. Có thể thêm khách vãng lai ở khung bên phải.</p>
+          )}
+          {results.length > 0 && (
+            <div className="bg-surface border border-border rounded-card divide-y divide-border">
+              {results.map((g) => (
+                <div key={g.id} className="flex items-center gap-4 px-4 py-3.5">
+                  <div className="w-10 h-10 rounded-full bg-brand-soft text-brand flex items-center justify-center font-medium shrink-0">
+                    {(g.name ?? "?").trim().split(/\s+/).pop()?.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-text truncate">
+                      {g.name}
+                      {g.companions > 0 && <span className="text-muted font-normal"> +{g.companions}</span>}
+                    </p>
+                    <p className="text-sm text-muted truncate">
+                      <span className="text-text">{tableName(g.table_id)}</span>
+                      {g.phone ? ` · ${g.phone}` : ""} · {g.code}
+                    </p>
+                  </div>
+                  {g.checked_in ? (
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="inline-flex items-center gap-1 text-sm text-success">
+                        <Icon name="check" size={16} /> Đã đến
+                      </span>
+                      <button onClick={() => checkin(g.id, true)} className="text-xs text-muted hover:text-text underline underline-offset-2">
+                        Hoàn tác
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => checkin(g.id)}
+                      className="shrink-0 h-11 px-5 rounded-lg bg-text text-surface font-medium text-sm hover:bg-text/90"
+                    >
+                      Check-in
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-        <div className="flex items-center gap-3 flex-wrap">
-          <button disabled={walkSaving} onClick={addWalkin} className="bg-text text-surface hover:bg-text/90 font-medium rounded-pill px-4 py-2 text-sm disabled:opacity-50">
-            {walkSaving ? "Đang thêm..." : "Thêm và check-in"}
-          </button>
-          {walkMsg && <span className={"text-sm " + (walkMsg.ok ? "text-sage" : "text-rose")}>{walkMsg.text}</span>}
-        </div>
-        {tables.length === 0 && <p className="text-xs text-muted">Chưa có bàn nào, khách sẽ được thêm mà chưa gán bàn.</p>}
-      </section>
+
+        {/* Side: progress + walk-in */}
+        <aside className="flex flex-col gap-6">
+          <section className="bg-surface border border-border rounded-card p-5">
+            <h2 className="font-semibold text-[15px]">Khách đã đến</h2>
+            <p className="font-serif text-4xl mt-3 tabular-nums">
+              {people}
+              <span className="text-faint text-2xl"> / {expected} người</span>
+            </p>
+            <div className="h-1.5 rounded-full bg-surface-alt overflow-hidden mt-4">
+              <div className="h-full bg-brand rounded-full transition-[width] duration-500" style={{ width: `${pct}%` }} />
+            </div>
+            <p className="text-sm text-muted mt-2">
+              {checked.length} / {guests.length} thiệp đã check-in
+            </p>
+          </section>
+
+          <section className="bg-surface border border-border rounded-card p-5 flex flex-col gap-3">
+            <div className="flex items-center gap-2">
+              <Icon name="userPlus" size={18} className="text-faint" />
+              <h2 className="font-semibold text-[15px]">Khách vãng lai</h2>
+            </div>
+            <input className={field} placeholder="Tên khách" value={walk.name} onChange={(e) => setWalk({ ...walk, name: e.target.value })} />
+            <input className={field} placeholder="Số điện thoại (không bắt buộc)" value={walk.phone} onChange={(e) => setWalk({ ...walk, phone: e.target.value })} />
+            <div className="grid grid-cols-[1fr_96px] gap-2">
+              <select className={field} value={walk.table_id} onChange={(e) => setWalk({ ...walk, table_id: e.target.value })}>
+                <option value="">Chọn bàn…</option>
+                {tables.map((t) => {
+                  const left = t.seats - seatsUsed(guests, t.id)
+                  return (
+                    <option key={t.id} value={t.id} disabled={left < 1 + (Number(walk.companions) || 0)}>
+                      {t.name} (còn {Math.max(0, left)} chỗ)
+                    </option>
+                  )
+                })}
+              </select>
+              <input
+                className={field}
+                type="number"
+                min={0}
+                aria-label="Số người đi kèm"
+                placeholder="Đi kèm"
+                value={walk.companions}
+                onChange={(e) => setWalk({ ...walk, companions: Number(e.target.value) })}
+              />
+            </div>
+            <button
+              disabled={walkSaving}
+              onClick={addWalkin}
+              className="h-10 rounded-lg border border-border text-sm font-medium text-text hover:bg-surface-hover hover:border-border-hover disabled:opacity-50"
+            >
+              {walkSaving ? "Đang thêm..." : "Thêm và check-in"}
+            </button>
+            {walkMsg && <p className={"text-sm " + (walkMsg.ok ? "text-success" : "text-error")}>{walkMsg.text}</p>}
+            {tables.length === 0 && <p className="text-xs text-muted">Chưa có bàn nào, khách sẽ được thêm mà chưa gán bàn.</p>}
+          </section>
+        </aside>
+      </div>
     </div>
   )
 }

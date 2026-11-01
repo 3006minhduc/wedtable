@@ -1,22 +1,23 @@
+import Icon from "@/components/ui/Icon"
 // Read-only background + layout blocks (stage / path / decor) for public views.
 // Uses the same % coordinates as SeatingCanvas, so positions match the dashboard.
 
 type Block = { id: string; type: string; label: string; x_pct: number; y_pct: number; w_pct: number; h_pct: number }
 
-const ICON: Record<string, string> = { stage: "🎤", path: "↕", decor: "✦" }
+const ICON: Record<string, string> = { stage: "stage", path: "aisle", decor: "zone" }
 
-// Hex literals (= --pr, --sage, --muted): Tailwind can't add /opacity to var()-based theme colors.
+// Brand tokens (DESIGN.md §2)
 const THEME = {
   dark: {
-    stage: "bg-[#C8A24A]/25 border-[#C8A24A]/60 text-white",
+    stage: "bg-brand/40 border-brand text-white",
     path: "bg-white/5 border-white/30 border-dashed text-white/70",
-    decor: "bg-[#52A56E]/20 border-[#52A56E]/50 text-white/80",
+    decor: "bg-success/20 border-success/60 text-white/85",
     fallback: "bg-white/10 text-white",
   },
   light: {
     stage: "bg-ink text-white border-ink",
-    path: "bg-[#6B7280]/10 border-[#6B7280]/50 border-dashed text-muted",
-    decor: "bg-[#52A56E]/15 border-[#52A56E]/40 text-text",
+    path: "bg-faint/10 border-faint/60 border-dashed text-muted",
+    decor: "bg-success/10 border-success/40 text-text",
     fallback: "bg-ink text-white",
   },
 }
@@ -58,7 +59,7 @@ export default function FloorLayers({ floor, theme = "light" }: { floor: any; th
               transform: "translate(-50%, -50%)",
             }}
           >
-            <span>{ICON[b.type] ?? "▭"}</span>
+            <Icon name={ICON[b.type] ?? "zone"} size={14} />
             <span className="truncate">{b.label}</span>
           </div>
         ))
