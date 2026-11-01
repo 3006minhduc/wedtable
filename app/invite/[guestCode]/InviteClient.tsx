@@ -5,10 +5,12 @@ import { confirmSeat, markViewed } from "./actions"
 import { formatInviteDate } from "@/lib/formatDate"
 import FloorLayers from "@/components/seating/FloorLayers"
 import { serif, sans } from "./fonts"
-import { CurtainIntro, Divider, Frame, Garland, IV, Reveal, Seal } from "./Ornaments"
+import { CurtainIntro, Divider, Frame, Garland, PaletteProvider, Reveal, Seal, THEMES, useIV } from "./Ornaments"
 
 const DEFAULT_MESSAGE =
   "Tình yêu của chúng tôi sẽ trọn vẹn hơn khi có sự hiện diện và lời chúc phúc từ bạn. Rất mong được đón tiếp bạn trong ngày trọng đại này."
+
+const SERIF: React.CSSProperties = { fontFamily: "var(--iv-serif)" }
 
 function initialOf(name?: string) {
   const last = (name ?? "").trim().split(/\s+/).pop() ?? ""
@@ -23,6 +25,7 @@ function eventStart(date?: string | null, time?: string | null) {
 
 // ---------- seat map (guest picks a table) ----------
 function TableMap({ floors, value, companions, onChange }: { floors: any[]; value: string; companions: number; onChange: (id: string) => void }) {
+  const IV = useIV()
   const initial = Math.max(0, floors.findIndex((f) => (f.tables ?? []).some((t: any) => t.id === value)))
   const [floorIdx, setFloorIdx] = useState(initial)
   const floor = floors[Math.min(floorIdx, floors.length - 1)]
@@ -38,14 +41,14 @@ function TableMap({ floors, value, companions, onChange }: { floors: any[]; valu
               type="button"
               onClick={() => setFloorIdx(i)}
               className="rounded-full px-4 py-1 text-xs border transition-colors"
-              style={i === floorIdx ? { background: IV.wine, borderColor: IV.wine, color: "#fff" } : { borderColor: "#E3CCD0", color: IV.muted }}
+              style={i === floorIdx ? { background: IV.wine, borderColor: IV.wine, color: "#fff" } : { borderColor: IV.line, color: IV.muted }}
             >
               {f.name}
             </button>
           ))}
         </div>
       )}
-      <div className="relative w-full h-72 sm:h-80 rounded-2xl overflow-hidden border border-[#E8D5D8]" style={{ background: IV.paper }}>
+      <div className="relative w-full h-72 sm:h-80 rounded-2xl overflow-hidden border" style={{ background: IV.paper, borderColor: IV.line }}>
         <FloorLayers floor={floor} theme="light" />
         {(floor.tables ?? []).map((t: any) => {
           const left = t.seats - (t.used ?? 0)
@@ -54,7 +57,7 @@ function TableMap({ floors, value, companions, onChange }: { floors: any[]; valu
           const style: React.CSSProperties = selected
             ? { background: IV.wine, borderColor: IV.wine, color: "#fff" }
             : full
-            ? { background: "#fff", borderColor: "#E8D5D8", color: IV.muted, opacity: 0.45 }
+            ? { background: "#fff", borderColor: IV.line, color: IV.muted, opacity: 0.45 }
             : t.vip
             ? { background: "#F6E6D8", borderColor: "#C9A46A", color: "#7A5A24" }
             : { background: "#fff", borderColor: IV.sage, color: IV.ink }
@@ -86,6 +89,7 @@ function TableMap({ floors, value, companions, onChange }: { floors: any[]; valu
 
 // ---------- countdown ----------
 function Countdown({ start }: { start: Date }) {
+  const IV = useIV()
   const [now, setNow] = useState<number | null>(null)
   useEffect(() => {
     setNow(Date.now())
@@ -97,28 +101,25 @@ function Countdown({ start }: { start: Date }) {
   if (diff <= 0) {
     const sameDay = new Date(now).toDateString() === start.toDateString()
     return (
-      <p className="text-2xl italic" style={{ color: IV.wine, fontFamily: "var(--iv-serif)" }}>
+      <p className="text-2xl italic" style={{ ...SERIF, color: IV.wine }}>
         {sameDay ? "Hôm nay là ngày trọng đại!" : "Cảm ơn bạn đã cùng chung vui"}
       </p>
     )
   }
-  const days = Math.floor(diff / 86400000)
-  const hours = Math.floor((diff % 86400000) / 3600000)
-  const mins = Math.floor((diff % 3600000) / 60000)
   const items = [
-    { v: days, l: "ngày" },
-    { v: hours, l: "giờ" },
-    { v: mins, l: "phút" },
+    { v: Math.floor(diff / 86400000), l: "ngày" },
+    { v: Math.floor((diff % 86400000) / 3600000), l: "giờ" },
+    { v: Math.floor((diff % 3600000) / 60000), l: "phút" },
   ]
   return (
     <div className="flex justify-center gap-5 sm:gap-7">
       {items.map((it) => (
         <div key={it.l} className="flex flex-col items-center gap-2">
           <div
-            className="w-[78px] h-[78px] rounded-full flex items-center justify-center relative"
+            className="w-[78px] h-[78px] rounded-full flex items-center justify-center"
             style={{ background: IV.blush, boxShadow: `inset 0 0 0 4px ${IV.paper}, inset 0 0 0 5px ${IV.rose}` }}
           >
-            <span className="text-3xl" style={{ color: IV.wine, fontFamily: "var(--iv-serif)" }}>
+            <span className="text-3xl" style={{ ...SERIF, color: IV.wine }}>
               {String(it.v).padStart(2, "0")}
             </span>
           </div>
@@ -132,6 +133,7 @@ function Countdown({ start }: { start: Date }) {
 }
 
 function SectionTitle({ children, kicker }: { children: React.ReactNode; kicker?: string }) {
+  const IV = useIV()
   return (
     <div className="text-center mb-6">
       {kicker && (
@@ -139,14 +141,62 @@ function SectionTitle({ children, kicker }: { children: React.ReactNode; kicker?
           {kicker}
         </p>
       )}
-      <h2 className="text-[32px] leading-tight italic" style={{ color: IV.wine, fontFamily: "var(--iv-serif)" }}>
+      <h2 className="text-[32px] leading-tight italic" style={{ ...SERIF, color: IV.wine }}>
         {children}
       </h2>
     </div>
   )
 }
 
-export default function InviteClient({ guest, event, floors, locked }: { guest: any; event: any; floors: any[]; locked: boolean }) {
+// ---------- timeline ----------
+function Timeline({ items }: { items: any[] }) {
+  const IV = useIV()
+  return (
+    <div className="relative pl-2">
+      <div className="absolute left-[27px] top-2 bottom-2 border-l-2 border-dotted" style={{ borderColor: IV.rose }} />
+      <div className="flex flex-col gap-7">
+        {items.map((it, i) => (
+          <Reveal key={i} delay={i * 90}>
+            <div className="flex items-start gap-4">
+              <div
+                className="relative z-10 w-10 h-10 shrink-0 rounded-full flex items-center justify-center text-lg"
+                style={{ background: IV.blush, boxShadow: `0 0 0 4px ${IV.paper}` }}
+                aria-hidden
+              >
+                {it.icon || "✦"}
+              </div>
+              <div className="pt-0.5 text-left">
+                <p className="text-xl" style={{ ...SERIF, color: IV.wine }}>
+                  {it.time}
+                </p>
+                <p className="text-[12px] tracking-[0.18em] uppercase" style={{ color: IV.ink }}>
+                  {it.title}
+                </p>
+                {it.note && (
+                  <p className="text-sm mt-1" style={{ color: IV.muted }}>
+                    {it.note}
+                  </p>
+                )}
+              </div>
+            </div>
+          </Reveal>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+export default function InviteClient(props: { guest: any; event: any; floors: any[]; locked: boolean }) {
+  const palette = (THEMES[props.event.invite_theme] ?? THEMES.blush).p
+  return (
+    <PaletteProvider value={palette}>
+      <Invite {...props} />
+    </PaletteProvider>
+  )
+}
+
+function Invite({ guest, event, floors, locked }: { guest: any; event: any; floors: any[]; locked: boolean }) {
+  const IV = useIV()
   const [opened, setOpened] = useState(false)
   const [tableId, setTableId] = useState(guest.table_id ?? "")
   const [companions, setCompanions] = useState<number>(guest.companions ?? 0)
@@ -169,12 +219,18 @@ export default function InviteClient({ guest, event, floors, locked }: { guest: 
   const allTables = floors.flatMap((f) => f.tables ?? [])
   const gallery: string[] = Array.isArray(event.gallery) ? event.gallery : []
   const cover = gallery[0]
+  const storyPhoto = gallery[1]
+  const albumPhotos = gallery.slice(storyPhoto && event.love_story ? 2 : 1, 8)
+  const timeline: any[] = (Array.isArray(event.timeline) ? event.timeline : []).filter((t: any) => t?.time || t?.title)
+  const dressColors: string[] = Array.isArray(event.dress_colors) ? event.dress_colors.filter(Boolean) : []
   const start = eventStart(event.event_date, event.event_time)
   const initials = `${initialOf(event.bride_name)}&${initialOf(event.groom_name)}`
   const mapUrl = event.venue_name ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.venue_name)}` : ""
   const shortDate = start
     ? `${String(start.getDate()).padStart(2, "0")} · ${String(start.getMonth() + 1).padStart(2, "0")} · ${start.getFullYear()}`
     : ""
+  const hasFamilies = !!(event.bride_family || event.groom_family)
+  const hasFullNames = !!(event.bride_full_name || event.groom_full_name)
 
   async function handleConfirm() {
     if (!tableId) {
@@ -187,13 +243,11 @@ export default function InviteClient({ guest, event, floors, locked }: { guest: 
     setStatus(result)
   }
 
-  const serifStyle: React.CSSProperties = { fontFamily: "var(--iv-serif)" }
-
   return (
     <div className={`${serif.variable} ${sans.variable} min-h-screen`} style={{ background: IV.bg, color: IV.ink, fontFamily: "var(--iv-sans)" }}>
       {!opened && <CurtainIntro initials={initials} onOpened={() => setOpened(true)} />}
 
-      <main className="max-w-md mx-auto shadow-[0_0_60px_rgba(126,65,82,0.08)]" style={{ background: IV.paper }}>
+      <main className="max-w-md mx-auto shadow-[0_0_60px_rgba(0,0,0,0.06)]" style={{ background: IV.paper }}>
         {/* ---------- Hero ---------- */}
         <section
           className="relative min-h-[100svh] flex flex-col items-center justify-center text-center px-8 pt-20 pb-20 overflow-hidden"
@@ -207,7 +261,7 @@ export default function InviteClient({ guest, event, floors, locked }: { guest: 
               </p>
             </Reveal>
             <Reveal delay={150}>
-              <h1 className="italic leading-[1.05]" style={{ ...serifStyle, color: IV.wine }}>
+              <h1 className="italic leading-[1.05]" style={{ ...SERIF, color: IV.wine }}>
                 <span className="block text-[54px]">{event.bride_name}</span>
                 <span className="block text-3xl my-1" style={{ color: IV.rose }}>
                   &amp;
@@ -217,7 +271,7 @@ export default function InviteClient({ guest, event, floors, locked }: { guest: 
             </Reveal>
             <Reveal delay={300}>
               <Divider className="my-6" />
-              <p className="text-2xl tracking-[0.15em]" style={{ ...serifStyle, color: IV.ink }}>
+              <p className="text-2xl tracking-[0.15em]" style={{ ...SERIF, color: IV.ink }}>
                 {shortDate}
               </p>
               {event.venue_name && (
@@ -228,7 +282,7 @@ export default function InviteClient({ guest, event, floors, locked }: { guest: 
             </Reveal>
             {cover && (
               <Reveal delay={450} className="w-full mt-8">
-                <div className="mx-auto w-[78%] p-2 rounded-t-[999px] rounded-b-2xl border border-[#E3CCD0] bg-white shadow-sm">
+                <div className="mx-auto w-[78%] p-2 rounded-t-[999px] rounded-b-2xl border bg-white shadow-sm" style={{ borderColor: IV.line }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={cover} alt="" className="w-full h-60 object-cover rounded-t-[999px] rounded-b-xl" />
                 </div>
@@ -258,25 +312,59 @@ export default function InviteClient({ guest, event, floors, locked }: { guest: 
             <p className="text-[11px] tracking-[0.3em] uppercase mb-3" style={{ color: IV.rose }}>
               Kính gửi
             </p>
-            <p className="text-[34px] italic leading-tight mb-6" style={{ ...serifStyle, color: IV.wine }}>
+            <p className="text-[34px] italic leading-tight mb-6" style={{ ...SERIF, color: IV.wine }}>
               {guest.name}
             </p>
-            <p className="text-[15px] leading-relaxed" style={{ color: IV.ink }}>
-              {event.invite_message || DEFAULT_MESSAGE}
-            </p>
+            <p className="text-[15px] leading-relaxed">{event.invite_message || DEFAULT_MESSAGE}</p>
             <Divider className="my-8" />
           </Reveal>
+
+          {hasFamilies && (
+            <Reveal>
+              <div className="grid grid-cols-2 gap-4 mb-8 text-sm">
+                {[
+                  { k: "Nhà gái", v: event.bride_family },
+                  { k: "Nhà trai", v: event.groom_family },
+                ].map((f) => (
+                  <div key={f.k}>
+                    <p className="text-[11px] tracking-[0.25em] uppercase mb-2" style={{ color: IV.rose }}>
+                      {f.k}
+                    </p>
+                    <p className="whitespace-pre-line leading-relaxed" style={{ color: IV.ink }}>
+                      {f.v}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </Reveal>
+          )}
+
+          {hasFullNames && (
+            <Reveal>
+              <p className="text-[11px] tracking-[0.3em] uppercase mb-3" style={{ color: IV.rose }}>
+                Trân trọng báo tin lễ thành hôn của
+              </p>
+              <p className="text-[30px] italic leading-snug" style={{ ...SERIF, color: IV.wine }}>
+                {event.bride_full_name || event.bride_name}
+              </p>
+              <p className="text-xl italic my-1" style={{ ...SERIF, color: IV.rose }}>
+                cùng
+              </p>
+              <p className="text-[30px] italic leading-snug mb-8" style={{ ...SERIF, color: IV.wine }}>
+                {event.groom_full_name || event.groom_name}
+              </p>
+            </Reveal>
+          )}
+
           <Reveal>
             <Frame>
               <p className="text-[11px] tracking-[0.3em] uppercase mb-2" style={{ color: IV.rose }}>
                 Lễ thành hôn &amp; tiệc cưới
               </p>
-              <p className="text-2xl italic mb-3" style={{ ...serifStyle, color: IV.wine }}>
+              <p className="text-2xl italic mb-3" style={{ ...SERIF, color: IV.wine }}>
                 {event.venue_name || "Đang cập nhật địa điểm"}
               </p>
-              <p className="text-sm font-medium" style={{ color: IV.ink }}>
-                {formatInviteDate(event.event_date, event.event_time)}
-              </p>
+              <p className="text-sm font-medium">{formatInviteDate(event.event_date, event.event_time)}</p>
               {mapUrl && (
                 <a
                   href={mapUrl}
@@ -292,14 +380,61 @@ export default function InviteClient({ guest, event, floors, locked }: { guest: 
           </Reveal>
         </section>
 
+        {/* ---------- Timeline ---------- */}
+        {timeline.length > 0 && (
+          <section className="px-8 py-14">
+            <Reveal>
+              <SectionTitle kicker="Lịch trình">Ngày vui của chúng mình</SectionTitle>
+            </Reveal>
+            <Timeline items={timeline} />
+          </section>
+        )}
+
+        {/* ---------- Dress code ---------- */}
+        {(event.dress_code || dressColors.length > 0) && (
+          <section className="px-8 py-14 text-center" style={{ background: IV.bg }}>
+            <Reveal>
+              <SectionTitle kicker="Trang phục">Dress code</SectionTitle>
+              {event.dress_code && <p className="text-[15px] leading-relaxed whitespace-pre-line">{event.dress_code}</p>}
+              {dressColors.length > 0 && (
+                <div className="flex justify-center gap-3 mt-6">
+                  {dressColors.map((c, i) => (
+                    <span key={i} className="w-10 h-10 rounded-full border-2 border-white" style={{ background: c, boxShadow: `0 0 0 1px ${IV.line}` }} />
+                  ))}
+                </div>
+              )}
+            </Reveal>
+          </section>
+        )}
+
+        {/* ---------- Love story ---------- */}
+        {event.love_story && (
+          <section className="px-8 py-14 text-center">
+            <Reveal>
+              <SectionTitle kicker="Câu chuyện">Chuyện của chúng mình</SectionTitle>
+            </Reveal>
+            {storyPhoto && (
+              <Reveal>
+                <div className="mx-auto w-[70%] p-2 mb-6 rounded-t-[999px] rounded-b-2xl border bg-white shadow-sm" style={{ borderColor: IV.line }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={storyPhoto} alt="" className="w-full h-64 object-cover rounded-t-[999px] rounded-b-xl" />
+                </div>
+              </Reveal>
+            )}
+            <Reveal>
+              <p className="text-[15px] leading-relaxed whitespace-pre-line text-left sm:text-center">{event.love_story}</p>
+            </Reveal>
+          </section>
+        )}
+
         {/* ---------- Album ---------- */}
-        {gallery.length > 1 && (
+        {albumPhotos.length > 0 && (
           <section className="px-6 py-14">
             <Reveal>
               <SectionTitle kicker="Khoảnh khắc">Album của chúng tôi</SectionTitle>
             </Reveal>
             <div className="grid grid-cols-2 gap-3">
-              {gallery.slice(1, 7).map((url, i) => (
+              {albumPhotos.map((url, i) => (
                 <Reveal key={url} delay={i * 80} className={i === 0 ? "col-span-2" : ""}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -319,9 +454,9 @@ export default function InviteClient({ guest, event, floors, locked }: { guest: 
             <SectionTitle kicker="Hồi âm">Xác nhận tham dự</SectionTitle>
           </Reveal>
           <Reveal>
-            <div className="rounded-3xl p-5 sm:p-6 border border-[#E8D5D8]" style={{ background: IV.paper }}>
+            <div className="rounded-3xl p-5 sm:p-6 border" style={{ background: IV.paper, borderColor: IV.line }}>
               {guest.confirmed && !status?.success && (
-                <p className="text-xs text-center mb-4 rounded-full py-1.5 px-3" style={{ background: "#E8EFE5", color: IV.leaf }}>
+                <p className="text-xs text-center mb-4 rounded-full py-1.5 px-3" style={{ background: IV.okBg, color: IV.leaf }}>
                   {locked ? "Bạn đã xác nhận tham dự." : "Bạn đã xác nhận tham dự. Bạn vẫn có thể đổi bàn bên dưới."}
                 </p>
               )}
@@ -333,24 +468,12 @@ export default function InviteClient({ guest, event, floors, locked }: { guest: 
                 <div className="flex flex-col gap-5">
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Số người đi cùng bạn</span>
-                    <div className="flex items-center rounded-full border border-[#E3CCD0] bg-white">
-                      <button
-                        type="button"
-                        className="w-9 h-9 rounded-full text-lg"
-                        style={{ color: IV.wine }}
-                        onClick={() => setCompanions((c) => Math.max(0, c - 1))}
-                        aria-label="Bớt một người"
-                      >
+                    <div className="flex items-center rounded-full border bg-white" style={{ borderColor: IV.line }}>
+                      <button type="button" className="w-9 h-9 rounded-full text-lg" style={{ color: IV.wine }} onClick={() => setCompanions((c) => Math.max(0, c - 1))} aria-label="Bớt một người">
                         −
                       </button>
                       <span className="w-6 text-center text-sm font-medium">{companions}</span>
-                      <button
-                        type="button"
-                        className="w-9 h-9 rounded-full text-lg"
-                        style={{ color: IV.wine }}
-                        onClick={() => setCompanions((c) => Math.min(20, c + 1))}
-                        aria-label="Thêm một người"
-                      >
+                      <button type="button" className="w-9 h-9 rounded-full text-lg" style={{ color: IV.wine }} onClick={() => setCompanions((c) => Math.min(20, c + 1))} aria-label="Thêm một người">
                         +
                       </button>
                     </div>
@@ -358,11 +481,7 @@ export default function InviteClient({ guest, event, floors, locked }: { guest: 
 
                   <TableMap floors={floors} value={tableId} companions={companions} onChange={setTableId} />
 
-                  <select
-                    className="rounded-full border border-[#E3CCD0] bg-white px-4 py-2.5 text-sm"
-                    value={tableId}
-                    onChange={(e) => setTableId(e.target.value)}
-                  >
+                  <select className="rounded-full border bg-white px-4 py-2.5 text-sm" style={{ borderColor: IV.line }} value={tableId} onChange={(e) => setTableId(e.target.value)}>
                     <option value="">Hoặc chọn bàn từ danh sách…</option>
                     {allTables.map((t: any) => (
                       <option key={t.id} value={t.id} disabled={t.seats - (t.used ?? 0) < 1}>
@@ -385,7 +504,7 @@ export default function InviteClient({ guest, event, floors, locked }: { guest: 
                     </p>
                   )}
                   {status?.success && (
-                    <p className="text-lg italic text-center" style={{ ...serifStyle, color: IV.leaf }}>
+                    <p className="text-lg italic text-center" style={{ ...SERIF, color: IV.leaf }}>
                       Cảm ơn bạn! Hẹn gặp bạn tại tiệc cưới.
                     </p>
                   )}
@@ -430,8 +549,10 @@ export default function InviteClient({ guest, event, floors, locked }: { guest: 
         <footer className="px-8 pt-6 pb-14 text-center">
           <Garland className="opacity-80 mb-4 rotate-180" />
           <Reveal>
-            <Seal text={initials} size={84} />
-            <p className="text-xl italic mt-4" style={{ ...serifStyle, color: IV.wine }}>
+            <div className="flex justify-center">
+              <Seal text={initials} size={84} />
+            </div>
+            <p className="text-xl italic mt-4" style={{ ...SERIF, color: IV.wine }}>
               Sự hiện diện của bạn là niềm vinh hạnh của chúng tôi
             </p>
             <p className="text-[10px] tracking-[0.3em] uppercase mt-8" style={{ color: IV.muted }}>

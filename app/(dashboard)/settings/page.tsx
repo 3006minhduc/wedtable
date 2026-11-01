@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { ROLE_LABEL, useEvents } from "@/lib/useEvents"
+import { THEMES, TIMELINE_ICONS } from "@/lib/inviteThemes"
 
 const BUCKET = "wedding-media"
 
@@ -51,7 +52,54 @@ function buildBody(form: any) {
     template: form.template,
     show_guest_names_on_map: form.show_guest_names_on_map,
     lock_at: form.lock_at ? new Date(form.lock_at).toISOString() : null,
+    bride_full_name: form.bride_full_name,
+    groom_full_name: form.groom_full_name,
+    bride_family: form.bride_family,
+    groom_family: form.groom_family,
+    love_story: form.love_story,
+    dress_code: form.dress_code,
+    dress_colors: form.dress_colors,
+    timeline: form.timeline,
+    invite_theme: form.invite_theme,
   }
+}
+
+function TimelineEditor({ items, onChange }: { items: any[]; onChange: (next: any[]) => void }) {
+  const input = "border border-border rounded-card px-2 py-1.5 text-sm"
+  function update(i: number, patch: any) {
+    onChange(items.map((it, idx) => (idx === i ? { ...it, ...patch } : it)))
+  }
+  function sortByTime() {
+    onChange([...items].sort((a, b) => String(a.time).localeCompare(String(b.time))))
+  }
+  return (
+    <div className="flex flex-col gap-2">
+      {items.length === 0 && <p className="text-xs text-muted">Chưa có mốc nào. Ví dụ: 17:30 Đón khách, 18:00 Làm lễ, 18:30 Khai tiệc.</p>}
+      {items.map((it, i) => (
+        <div key={i} className="flex flex-wrap items-center gap-2 bg-bg rounded-card p-2">
+          <select className={input + " w-16"} value={it.icon ?? ""} onChange={(e) => update(i, { icon: e.target.value })} aria-label="Biểu tượng">
+            {TIMELINE_ICONS.map((ic) => (
+              <option key={ic} value={ic}>
+                {ic}
+              </option>
+            ))}
+          </select>
+          <input className={input + " w-24"} type="time" value={it.time ?? ""} onChange={(e) => update(i, { time: e.target.value })} onBlur={sortByTime} />
+          <input className={input + " flex-1 min-w-[140px]"} placeholder="Tên hoạt động" value={it.title ?? ""} onChange={(e) => update(i, { title: e.target.value })} />
+          <input className={input + " w-full sm:flex-1"} placeholder="Ghi chú (không bắt buộc)" value={it.note ?? ""} onChange={(e) => update(i, { note: e.target.value })} />
+          <button onClick={() => onChange(items.filter((_, idx) => idx !== i))} className="text-rose text-xs px-2" aria-label="Xóa mốc">
+            ✕
+          </button>
+        </div>
+      ))}
+      <button
+        onClick={() => onChange([...items, { icon: TIMELINE_ICONS[items.length % TIMELINE_ICONS.length], time: "", title: "", note: "" }])}
+        className="border border-border rounded-pill px-4 py-1.5 text-sm w-fit hover:bg-bg"
+      >
+        + Thêm mốc
+      </button>
+    </div>
+  )
 }
 
 const ROLE_OPTIONS = [
@@ -204,6 +252,15 @@ export default function SettingsPage() {
           template: e.template ?? "co-dien",
           show_guest_names_on_map: !!e.show_guest_names_on_map,
           lock_at: toLocalInput(e.lock_at),
+          bride_full_name: e.bride_full_name ?? "",
+          groom_full_name: e.groom_full_name ?? "",
+          bride_family: e.bride_family ?? "",
+          groom_family: e.groom_family ?? "",
+          love_story: e.love_story ?? "",
+          dress_code: e.dress_code ?? "",
+          dress_colors: Array.isArray(e.dress_colors) ? e.dress_colors : [],
+          timeline: Array.isArray(e.timeline) ? e.timeline : [],
+          invite_theme: e.invite_theme ?? "blush",
         })
       })
   }, [eventId])
@@ -483,14 +540,6 @@ export default function SettingsPage() {
           <Label text="Link video (YouTube...)" />
           <input className={cls("video_url")} value={form.video_url} onChange={(e) => set("video_url", e.target.value)} />
         </div>
-        <div>
-          <Label text="Mẫu thiệp" />
-          <select className={cls("template")} value={form.template} onChange={(e) => set("template", e.target.value)}>
-            <option value="co-dien">Cổ điển</option>
-            <option value="hien-dai">Hiện đại</option>
-            <option value="toi-gian">Tối giản</option>
-          </select>
-        </div>
         <div className={"text-sm flex items-center justify-between " + (attempted && !published && tablesCount === 0 ? "text-rose" : "text-muted")}>
           <span>
             Số bàn đã tạo: <strong>{tablesCount}</strong> <span className="text-rose">*</span> (cần ít nhất 1 để publish)
@@ -498,6 +547,106 @@ export default function SettingsPage() {
           <a href="/seating" className="underline">
             Tạo bàn
           </a>
+        </div>
+      </section>
+
+      <section className="bg-surface border border-border rounded-card p-4 flex flex-col gap-4">
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="font-semibold text-text">Nội dung thiệp mời</h2>
+          <span className="text-xs text-muted">Không bắt buộc. Mục nào để trống sẽ không hiện trên thiệp.</span>
+        </div>
+
+        <div>
+          <Label text="Bộ màu thiệp" />
+          <div className="flex flex-wrap gap-2">
+            {Object.entries(THEMES).map(([key, t]) => (
+              <button
+                key={key}
+                onClick={() => set("invite_theme", key)}
+                className={"flex items-center gap-2 rounded-pill border px-3 py-1.5 text-sm " + (form.invite_theme === key ? "border-ink ring-1 ring-ink" : "border-border")}
+              >
+                <span className="flex -space-x-1">
+                  {[t.p.blush, t.p.rose, t.p.wine].map((c) => (
+                    <span key={c} className="w-4 h-4 rounded-full border border-white" style={{ background: c }} />
+                  ))}
+                </span>
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <Label text="Họ tên đầy đủ cô dâu" />
+            <input className={cls("bride_full_name")} placeholder="Nguyễn Thị Hoa" value={form.bride_full_name} onChange={(e) => set("bride_full_name", e.target.value)} />
+          </div>
+          <div>
+            <Label text="Họ tên đầy đủ chú rể" />
+            <input className={cls("groom_full_name")} placeholder="Trần Văn Minh" value={form.groom_full_name} onChange={(e) => set("groom_full_name", e.target.value)} />
+          </div>
+          <div>
+            <Label text="Nhà gái" />
+            <textarea className={cls("bride_family")} rows={3} placeholder={"Ông Nguyễn Văn A\nBà Lê Thị B\nHà Nội"} value={form.bride_family} onChange={(e) => set("bride_family", e.target.value)} />
+          </div>
+          <div>
+            <Label text="Nhà trai" />
+            <textarea className={cls("groom_family")} rows={3} placeholder={"Ông Trần Văn C\nBà Phạm Thị D\nHải Phòng"} value={form.groom_family} onChange={(e) => set("groom_family", e.target.value)} />
+          </div>
+        </div>
+
+        <div>
+          <Label text="Lịch trình ngày cưới" />
+          <TimelineEditor items={form.timeline} onChange={(next) => set("timeline", next)} />
+        </div>
+
+        <div>
+          <Label text="Dress code" />
+          <textarea
+            className={cls("dress_code")}
+            rows={2}
+            placeholder="Trang phục lịch sự, ưu tiên tông pastel."
+            value={form.dress_code}
+            onChange={(e) => set("dress_code", e.target.value)}
+          />
+          <div className="flex items-center gap-2 mt-2 flex-wrap">
+            <span className="text-xs text-muted">Màu gợi ý:</span>
+            {form.dress_colors.map((c: string, i: number) => (
+              <span key={i} className="relative">
+                <input
+                  type="color"
+                  value={c}
+                  onChange={(e) => set("dress_colors", form.dress_colors.map((x: string, idx: number) => (idx === i ? e.target.value : x)))}
+                  className="w-9 h-9 rounded-full border border-border cursor-pointer p-0.5 bg-surface"
+                  aria-label={`Màu ${i + 1}`}
+                />
+                <button
+                  onClick={() => set("dress_colors", form.dress_colors.filter((_: string, idx: number) => idx !== i))}
+                  className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-ink text-white text-[9px]"
+                  aria-label="Xóa màu"
+                >
+                  ✕
+                </button>
+              </span>
+            ))}
+            {form.dress_colors.length < 5 && (
+              <button onClick={() => set("dress_colors", [...form.dress_colors, "#E8C4C4"])} className="border border-dashed border-border rounded-full w-9 h-9 text-muted" aria-label="Thêm màu">
+                +
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div>
+          <Label text="Câu chuyện của hai bạn" />
+          <textarea
+            className={cls("love_story")}
+            rows={4}
+            placeholder="Chúng mình gặp nhau lần đầu vào một chiều mưa Hà Nội..."
+            value={form.love_story}
+            onChange={(e) => set("love_story", e.target.value)}
+          />
+          <p className="text-xs text-muted mt-1">Ảnh thứ 2 trong mục Ảnh cưới sẽ hiện kèm câu chuyện. Ảnh đầu tiên dùng làm ảnh bìa.</p>
         </div>
       </section>
 

@@ -1,22 +1,19 @@
 "use client"
 
 // Hand-built decorations for the invite (no external artwork).
-import { useEffect, useRef, useState } from "react"
+import { createContext, useContext, useEffect, useRef, useState } from "react"
 
-export const IV = {
-  bg: "#F7EEEE",
-  paper: "#FCF8F6",
-  blush: "#EBD3D6",
-  rose: "#C48B97",
-  wine: "#7E4152",
-  sage: "#8A9A82",
-  leaf: "#6F8468",
-  ink: "#4A3A3F",
-  muted: "#8F7C82",
-}
+import { THEMES } from "@/lib/inviteThemes"
+import type { Palette } from "@/lib/inviteThemes"
+export { THEMES }
+
+const PaletteCtx = createContext<Palette>(THEMES.blush.p)
+export const PaletteProvider = PaletteCtx.Provider
+export const useIV = () => useContext(PaletteCtx)
 
 /** Wavy-edged wax seal with the couple's initials */
 export function Seal({ text, size = 120 }: { text: string; size?: number }) {
+  const IV = useIV()
   const r = 46
   const pts: string[] = []
   for (let i = 0; i <= 360; i += 3) {
@@ -38,6 +35,7 @@ export function Seal({ text, size = 120 }: { text: string; size?: number }) {
 
 /** Small leaf + bud sprig used in garlands */
 function Sprig({ x, y, r, s = 1, flip = false }: { x: number; y: number; r: number; s?: number; flip?: boolean }) {
+  const IV = useIV()
   return (
     <g transform={`translate(${x} ${y}) rotate(${r}) scale(${flip ? -s : s} ${s})`}>
       <path d="M0 0 C 6 -4, 14 -4, 22 0" stroke={IV.leaf} strokeWidth="0.8" fill="none" />
@@ -52,6 +50,7 @@ function Sprig({ x, y, r, s = 1, flip = false }: { x: number; y: number; r: numb
 
 /** Hanging garland across the top of a section */
 export function Garland({ className = "" }: { className?: string }) {
+  const IV = useIV()
   const sprigs = []
   for (let i = 0; i < 9; i++) {
     const t = i / 8
@@ -75,6 +74,7 @@ export function Garland({ className = "" }: { className?: string }) {
 
 /** Thin ornamental divider */
 export function Divider({ className = "" }: { className?: string }) {
+  const IV = useIV()
   return (
     <svg viewBox="0 0 200 20" className={"w-40 h-auto mx-auto " + className} aria-hidden>
       <line x1="10" y1="10" x2="82" y2="10" stroke={IV.rose} strokeWidth="0.6" />
@@ -88,6 +88,7 @@ export function Divider({ className = "" }: { className?: string }) {
 
 /** Corner flourishes for framed boxes */
 export function Frame({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  const IV = useIV()
   const corner = (rot: number, pos: string) => (
     <svg viewBox="0 0 40 40" className={"absolute w-10 h-10 " + pos} style={{ transform: `rotate(${rot}deg)` }} aria-hidden>
       <path d="M4 36 C 4 14, 14 4, 36 4" stroke={IV.rose} strokeWidth="1" fill="none" />
@@ -96,8 +97,8 @@ export function Frame({ children, className = "" }: { children: React.ReactNode;
     </svg>
   )
   return (
-    <div className={"relative border border-[#E3CCD0] rounded-[18px] p-6 " + className} style={{ background: IV.paper }}>
-      <div className="absolute inset-1.5 border border-[#EFDDE0] rounded-[14px] pointer-events-none" />
+    <div className={"relative border rounded-[18px] p-6 " + className} style={{ background: IV.paper, borderColor: IV.line }}>
+      <div className="absolute inset-1.5 border rounded-[14px] pointer-events-none" style={{ borderColor: IV.soft }} />
       {corner(0, "-top-1 -left-1")}
       {corner(90, "-top-1 -right-1")}
       {corner(270, "-bottom-1 -left-1")}
@@ -143,6 +144,7 @@ export function Reveal({ children, className = "", delay = 0 }: { children: Reac
 
 /** Opening curtain with the seal; tap anywhere to open */
 export function CurtainIntro({ initials, onOpened }: { initials: string; onOpened: () => void }) {
+  const IV = useIV()
   const [opening, setOpening] = useState(false)
 
   function open() {
@@ -174,7 +176,7 @@ export function CurtainIntro({ initials, onOpened }: { initials: string; onOpene
         className={"absolute top-0 left-0 w-full h-12 transition-opacity duration-700 " + (opening ? "opacity-0" : "")}
         aria-hidden
       >
-        <path d="M0 0 H400 V18 Q 375 40 350 18 Q 325 40 300 18 Q 275 40 250 18 Q 225 40 200 18 Q 175 40 150 18 Q 125 40 100 18 Q 75 40 50 18 Q 25 40 0 18 Z" fill="#E2C2C7" />
+        <path d="M0 0 H400 V18 Q 375 40 350 18 Q 325 40 300 18 Q 275 40 250 18 Q 225 40 200 18 Q 175 40 150 18 Q 125 40 100 18 Q 75 40 50 18 Q 25 40 0 18 Z" fill={IV.line} />
         {Array.from({ length: 40 }).map((_, i) => (
           <circle key={i} cx={5 + i * 10} cy={20 + Math.abs(Math.sin((i * Math.PI) / 5)) * 10} r="1.3" fill="#fff" />
         ))}
