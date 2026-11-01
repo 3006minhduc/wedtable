@@ -29,6 +29,12 @@ Skill hướng dẫn kèm theo: `.claude/skills/webtable-fullstack/` (schema, AP
 - Trang giới thiệu `components/landing/Landing.tsx` ở `/welcome`; `middleware.ts` cho người chưa đăng nhập vào `/` thấy trang này. Ảnh Unsplash khai báo ở `lib/brandImages.ts`.
 - Quy tắc: 1 nút đỏ mỗi màn hình, nhãn viết thường chữ đầu câu, không hex trong component (trừ `lib/inviteThemes.ts`).
 
+## Gói cước (2026-11-02)
+- Bảng giá: `components/landing/Pricing.tsx` (mục `#bang-gia` trên `/welcome`), cấu hình giá/tính năng ở `lib/pricing.ts` (`PROMO_END` = 30/6/2027 23:59:59 +07, `PREMIUM_PRICE` = 199000). Đồng hồ đếm ngược dùng chung `components/ui/Countdown.tsx`.
+- Gói lưu theo từng đám cưới: `events.plan` (`free`|`premium`), `events.plan_source` (`promo`|…). Migration 016: trigger tự gán Premium cho đám cưới tạo trước hạn ưu đãi, chặn người dùng tự đổi gói (chỉ đổi được trong Supabase), và chặn giới hạn gói Miễn phí: 50 khách, 1 tầng, không bàn dài, không mời thành viên, 1 đám cưới miễn phí/tài khoản (mã lỗi `PLAN_LIMIT_*`).
+- `lib/plan.ts`: `isPremium`, `FREE_LIMITS`, `planErrorResponse` (đổi lỗi trigger thành 403 tiếng Việt), `requirePremium` (dùng cho xuất Excel, khách vãng lai). PATCH sự kiện bỏ qua trường Premium (lịch trình, dress code, câu chuyện, QR mừng cưới) khi gói Miễn phí. Giao diện khóa bằng `components/ui/PremiumNote.tsx`; thiệp gói Miễn phí chỉ dùng bộ màu `classic`; `/display` gói Miễn phí hiện thông báo.
+- Chưa có thanh toán: nâng cấp sau hạn ưu đãi phải đổi tay `events.plan` trong Supabase.
+
 ## Kiến trúc
 - Next.js 14 App Router + Tailwind. Route group `(auth)`, `(dashboard)`; trang công khai `/invite/[guestCode]`, `/display/[eventId]`.
 - Supabase client: `lib/supabase/client.ts` (trình duyệt), `server.ts` (cookie, chỉ cho route cần đăng nhập), `admin.ts` (service role, chưa dùng).
@@ -42,7 +48,7 @@ Skill hướng dẫn kèm theo: `.claude/skills/webtable-fullstack/` (schema, AP
 - Ảnh: bucket public `wedding-media`, đường dẫn `${userId}/${eventId}/...` (policy cũ theo thư mục = uid người tải).
 
 ## Migration
-`supabase/migrations/001…015`. Chúng được chạy **thủ công** trong Supabase SQL Editor (không dùng CLI), file trong repo chỉ là bản ghi. Thứ tự áp dụng thực tế đã đủ tới 013 (013 thay `display_data` và `get_invite`, trả thêm `elements`/`background_url`/`background_opacity` của tầng). Chạy lại an toàn (`CREATE OR REPLACE`). Claude bị chặn tự bấm Run trên database thật: dán SQL vào editor rồi để người dùng bấm Run.
+`supabase/migrations/001…016`. Chúng được chạy **thủ công** trong Supabase SQL Editor (không dùng CLI), file trong repo chỉ là bản ghi. Thứ tự áp dụng thực tế đã đủ tới 013 (013 thay `display_data` và `get_invite`, trả thêm `elements`/`background_url`/`background_opacity` của tầng). Chạy lại an toàn (`CREATE OR REPLACE`). Claude bị chặn tự bấm Run trên database thật: dán SQL vào editor rồi để người dùng bấm Run.
 Mẹo SQL Editor khi tự động hóa: đặt nội dung bằng `window.monaco.editor.getEditors()[0].setValue(sql)`, chạy bằng Ctrl+Enter; câu có `DROP POLICY` sẽ hiện hộp xác nhận.
 
 ## Bẫy đã gặp (đừng lặp lại)
