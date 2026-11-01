@@ -452,7 +452,7 @@ export default function SeatingPage() {
               onClick={() => switchFloor(f.id)}
               onDoubleClick={() => renameFloor(f)}
               title="Bấm đúp để đổi tên"
-              className={"rounded-pill px-3 py-1 text-sm " + (f.id === floorId ? "bg-pr text-ink font-medium" : "text-muted hover:text-text")}
+              className={"rounded-pill px-3 py-1 text-sm " + (f.id === floorId ? "bg-brand text-white hover:bg-brand-hover font-medium" : "text-muted hover:text-text")}
             >
               {f.name}
             </button>

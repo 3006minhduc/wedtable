@@ -47,7 +47,7 @@ function CreateEventForm({ onCreated, onCancel }: { onCreated: (id: string) => v
         <input className={input} placeholder="Địa điểm" value={form.venue_name} onChange={(e) => setForm({ ...form, venue_name: e.target.value })} />
       </div>
       <div className="flex gap-2">
-        <button disabled={saving} onClick={submit} className="bg-pr text-ink font-medium rounded-pill px-4 py-2 text-sm disabled:opacity-50">
+        <button disabled={saving} onClick={submit} className="bg-brand text-white hover:bg-brand-hover font-medium rounded-pill px-4 py-2 text-sm disabled:opacity-50">
           {saving ? "Đang tạo..." : "Tạo sự kiện"}
         </button>
         {onCancel && (
@@ -118,7 +118,7 @@ export default function DashboardHome() {
             {left !== null && ` · ${left >= 0 ? `còn ${left} ngày` : "đã diễn ra"}`}
           </p>
         </div>
-        <button onClick={() => setCreating(true)} className="bg-pr text-ink font-medium rounded-pill px-4 py-2 text-sm">
+        <button onClick={() => setCreating(true)} className="bg-brand text-white hover:bg-brand-hover font-medium rounded-pill px-4 py-2 text-sm">
           + Đám cưới mới
         </button>
       </div>

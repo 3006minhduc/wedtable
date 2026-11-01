@@ -2,40 +2,58 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { NAV_BY_ROLE } from "@/lib/useEvents"
+import Icon from "@/components/ui/Icon"
+import { NAV_BY_ROLE, useEvents } from "@/lib/useEvents"
 
 const NAV_ITEMS = [
-  { href: "/", label: "Tổng quan", icon: "▦" },
-  { href: "/seating", label: "Sơ đồ bàn", icon: "◍" },
-  { href: "/guests", label: "Khách mời", icon: "☺" },
-  { href: "/checkin", label: "Check-in", icon: "✓" },
-  { href: "/settings", label: "Cài đặt", icon: "⚙" },
+  { href: "/", label: "Tổng quan", icon: "overview" },
+  { href: "/seating", label: "Sơ đồ bàn", icon: "seating" },
+  { href: "/guests", label: "Khách mời", icon: "guests" },
+  { href: "/checkin", label: "Check-in", icon: "checkin" },
+  { href: "/settings", label: "Cài đặt", icon: "settings" },
 ]
 
 export default function Sidebar({ role = "owner" }: { role?: string }) {
   const pathname = usePathname()
+  const { eventId } = useEvents()
   const allowed = NAV_BY_ROLE[role] ?? NAV_BY_ROLE.owner
   const items = NAV_ITEMS.filter((item) => allowed.includes(item.href))
 
   return (
-    <aside className="w-[230px] h-full bg-ink p-3 flex flex-col gap-1">
-      <div className="text-[11px] uppercase tracking-wider text-white/40 px-3 pt-2 pb-1">Quản lý</div>
+    <aside className="w-[224px] h-full bg-surface border-r border-border px-3 py-4 flex flex-col gap-0.5">
+      <p className="text-xs text-faint px-3 pb-2">Đám cưới</p>
       {items.map((item) => {
         const active = pathname === item.href
         return (
           <Link
             key={item.href}
             href={item.href}
+            aria-current={active ? "page" : undefined}
             className={
-              "flex items-center gap-3 px-3 py-2 rounded-card text-sm " +
-              (active ? "bg-pr text-ink font-medium" : "text-white/80 hover:bg-white/10")
+              "flex items-center gap-2.5 px-3 min-h-[38px] rounded-lg text-sm transition-colors " +
+              (active ? "bg-brand-soft text-brand font-medium" : "text-muted hover:bg-surface-alt hover:text-text")
             }
           >
-            <span className="w-4 text-center">{item.icon}</span>
+            <Icon name={item.icon} />
             {item.label}
           </Link>
         )
       })}
+
+      {eventId && (
+        <div className="mt-auto pt-4 border-t border-border">
+          <a
+            href={`/display/${eventId}`}
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center gap-2.5 px-3 min-h-[38px] rounded-lg text-sm text-muted hover:bg-surface-alt hover:text-text"
+          >
+            <Icon name="display" />
+            Màn hình trình chiếu
+            <Icon name="external" size={14} className="ml-auto text-faint" />
+          </a>
+        </div>
+      )}
     </aside>
   )
 }

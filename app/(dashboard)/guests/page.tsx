@@ -211,7 +211,7 @@ export default function GuestsPage() {
           <a className="border border-border rounded-pill px-3 py-1.5 text-sm" href={`/api/events/${eventId}/guests/export?format=csv`}>
             Xuất CSV
           </a>
-          <button className="bg-pr text-ink font-medium rounded-pill px-3 py-1.5 text-sm" onClick={handleRemindAll}>
+          <button className="bg-brand text-white hover:bg-brand-hover font-medium rounded-pill px-3 py-1.5 text-sm" onClick={handleRemindAll}>
             Nhắc tất cả chưa xác nhận
           </button>
         </div>
@@ -220,7 +220,7 @@ export default function GuestsPage() {
       <div className="flex gap-2 flex-wrap items-center bg-surface border border-border rounded-card p-3">
         <input className={input} placeholder="Tên khách" value={newName} onChange={(e) => setNewName(e.target.value)} />
         <input className={input} placeholder="Số điện thoại" value={newPhone} onChange={(e) => setNewPhone(e.target.value)} />
-        <button className="bg-pr text-ink font-medium rounded-pill px-4 py-2 text-sm" onClick={handleAdd}>
+        <button className="bg-brand text-white hover:bg-brand-hover font-medium rounded-pill px-4 py-2 text-sm" onClick={handleAdd}>
           + Thêm khách
         </button>
       </div>
@@ -237,7 +237,7 @@ export default function GuestsPage() {
           <button
             key={f.key}
             onClick={() => setFilter(f.key)}
-            className={"rounded-pill px-3 py-1 text-sm border " + (filter === f.key ? "bg-pr border-pr text-ink" : "border-border text-muted")}
+            className={"rounded-pill px-3 py-1 text-sm border " + (filter === f.key ? "bg-brand border-brand text-white" : "border-border text-muted")}
           >
             {f.label}
           </button>
@@ -266,7 +266,7 @@ export default function GuestsPage() {
             <div className="text-xs text-muted break-all mb-3">{qr.url}</div>
             <div className="flex gap-2 justify-center">
               <button
-                className="bg-pr text-ink rounded-pill px-3 py-1.5 text-sm"
+                className="bg-brand text-white hover:bg-brand-hover rounded-pill px-3 py-1.5 text-sm"
                 onClick={() => navigator.clipboard.writeText(qr.url).then(() => setNotice("Đã copy link mời"))}
               >
                 Copy link

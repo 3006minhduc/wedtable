@@ -74,7 +74,7 @@ export default function DisplayPage({ params }: { params: { eventId: string } })
             <button
               key={f.id}
               onClick={() => setFloorIdx(i)}
-              className={"rounded-pill px-3 py-1 text-sm border " + (i === floorIdx ? "bg-pr border-pr text-ink" : "border-white/30 text-white/70")}
+              className={"rounded-pill px-3 py-1 text-sm border " + (i === floorIdx ? "bg-brand border-brand text-white" : "border-white/30 text-white/70")}
             >
               {f.name}
             </button>

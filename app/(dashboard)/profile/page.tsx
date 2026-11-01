@@ -64,7 +64,7 @@ export default function ProfilePage() {
           <button
             disabled={saving || !name.trim()}
             onClick={save}
-            className="bg-pr text-ink font-medium rounded-pill px-5 py-2 text-sm disabled:opacity-50"
+            className="bg-brand text-white hover:bg-brand-hover font-medium rounded-pill px-5 py-2 text-sm disabled:opacity-50"
           >
             {saving ? "Đang lưu..." : "Lưu"}
           </button>

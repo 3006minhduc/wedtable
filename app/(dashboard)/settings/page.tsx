@@ -191,7 +191,7 @@ function MembersSection({ eventId }: { eventId: string }) {
             </option>
           ))}
         </select>
-        <button disabled={saving || !email.trim()} onClick={addMember} className="bg-pr text-ink font-medium rounded-pill px-4 py-2 text-sm disabled:opacity-50 whitespace-nowrap">
+        <button disabled={saving || !email.trim()} onClick={addMember} className="bg-brand text-white hover:bg-brand-hover font-medium rounded-pill px-4 py-2 text-sm disabled:opacity-50 whitespace-nowrap">
           {saving ? "Đang mời..." : "+ Mời"}
         </button>
       </div>
@@ -507,7 +507,7 @@ export default function SettingsPage() {
                 Hủy publish
               </button>
             ) : (
-              <button disabled={publishing} onClick={publish} className="bg-pr text-ink font-medium rounded-pill px-5 py-2 text-sm disabled:opacity-50">
+              <button disabled={publishing} onClick={publish} className="bg-brand text-white hover:bg-brand-hover font-medium rounded-pill px-5 py-2 text-sm disabled:opacity-50">
                 {publishing ? "Đang publish..." : "Publish sự kiện"}
               </button>
             )}
