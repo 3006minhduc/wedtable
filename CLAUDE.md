@@ -25,7 +25,8 @@ Skill hướng dẫn kèm theo: `.claude/skills/webtable-fullstack/` (schema, AP
 ## Thiết kế (đọc DESIGN.md trước khi sửa giao diện)
 - Hướng "ảnh thật + sản phẩm thật" (2026-11-02), rút ra từ Zola, Joy, Riley & Grey, Resy, OpenTable…; người dùng đã chê các hướng kem/vàng, vầng sáng mờ, chữ nghiêng tô màu, nút viên thuốc, bento là "trông AI". Quy chuẩn đầy đủ ở `DESIGN.md`; skill `web-design` ở `.claude/skills/web-design`.
 - Token màu ở `app/globals.css` (đỏ đô `--brand`), Tailwind map ở `tailwind.config.ts` (bí danh cũ `pr`/`rose`/`sage` vẫn chạy). Font Newsreader + Be Vietnam Pro nạp ở `app/layout.tsx` (`font-serif`, `font-sans`).
-- Khung app: `components/layout/*` (sidebar sáng), icon `components/ui/Icon.tsx` (không dùng emoji làm icon), logo `components/ui/Logo.tsx`.
+- Khung app: `components/layout/*` (sidebar sáng), icon `components/ui/Icon.tsx` (không dùng emoji làm icon).
+- Logo (duyệt 2026-11-02): bàn tròn nhìn từ trên, 8 ghế nét cong, hoa trà 2 lớp cánh ở giữa; chữ "*Wed*" (đỏ đô) + "*Table*" (nâu mực), cả hai nghiêng để không chạm nhau. Component `components/ui/Logo.tsx` (`Logo`, `LogoMark`, `LogoWordmark`, prop `light`, `stacked`). Icon tab `app/icon.svg` (chỉ hoa trà), icon màn hình điện thoại `app/apple-icon.png`, file thương hiệu ở `public/brand/`. PNG tạo bằng `sharp` chạy ngoài dự án (next/og lỗi khi build trên Windows).
 - Trang giới thiệu `components/landing/Landing.tsx` ở `/welcome`; `middleware.ts` cho người chưa đăng nhập vào `/` thấy trang này. Ảnh Unsplash khai báo ở `lib/brandImages.ts`.
 - Quy tắc: 1 nút đỏ mỗi màn hình, nhãn viết thường chữ đầu câu, không hex trong component (trừ `lib/inviteThemes.ts`).
 
