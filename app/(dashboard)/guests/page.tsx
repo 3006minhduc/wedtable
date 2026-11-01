@@ -176,7 +176,7 @@ export default function GuestsPage() {
         </div>
       )}
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <h1 className="text-xl font-semibold text-text">Khách mời ({guests.length})</h1>
+        <h1 className="font-serif text-[28px] leading-tight tracking-[-0.01em] text-text">Khách mời ({guests.length})</h1>
         <div className="flex gap-2 flex-wrap">
           <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleImportFile} />
           <div className="relative">

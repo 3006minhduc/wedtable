@@ -469,7 +469,7 @@ export default function SettingsPage() {
   return (
     <div className="max-w-2xl flex flex-col gap-6">
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <h1 className="text-xl font-semibold text-text">Cài đặt sự kiện</h1>
+        <h1 className="font-serif text-[28px] leading-tight tracking-[-0.01em] text-text">Cài đặt sự kiện</h1>
         <span className="text-xs text-muted">
           {saveState === "saving" && "Đang lưu..."}
           {saveState === "saved" && "✓ Đã tự động lưu"}

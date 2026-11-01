@@ -444,7 +444,7 @@ export default function SeatingPage() {
     <div className="flex flex-col gap-3">
       {/* Header: floors, stats, save status, templates */}
       <div className="flex items-center gap-2 flex-wrap">
-        <h1 className="text-xl font-semibold text-text mr-1">Sơ đồ bàn</h1>
+        <h1 className="font-serif text-[28px] leading-tight tracking-[-0.01em] text-text mr-1">Sơ đồ bàn</h1>
         <div className="flex items-center gap-1 bg-surface border border-border rounded-pill p-0.5">
           {floors.map((f) => (
             <button

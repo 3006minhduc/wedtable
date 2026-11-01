@@ -1,12 +1,13 @@
-import { Be_Vietnam_Pro, Cormorant_Garamond } from "next/font/google"
+import { Be_Vietnam_Pro, Newsreader } from "next/font/google"
 
-// Invite-only fonts (both cover Vietnamese diacritics)
-export const serif = Cormorant_Garamond({
+// Invite fonts = same families as the app (DESIGN.md §3), both cover Vietnamese diacritics
+export const serif = Newsreader({
   subsets: ["latin", "vietnamese"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "500"],
   style: ["normal", "italic"],
   variable: "--iv-serif",
   display: "swap",
+  adjustFontFallback: false,
 })
 
 export const sans = Be_Vietnam_Pro({

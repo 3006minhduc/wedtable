@@ -40,7 +40,7 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-xl flex flex-col gap-5">
-      <h1 className="text-xl font-semibold text-text">Hồ sơ của tôi</h1>
+      <h1 className="font-serif text-[28px] leading-tight tracking-[-0.01em] text-text">Hồ sơ của tôi</h1>
 
       <section className="bg-surface border border-border rounded-card p-5 flex flex-col gap-4">
         <div className="flex items-center gap-4">

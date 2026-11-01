@@ -124,7 +124,7 @@ export default function CheckinPage() {
   return (
     <div className="max-w-2xl flex flex-col gap-5">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-text">Check-in</h1>
+        <h1 className="font-serif text-[28px] leading-tight tracking-[-0.01em] text-text">Check-in</h1>
         <div className="text-sm text-muted">
           {checked.length}/{guests.length} khách · {people} người
         </div>

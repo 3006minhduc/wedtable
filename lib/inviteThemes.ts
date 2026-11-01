@@ -5,6 +5,10 @@ export type Palette = {
 
 // Color sets for the guest invite page (events.invite_theme)
 export const THEMES: Record<string, { label: string; p: Palette }> = {
+  classic: {
+    label: "Trắng đỏ đô",
+    p: { bg: "#F7F5F3", paper: "#FFFFFF", blush: "#F3E4E6", rose: "#B4505F", wine: "#8E1F2F", sage: "#9AA58F", leaf: "#6F7F66", ink: "#1C1917", muted: "#78716C", line: "#E8E4DF", soft: "#F2EFEB", okBg: "#E7F1EB" },
+  },
   blush: {
     label: "Hồng phấn",
     p: { bg: "#F7EEEE", paper: "#FCF8F6", blush: "#EBD3D6", rose: "#C48B97", wine: "#7E4152", sage: "#8A9A82", leaf: "#6F8468", ink: "#4A3A3F", muted: "#8F7C82", line: "#E3CCD0", soft: "#EFDDE0", okBg: "#E8EFE5" },
