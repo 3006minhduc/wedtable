@@ -93,10 +93,10 @@ function Countdown({ start }: { start: Date }) {
   const [now, setNow] = useState<number | null>(null)
   useEffect(() => {
     setNow(Date.now())
-    const t = setInterval(() => setNow(Date.now()), 30000)
+    const t = setInterval(() => setNow(Date.now()), 1000)
     return () => clearInterval(t)
   }, [])
-  if (now === null) return <div className="h-28" />
+  if (now === null) return <div className="h-[92px]" />
   const diff = start.getTime() - now
   if (diff <= 0) {
     const sameDay = new Date(now).toDateString() === start.toDateString()
@@ -107,23 +107,24 @@ function Countdown({ start }: { start: Date }) {
     )
   }
   const items = [
-    { v: Math.floor(diff / 86400000), l: "ngày" },
-    { v: Math.floor((diff % 86400000) / 3600000), l: "giờ" },
-    { v: Math.floor((diff % 3600000) / 60000), l: "phút" },
+    { v: String(Math.floor(diff / 86400000)), l: "ngày" },
+    { v: String(Math.floor((diff % 86400000) / 3600000)).padStart(2, "0"), l: "giờ" },
+    { v: String(Math.floor((diff % 3600000) / 60000)).padStart(2, "0"), l: "phút" },
+    { v: String(Math.floor((diff % 60000) / 1000)).padStart(2, "0"), l: "giây" },
   ]
   return (
-    <div className="flex justify-center gap-5 sm:gap-7">
+    <div className="flex justify-center gap-2.5 sm:gap-4" role="timer">
       {items.map((it) => (
         <div key={it.l} className="flex flex-col items-center gap-2">
           <div
-            className="w-[78px] h-[78px] rounded-full flex items-center justify-center"
-            style={{ background: IV.blush, boxShadow: `inset 0 0 0 4px ${IV.paper}, inset 0 0 0 5px ${IV.rose}` }}
+            className="w-[64px] h-[64px] sm:w-[72px] sm:h-[72px] rounded-full flex items-center justify-center"
+            style={{ background: IV.blush, boxShadow: `inset 0 0 0 3px ${IV.paper}, inset 0 0 0 4px ${IV.rose}` }}
           >
-            <span className="text-3xl" style={{ ...SERIF, color: IV.wine }}>
-              {String(it.v).padStart(2, "0")}
+            <span className="text-[26px] tabular-nums" style={{ ...SERIF, color: IV.wine }}>
+              {it.v}
             </span>
           </div>
-          <span className="text-[11px] tracking-[0.2em] uppercase" style={{ color: IV.muted }}>
+          <span className="text-xs" style={{ color: IV.muted }}>
             {it.l}
           </span>
         </div>
@@ -280,6 +281,14 @@ function Invite({ guest, event, floors, locked }: { guest: any; event: any; floo
                 </p>
               )}
             </Reveal>
+            {start && (
+              <Reveal delay={400} className="mt-8">
+                <p className="text-xs mb-3" style={{ color: IV.muted }}>
+                  Còn lại đến ngày chung đôi
+                </p>
+                <Countdown start={start} />
+              </Reveal>
+            )}
             {cover && (
               <Reveal delay={450} className="w-full mt-8">
                 <div className="mx-auto w-[78%] p-2 rounded-t-[999px] rounded-b-2xl border bg-white shadow-sm" style={{ borderColor: IV.line }}>
@@ -294,17 +303,6 @@ function Invite({ guest, event, floors, locked }: { guest: any; event: any; floo
             <span aria-hidden>⌄</span>
           </div>
         </section>
-
-        {/* ---------- Countdown ---------- */}
-        {start && (
-          <section className="px-8 pb-16 pt-4 text-center">
-            <Garland className="opacity-80 mb-2 rotate-180" />
-            <Reveal>
-              <SectionTitle kicker="Đếm ngược">Ngày chung đôi</SectionTitle>
-              <Countdown start={start} />
-            </Reveal>
-          </section>
-        )}
 
         {/* ---------- Invitation ---------- */}
         <section className="px-8 py-14 text-center" style={{ background: IV.bg }}>

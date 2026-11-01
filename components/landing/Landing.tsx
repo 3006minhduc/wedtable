@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react"
 import Icon from "@/components/ui/Icon"
 import Logo from "@/components/ui/Logo"
 import { IMG } from "@/lib/brandImages"
+import Pricing from "./Pricing"
 
 // ---------- small motion helpers (DESIGN.md §7) ----------
 const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -264,6 +265,7 @@ export default function Landing() {
           <nav className={"hidden md:flex items-center gap-6 text-sm " + (scrolled ? "text-muted" : "text-white/85")}>
             <a href="#tinh-nang" className="hover:underline underline-offset-4">Tính năng</a>
             <a href="#cach-dung" className="hover:underline underline-offset-4">Cách dùng</a>
+            <a href="#bang-gia" className="hover:underline underline-offset-4">Bảng giá</a>
           </nav>
           <div className="ml-auto flex items-center gap-2">
             <Link href="/login" className={"hidden sm:inline-flex h-10 items-center px-3 rounded-lg text-sm " + (scrolled ? "text-text hover:bg-surface-alt" : "text-white hover:bg-white/10")}>
@@ -470,6 +472,8 @@ export default function Landing() {
         </div>
       </section>
 
+      <Pricing />
+
       {/* ---------- CTA band ---------- */}
       <section className="relative overflow-hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -491,6 +495,7 @@ export default function Landing() {
           <div className="flex flex-wrap gap-x-6 gap-y-2">
             <a href="#tinh-nang" className="hover:text-text">Tính năng</a>
             <a href="#cach-dung" className="hover:text-text">Cách dùng</a>
+            <a href="#bang-gia" className="hover:text-text">Bảng giá</a>
             <Link href="/login" className="hover:text-text">Đăng nhập</Link>
           </div>
           <p className="text-faint text-xs">Ảnh minh họa: Unsplash · © {new Date().getFullYear()} WedTable</p>
