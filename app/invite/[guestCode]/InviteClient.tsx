@@ -321,8 +321,8 @@ export default function InviteClient({ guest, event, floors, locked }: { guest: 
           <Reveal>
             <div className="rounded-3xl p-5 sm:p-6 border border-[#E8D5D8]" style={{ background: IV.paper }}>
               {guest.confirmed && !status?.success && (
-                <p className="text-xs text-center mb-4 rounded-full py-1.5" style={{ background: "#E8EFE5", color: IV.leaf }}>
-                  Bạn đã xác nhận tham dự. Bạn vẫn có thể đổi bàn bên dưới.
+                <p className="text-xs text-center mb-4 rounded-full py-1.5 px-3" style={{ background: "#E8EFE5", color: IV.leaf }}>
+                  {locked ? "Bạn đã xác nhận tham dự." : "Bạn đã xác nhận tham dự. Bạn vẫn có thể đổi bàn bên dưới."}
                 </p>
               )}
               {locked ? (
