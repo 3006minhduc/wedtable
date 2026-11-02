@@ -6,6 +6,8 @@ import { formatInviteDate } from "@/lib/formatDate"
 import FloorLayers from "@/components/seating/FloorLayers"
 import { serif, sans } from "./fonts"
 import { CurtainIntro, Divider, Frame, Garland, PaletteProvider, Reveal, Seal, THEMES, useIV } from "./Ornaments"
+import { Cartouche, EnvelopeIntro, GiltCrest, GiltDivider, GiltFrame, GiltSeal, PhotoStrip } from "./Gilded"
+import type { Palette } from "@/lib/inviteThemes"
 
 const DEFAULT_MESSAGE =
   "Tình yêu của chúng tôi sẽ trọn vẹn hơn khi có sự hiện diện và lời chúc phúc từ bạn. Rất mong được đón tiếp bạn trong ngày trọng đại này."
@@ -85,6 +87,12 @@ function TableMap({ floors, value, companions, onChange }: { floors: any[]; valu
       </p>
     </div>
   )
+}
+
+/** Palette remap for text sitting on the dark "deep" background of gilded themes */
+function onDeep(IV: Palette): Palette {
+  const gold = IV.gold ?? [IV.blush, IV.rose, IV.wine]
+  return { ...IV, wine: gold[0], rose: gold[1], muted: IV.line, ink: IV.paper, blush: "rgba(255,255,255,0.06)", paper: IV.deep ?? IV.wine }
 }
 
 // ---------- countdown ----------
@@ -189,18 +197,73 @@ function Timeline({ items }: { items: any[] }) {
 
 type InviteProps = { guest: any; event: any; floors: any[]; locked: boolean; preview?: boolean; skipIntro?: boolean }
 
+// ---------- gilded hero: gold cartouche on bordeaux + photobooth strip ----------
+function GildedHero({ event, shortDate, start, photos, opened }: { event: any; shortDate: string; start: Date | null; photos: string[]; opened: boolean }) {
+  const IV = useIV()
+  const dark = onDeep(IV)
+  return (
+    <section
+      className="relative min-h-[100svh] flex flex-col items-center justify-center px-6 pt-14 pb-24 overflow-hidden"
+      style={{ background: `radial-gradient(ellipse at 50% 30%, ${IV.wine} 0%, ${IV.deep ?? IV.wine} 72%)` }}
+    >
+      <div className="w-[min(84vw,330px)]">
+        <Reveal>
+          <Cartouche slot={photos.length > 0}>
+            <p className="text-[10px] tracking-[0.32em] uppercase mt-1 mb-4" style={{ color: IV.rose }}>
+              Trân trọng kính mời
+            </p>
+            <h1 className="italic leading-[1.05] break-words max-w-full" style={{ ...SERIF, color: IV.wine }}>
+              <span className="block text-[38px]">{event.bride_name}</span>
+              <span className="block text-2xl my-0.5" style={{ color: IV.rose }}>
+                &amp;
+              </span>
+              <span className="block text-[38px]">{event.groom_name}</span>
+            </h1>
+            <GiltDivider className="my-4 !w-28" />
+            <p className="text-lg tracking-[0.15em]" style={{ ...SERIF, color: IV.ink }}>
+              {shortDate}
+            </p>
+            {event.venue_name && (
+              <p className="text-xs mt-1" style={{ color: IV.muted }}>
+                {event.venue_name}
+              </p>
+            )}
+          </Cartouche>
+          <PhotoStrip photos={photos} start={opened} />
+        </Reveal>
+      </div>
+      {start && (
+        <PaletteProvider value={dark}>
+          <Reveal delay={300} className="mt-10 text-center">
+            <p className="text-xs mb-3" style={{ color: dark.muted }}>
+              Còn lại đến ngày chung đôi
+            </p>
+            <Countdown start={start} />
+          </Reveal>
+        </PaletteProvider>
+      )}
+      <div className="absolute bottom-6 flex flex-col items-center gap-1 text-[10px] tracking-[0.3em] uppercase animate-bounce" style={{ color: dark.rose }}>
+        <span>Cuộn xuống</span>
+        <span aria-hidden>⌄</span>
+      </div>
+    </section>
+  )
+}
+
 export default function InviteClient(props: InviteProps) {
   // Free plan: only the classic color set (DESIGN.md / lib/plan.ts)
-  const palette = (props.event.plan === "premium" ? THEMES[props.event.invite_theme] ?? THEMES.blush : THEMES.classic).p
+  const theme = props.event.plan === "premium" ? THEMES[props.event.invite_theme] ?? THEMES.blush : THEMES.classic
   return (
-    <PaletteProvider value={palette}>
-      <Invite {...props} />
+    <PaletteProvider value={theme.p}>
+      <Invite {...props} gilded={theme.style === "gilded"} />
     </PaletteProvider>
   )
 }
 
-function Invite({ guest, event, floors, locked, preview = false, skipIntro = false }: InviteProps) {
+function Invite({ guest, event, floors, locked, preview = false, skipIntro = false, gilded = false }: InviteProps & { gilded?: boolean }) {
   const IV = useIV()
+  // Decoration set for this theme
+  const O = gilded ? { Garland: GiltCrest, Divider: GiltDivider, Frame: GiltFrame } : { Garland, Divider, Frame }
   const [opened, setOpened] = useState(skipIntro)
   const [tableId, setTableId] = useState(guest.table_id ?? "")
   const [companions, setCompanions] = useState<number>(guest.companions ?? 0)
@@ -254,15 +317,23 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
 
   return (
     <div className={`${serif.variable} ${sans.variable} min-h-screen`} style={{ background: IV.bg, color: IV.ink, fontFamily: "var(--iv-sans)" }}>
-      {!opened && <CurtainIntro initials={initials} onOpened={() => setOpened(true)} />}
+      {!opened &&
+        (gilded ? (
+          <EnvelopeIntro initials={initials} photo={cover} onOpened={() => setOpened(true)} />
+        ) : (
+          <CurtainIntro initials={initials} onOpened={() => setOpened(true)} />
+        ))}
 
       <main className="max-w-md mx-auto shadow-[0_0_60px_rgba(0,0,0,0.06)]" style={{ background: IV.paper }}>
         {/* ---------- Hero ---------- */}
+        {gilded ? (
+          <GildedHero event={event} shortDate={shortDate} start={start} photos={gallery.slice(0, 3)} opened={opened} />
+        ) : (
         <section
           className="relative min-h-[100svh] flex flex-col items-center justify-center text-center px-8 pt-20 pb-20 overflow-hidden"
           style={{ background: `radial-gradient(ellipse at top, ${IV.blush} 0%, ${IV.paper} 62%)` }}
         >
-          <Garland className="absolute top-0 left-0 opacity-90" />
+          <O.Garland className="absolute top-0 left-0 opacity-90" />
           <div className="relative flex flex-col items-center w-full">
             <Reveal>
               <p className="text-[11px] tracking-[0.35em] uppercase mb-6" style={{ color: IV.rose }}>
@@ -279,7 +350,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
               </h1>
             </Reveal>
             <Reveal delay={300}>
-              <Divider className="my-6" />
+              <O.Divider className="my-6" />
               <p className="text-2xl tracking-[0.15em]" style={{ ...SERIF, color: IV.ink }}>
                 {shortDate}
               </p>
@@ -311,6 +382,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
             <span aria-hidden>⌄</span>
           </div>
         </section>
+        )}
 
         {/* ---------- Invitation ---------- */}
         <section className="px-8 py-14 text-center" style={{ background: IV.bg }}>
@@ -322,7 +394,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
               {guest.name}
             </p>
             <p className="text-[15px] leading-relaxed">{event.invite_message || DEFAULT_MESSAGE}</p>
-            <Divider className="my-8" />
+            <O.Divider className="my-8" />
           </Reveal>
 
           {hasFamilies && (
@@ -363,7 +435,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
           )}
 
           <Reveal>
-            <Frame>
+            <O.Frame>
               <p className="text-[11px] tracking-[0.3em] uppercase mb-2" style={{ color: IV.rose }}>
                 Lễ thành hôn &amp; tiệc cưới
               </p>
@@ -382,7 +454,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
                   Xem bản đồ
                 </a>
               )}
-            </Frame>
+            </O.Frame>
           </Reveal>
         </section>
 
@@ -455,10 +527,12 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
         )}
 
         {/* ---------- RSVP ---------- */}
-        <section className="px-6 py-14" style={{ background: IV.bg }}>
-          <Reveal>
-            <SectionTitle kicker="Hồi âm">Xác nhận tham dự</SectionTitle>
-          </Reveal>
+        <section className="px-6 py-14" style={{ background: gilded ? IV.deep : IV.bg }}>
+          <PaletteProvider value={gilded ? onDeep(IV) : IV}>
+            <Reveal>
+              <SectionTitle kicker="Hồi âm">Xác nhận tham dự</SectionTitle>
+            </Reveal>
+          </PaletteProvider>
           <Reveal>
             <div className="rounded-3xl p-5 sm:p-6 border" style={{ background: IV.paper, borderColor: IV.line }}>
               {guest.confirmed && !status?.success && (
@@ -525,13 +599,13 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
           <section className="px-8 py-14 text-center">
             <Reveal>
               <SectionTitle kicker="Gửi yêu thương">Hộp mừng cưới</SectionTitle>
-              <Frame className="mx-auto max-w-[280px]">
+              <O.Frame className="mx-auto max-w-[280px]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={event.gift_qr_url} alt="Mã QR mừng cưới" className="mx-auto w-48 h-48 object-contain bg-white rounded-lg" />
                 <p className="text-xs mt-3" style={{ color: IV.muted }}>
                   Quét mã để gửi lời chúc và quà mừng
                 </p>
-              </Frame>
+              </O.Frame>
             </Reveal>
           </section>
         )}
@@ -553,10 +627,10 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
 
         {/* ---------- Footer ---------- */}
         <footer className="px-8 pt-6 pb-14 text-center">
-          <Garland className="opacity-80 mb-4 rotate-180" />
+          <O.Garland className="opacity-80 mb-4 rotate-180" />
           <Reveal>
             <div className="flex justify-center">
-              <Seal text={initials} size={84} />
+              {gilded ? <GiltSeal text={initials} size={84} /> : <Seal text={initials} size={84} />}
             </div>
             <p className="text-xl italic mt-4" style={{ ...SERIF, color: IV.wine }}>
               Sự hiện diện của bạn là niềm vinh hạnh của chúng tôi

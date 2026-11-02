@@ -60,10 +60,28 @@ function ThemeCard({ id, active, locked, onPick }: { id: string; active: boolean
       disabled={locked}
       aria-pressed={active}
       className={
-        "text-left rounded-card border overflow-hidden transition-colors disabled:cursor-not-allowed " +
+        "relative text-left rounded-card border overflow-hidden transition-colors disabled:cursor-not-allowed " +
         (active ? "border-brand ring-2 ring-brand/20" : "border-border hover:border-border-hover")
       }
     >
+      {t.style === "gilded" ? (
+        <div className="relative h-28 flex items-center justify-center" style={{ background: `radial-gradient(ellipse at 50% 30%, ${p.wine}, ${p.deep})` }}>
+          <div
+            className="w-[62%] h-[82%] flex flex-col items-center justify-center gap-0.5 rounded-[3px]"
+            style={{ background: p.paper, boxShadow: `0 0 0 2px ${p.gold?.[1]}, 0 0 0 4px ${p.gold?.[2]}, 0 6px 14px rgba(0,0,0,0.4)` }}
+          >
+            <span className="text-[8px] tracking-[0.25em] uppercase" style={{ color: p.rose }}>
+              Kính mời
+            </span>
+            <span className="text-[15px] italic leading-none text-center" style={{ color: p.wine, fontFamily: "var(--font-serif)" }}>
+              Ngọc Anh &amp; Minh Khoa
+            </span>
+            <span className="text-[9px] tracking-[0.2em]" style={{ color: p.muted }}>
+              20 · 12 · 2026
+            </span>
+          </div>
+        </div>
+      ) : (
       <div className="relative h-28 flex flex-col items-center justify-center gap-1" style={{ background: p.paper }}>
         <div className="absolute inset-x-0 top-0 h-10" style={{ background: `radial-gradient(ellipse at top, ${p.blush}, transparent 70%)` }} />
         <span className="relative w-8 h-8 rounded-full flex items-center justify-center text-[11px] italic" style={{ background: p.blush, color: p.wine, boxShadow: `0 0 0 1px ${p.rose}`, fontFamily: "var(--font-serif)" }}>
@@ -75,12 +93,13 @@ function ThemeCard({ id, active, locked, onPick }: { id: string; active: boolean
         <span className="relative text-[10px] tracking-[0.2em]" style={{ color: p.muted }}>
           20 · 12 · 2026
         </span>
-        {locked && (
-          <span className="absolute top-2 right-2 inline-flex items-center gap-1 h-5 px-1.5 rounded bg-surface/90 text-[10px] text-muted">
-            <Icon name="lock" size={10} /> Premium
-          </span>
-        )}
       </div>
+      )}
+      {locked && (
+        <span className="absolute top-2 right-2 inline-flex items-center gap-1 h-5 px-1.5 rounded bg-surface/90 text-[10px] text-muted">
+          <Icon name="lock" size={10} /> Premium
+        </span>
+      )}
       <div className="px-3 py-2.5 border-t border-border bg-surface">
         <div className="flex items-center justify-between gap-2">
           <span className="text-sm font-medium text-text">{t.label}</span>
@@ -331,7 +350,7 @@ export default function InvitationPage() {
       <div className="grid lg:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">
         <div className="flex flex-col gap-6 min-w-0">
           <Section title="Giao diện thiệp" desc={premium ? "Chọn một bộ màu. Sẽ có thêm giao diện mới." : "Gói Miễn phí dùng giao diện Trắng đỏ đô. Nâng cấp Premium để mở các giao diện khác."}>
-            <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 xl:grid-cols-3 gap-3">
               {themeIds.map((id) => (
                 <ThemeCard key={id} id={id} active={premium ? form.invite_theme === id : id === "classic"} locked={!premium && !THEME_INFO[id]?.free} onPick={() => set("invite_theme", id)} />
               ))}
@@ -488,7 +507,7 @@ export default function InvitationPage() {
               }}
               className="h-9 px-3 rounded-lg border border-border bg-surface hover:bg-surface-hover"
             >
-              Xem màn mở rèm
+              Xem màn mở thiệp
             </button>
             <button
               onClick={() => {
