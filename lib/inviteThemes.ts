@@ -23,4 +23,13 @@ export const THEMES: Record<string, { label: string; p: Palette }> = {
   },
 }
 
+// Short descriptions for the theme picker on /invitation. Add a new theme by adding an entry to THEMES
+// (palette) and here (description); `classic` is the only theme on the free plan.
+export const THEME_INFO: Record<string, { desc: string; free?: boolean }> = {
+  classic: { desc: "Trắng tinh, chữ nâu mực, điểm đỏ đô. Trang trọng, hợp mọi tiệc.", free: true },
+  blush: { desc: "Hồng phấn dịu, lá xanh xám. Lãng mạn, nhẹ nhàng.", },
+  sage: { desc: "Xanh sage và hồng đào. Tươi, hợp tiệc ngoài trời, sân vườn." },
+  ivory: { desc: "Trắng ngà ánh vàng. Cổ điển, ấm và sang." },
+}
+
 export const TIMELINE_ICONS = ["🥂", "💍", "⛪", "🍽️", "💃", "📸", "🎂", "🎶", "🚗", "💐"]

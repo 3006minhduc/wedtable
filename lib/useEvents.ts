@@ -88,8 +88,8 @@ export const ROLE_LABEL: Record<string, string> = {
 }
 
 export const NAV_BY_ROLE: Record<string, string[]> = {
-  owner: ["/", "/seating", "/guests", "/checkin", "/settings"],
-  design: ["/seating", "/settings"],
+  owner: ["/", "/invitation", "/seating", "/guests", "/checkin", "/settings"],
+  design: ["/invitation", "/seating", "/settings"],
   setup: ["/seating", "/guests"],
   checkin: ["/checkin"],
   member: [],

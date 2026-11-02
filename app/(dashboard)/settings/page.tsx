@@ -2,13 +2,10 @@
 
 import { useEffect, useRef, useState } from "react"
 import Icon from "@/components/ui/Icon"
-import { createClient } from "@/lib/supabase/client"
 import { ROLE_LABEL, useEvents } from "@/lib/useEvents"
-import { THEMES, TIMELINE_ICONS } from "@/lib/inviteThemes"
 import PremiumNote from "@/components/ui/PremiumNote"
 import { isPremium } from "@/lib/plan"
 
-const BUCKET = "wedding-media"
 
 const REQUIRED: { key: string; label: string }[] = [
   { key: "bride_name", label: "Tên cô dâu" },
@@ -17,24 +14,6 @@ const REQUIRED: { key: string; label: string }[] = [
   { key: "event_time", label: "Giờ tổ chức" },
   { key: "venue_name", label: "Địa điểm" },
 ]
-
-function resizeImage(file: File, max: number): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    const img = new Image()
-    const url = URL.createObjectURL(file)
-    img.onload = () => {
-      const scale = Math.min(1, max / Math.max(img.width, img.height))
-      const canvas = document.createElement("canvas")
-      canvas.width = Math.round(img.width * scale)
-      canvas.height = Math.round(img.height * scale)
-      canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height)
-      URL.revokeObjectURL(url)
-      canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("resize failed"))), "image/jpeg", 0.88)
-    }
-    img.onerror = () => reject(new Error("Không đọc được ảnh"))
-    img.src = url
-  })
-}
 
 function toLocalInput(iso: string | null) {
   if (!iso) return ""
@@ -50,66 +29,16 @@ function buildBody(form: any) {
     event_date: form.event_date || null,
     event_time: form.event_time || null,
     venue_name: form.venue_name,
-    invite_message: form.invite_message,
-    video_url: form.video_url,
     template: form.template,
     show_guest_names_on_map: form.show_guest_names_on_map,
     lock_at: form.lock_at ? new Date(form.lock_at).toISOString() : null,
-    bride_full_name: form.bride_full_name,
-    groom_full_name: form.groom_full_name,
-    bride_family: form.bride_family,
-    groom_family: form.groom_family,
-    love_story: form.love_story,
-    dress_code: form.dress_code,
-    dress_colors: form.dress_colors,
-    timeline: form.timeline,
-    invite_theme: form.invite_theme,
   }
 }
 
-function TimelineEditor({ items, onChange }: { items: any[]; onChange: (next: any[]) => void }) {
-  const input = "border border-border rounded-card px-2 py-1.5 text-sm"
-  function update(i: number, patch: any) {
-    onChange(items.map((it, idx) => (idx === i ? { ...it, ...patch } : it)))
-  }
-  function sortByTime() {
-    onChange([...items].sort((a, b) => String(a.time).localeCompare(String(b.time))))
-  }
-  return (
-    <div className="flex flex-col gap-2">
-      {items.length === 0 && <p className="text-xs text-muted">Chưa có mốc nào. Ví dụ: 17:30 Đón khách, 18:00 Làm lễ, 18:30 Khai tiệc.</p>}
-      {items.map((it, i) => (
-        <div key={i} className="flex flex-wrap items-center gap-2 bg-bg rounded-card p-2">
-          <select className={input + " w-16"} value={it.icon ?? ""} onChange={(e) => update(i, { icon: e.target.value })} aria-label="Biểu tượng">
-            {TIMELINE_ICONS.map((ic) => (
-              <option key={ic} value={ic}>
-                {ic}
-              </option>
-            ))}
-          </select>
-          <input className={input + " w-24"} type="time" value={it.time ?? ""} onChange={(e) => update(i, { time: e.target.value })} onBlur={sortByTime} />
-          <input className={input + " flex-1 min-w-[140px]"} placeholder="Tên hoạt động" value={it.title ?? ""} onChange={(e) => update(i, { title: e.target.value })} />
-          <input className={input + " w-full sm:flex-1"} placeholder="Ghi chú (không bắt buộc)" value={it.note ?? ""} onChange={(e) => update(i, { note: e.target.value })} />
-          <button onClick={() => onChange(items.filter((_, idx) => idx !== i))} className="text-rose text-xs px-2" aria-label="Xóa mốc">
-            <Icon name="close" size={14} />
-          </button>
-        </div>
-      ))}
-      <button
-        onClick={() => onChange([...items, { icon: TIMELINE_ICONS[items.length % TIMELINE_ICONS.length], time: "", title: "", note: "" }])}
-        className="border border-border bg-surface hover:bg-surface-hover hover:border-border-hover rounded-pill px-4 py-1.5 text-sm w-fit hover:bg-bg"
-      >
-        + Thêm mốc
-      </button>
-    </div>
-  )
-}
-
-type TabId = "info" | "invite" | "options" | "members"
+type TabId = "info" | "options" | "members"
 
 const TABS: { id: TabId; label: string; hash: string; ownerOnly?: boolean }[] = [
   { id: "info", label: "Thông tin chung", hash: "thong-tin" },
-  { id: "invite", label: "Thiệp mời", hash: "thiep-moi" },
   { id: "options", label: "Tùy chọn & trình chiếu", hash: "tuy-chon" },
   { id: "members", label: "Thành viên", hash: "thanh-vien", ownerOnly: true },
 ]
@@ -235,15 +164,11 @@ export default function SettingsPage() {
   const [missing, setMissing] = useState<string[]>([])
   const [publishing, setPublishing] = useState(false)
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null)
-  const [gallery, setGallery] = useState<string[]>([])
-  const [uploading, setUploading] = useState(false)
-  const [giftQr, setGiftQr] = useState("")
   const [premium, setPremium] = useState(true)
-  const [uploadingQr, setUploadingQr] = useState(false)
   const dirty = useRef(false)
   const [tab, setTabState] = useState<TabId>("info")
 
-  // Remember the open tab in the URL (#thiep-moi...) so reload/back keeps it
+  // Remember the open tab in the URL (#tuy-chon...) so reload/back keeps it
   useEffect(() => {
     const fromHash = TABS.find((t) => "#" + t.hash === window.location.hash)
     if (fromHash) setTabState(fromHash.id)
@@ -263,8 +188,6 @@ export default function SettingsPage() {
     fetch(`/api/events/${eventId}`)
       .then((r) => r.json())
       .then((e) => {
-        setGallery(Array.isArray(e.gallery) ? e.gallery : [])
-        setGiftQr(e.gift_qr_url ?? "")
         setPremium(isPremium(e))
         setPublished(!!e.published)
         setTablesCount((e.floors ?? []).reduce((s: number, f: any) => s + (f.tables?.length ?? 0), 0))
@@ -274,20 +197,9 @@ export default function SettingsPage() {
           event_date: e.event_date ?? "",
           event_time: e.event_time ? String(e.event_time).slice(0, 5) : "",
           venue_name: e.venue_name ?? "",
-          invite_message: e.invite_message ?? "",
-          video_url: e.video_url ?? "",
           template: e.template ?? "co-dien",
           show_guest_names_on_map: !!e.show_guest_names_on_map,
           lock_at: toLocalInput(e.lock_at),
-          bride_full_name: e.bride_full_name ?? "",
-          groom_full_name: e.groom_full_name ?? "",
-          bride_family: e.bride_family ?? "",
-          groom_family: e.groom_family ?? "",
-          love_story: e.love_story ?? "",
-          dress_code: e.dress_code ?? "",
-          dress_colors: Array.isArray(e.dress_colors) ? e.dress_colors : [],
-          timeline: Array.isArray(e.timeline) ? e.timeline : [],
-          invite_theme: e.invite_theme ?? "blush",
         })
       })
   }, [eventId])
@@ -370,81 +282,6 @@ export default function SettingsPage() {
     } else {
       setNotice({ ok: false, text: "Không hủy được, vui lòng thử lại." })
     }
-  }
-
-  async function saveGallery(next: string[]) {
-    setGallery(next)
-    await patch({ gallery: next })
-  }
-
-  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(e.target.files ?? [])
-    if (files.length === 0) return
-    setUploading(true)
-    setNotice(null)
-    try {
-      const supabase = createClient()
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-      if (!user) throw new Error("Chưa đăng nhập")
-      let next = [...gallery]
-      for (const file of files) {
-        const blob = await resizeImage(file, 1200)
-        const path = `${user.id}/${eventId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`
-        const { error } = await supabase.storage.from(BUCKET).upload(path, blob, { contentType: "image/jpeg" })
-        if (error) throw new Error(error.message)
-        next = [...next, supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl]
-      }
-      await saveGallery(next)
-      setNotice({ ok: true, text: `Đã tải lên ${files.length} ảnh` })
-    } catch (err: any) {
-      setNotice({ ok: false, text: err.message ?? "Lỗi tải ảnh" })
-    }
-    setUploading(false)
-    e.target.value = ""
-  }
-
-  async function removePhoto(url: string) {
-    if (!confirm("Xóa ảnh này?")) return
-    const marker = `/object/public/${BUCKET}/`
-    const idx = url.indexOf(marker)
-    if (idx >= 0) {
-      await createClient().storage.from(BUCKET).remove([decodeURIComponent(url.slice(idx + marker.length))])
-    }
-    await saveGallery(gallery.filter((u) => u !== url))
-  }
-
-  async function uploadGiftQr(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setUploadingQr(true)
-    setNotice(null)
-    try {
-      const supabase = createClient()
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-      if (!user) throw new Error("Chưa đăng nhập")
-      const blob = await resizeImage(file, 900)
-      const path = `${user.id}/${eventId}/gift-qr-${Date.now()}.jpg`
-      const { error } = await supabase.storage.from(BUCKET).upload(path, blob, { contentType: "image/jpeg" })
-      if (error) throw new Error(error.message)
-      const url = supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl
-      const res = await patch({ gift_qr_url: url })
-      if (!res.ok) throw new Error((await res.json()).message ?? "Không lưu được")
-      setGiftQr(url)
-      setNotice({ ok: true, text: "Đã cập nhật mã QR mừng cưới" })
-    } catch (err: any) {
-      setNotice({ ok: false, text: err.message ?? "Lỗi tải QR" })
-    }
-    setUploadingQr(false)
-    e.target.value = ""
-  }
-
-  async function removeGiftQr() {
-    await patch({ gift_qr_url: "" })
-    setGiftQr("")
   }
 
   async function deleteEvent() {
@@ -577,21 +414,6 @@ export default function SettingsPage() {
           <Label text="Địa điểm" required k="venue_name" />
           <input className={cls("venue_name")} value={form.venue_name} onChange={(e) => set("venue_name", e.target.value)} />
         </div>
-        <div>
-          <Label text="Lời mời gửi khách" />
-          <textarea
-            className={cls("invite_message")}
-            rows={3}
-            placeholder="Để trống sẽ dùng lời mời mặc định ấm áp, trân trọng."
-            value={form.invite_message}
-            onChange={(e) => set("invite_message", e.target.value)}
-          />
-          <p className="text-xs text-muted mt-1">Đoạn văn ngắn hiển thị đầu thiệp mời, thay cho lời mời mặc định.</p>
-        </div>
-        <div>
-          <Label text="Link video (YouTube...)" />
-          <input className={cls("video_url")} value={form.video_url} onChange={(e) => set("video_url", e.target.value)} />
-        </div>
         <div className={"text-sm flex items-center justify-between " + (attempted && !published && tablesCount === 0 ? "text-rose" : "text-muted")}>
           <span>
             Số bàn đã tạo: <strong>{tablesCount}</strong> <span className="text-rose">*</span> (cần ít nhất 1 để publish)
@@ -602,164 +424,6 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      )}
-
-      {tab === "invite" && (
-      <>
-      <section className="bg-surface border border-border rounded-card p-5 sm:p-6 flex flex-col gap-5">
-        <div className="flex items-center justify-between gap-2">
-          <h2 className="font-semibold text-[15px] text-text">Nội dung thiệp mời</h2>
-          <span className="text-xs text-muted">Không bắt buộc. Mục nào để trống sẽ không hiện trên thiệp.</span>
-        </div>
-
-        <div>
-          <Label text="Bộ màu thiệp" />
-          <div className="flex flex-wrap gap-2">
-            {Object.entries(THEMES).map(([key, t]) => (
-              <button
-                key={key}
-                disabled={!premium && key !== "classic"}
-                title={!premium && key !== "classic" ? "Bộ màu Premium" : undefined}
-                onClick={() => set("invite_theme", key)}
-                className={"flex items-center gap-2 rounded-pill border px-3 py-1.5 text-sm disabled:opacity-45 disabled:cursor-not-allowed " + (form.invite_theme === key ? "border-ink ring-1 ring-ink" : "border-border")}
-              >
-                {!premium && key !== "classic" && <Icon name="lock" size={12} className="text-faint" />}
-                <span className="flex -space-x-1">
-                  {[t.p.blush, t.p.rose, t.p.wine].map((c) => (
-                    <span key={c} className="w-4 h-4 rounded-full border border-white" style={{ background: c }} />
-                  ))}
-                </span>
-                {t.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <Label text="Họ tên đầy đủ cô dâu" />
-            <input className={cls("bride_full_name")} placeholder="Nguyễn Thị Hoa" value={form.bride_full_name} onChange={(e) => set("bride_full_name", e.target.value)} />
-          </div>
-          <div>
-            <Label text="Họ tên đầy đủ chú rể" />
-            <input className={cls("groom_full_name")} placeholder="Trần Văn Minh" value={form.groom_full_name} onChange={(e) => set("groom_full_name", e.target.value)} />
-          </div>
-          <div>
-            <Label text="Nhà gái" />
-            <textarea className={cls("bride_family")} rows={3} placeholder={"Ông Nguyễn Văn A\nBà Lê Thị B\nHà Nội"} value={form.bride_family} onChange={(e) => set("bride_family", e.target.value)} />
-          </div>
-          <div>
-            <Label text="Nhà trai" />
-            <textarea className={cls("groom_family")} rows={3} placeholder={"Ông Trần Văn C\nBà Phạm Thị D\nHải Phòng"} value={form.groom_family} onChange={(e) => set("groom_family", e.target.value)} />
-          </div>
-        </div>
-
-        {premium ? (
-        <>
-        <div>
-          <Label text="Lịch trình ngày cưới" />
-          <TimelineEditor items={form.timeline} onChange={(next) => set("timeline", next)} />
-        </div>
-
-        <div>
-          <Label text="Dress code" />
-          <textarea
-            className={cls("dress_code")}
-            rows={2}
-            placeholder="Trang phục lịch sự, ưu tiên tông pastel."
-            value={form.dress_code}
-            onChange={(e) => set("dress_code", e.target.value)}
-          />
-          <div className="flex items-center gap-2 mt-2 flex-wrap">
-            <span className="text-xs text-muted">Màu gợi ý:</span>
-            {form.dress_colors.map((c: string, i: number) => (
-              <span key={i} className="relative">
-                <input
-                  type="color"
-                  value={c}
-                  onChange={(e) => set("dress_colors", form.dress_colors.map((x: string, idx: number) => (idx === i ? e.target.value : x)))}
-                  className="w-9 h-9 rounded-full border border-border cursor-pointer p-0.5 bg-surface"
-                  aria-label={`Màu ${i + 1}`}
-                />
-                <button
-                  onClick={() => set("dress_colors", form.dress_colors.filter((_: string, idx: number) => idx !== i))}
-                  className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-ink text-white text-[9px]"
-                  aria-label="Xóa màu"
-                >
-                  <Icon name="close" size={14} />
-                </button>
-              </span>
-            ))}
-            {form.dress_colors.length < 5 && (
-              <button onClick={() => set("dress_colors", [...form.dress_colors, "#E8C4C4"])} className="border border-dashed border-border rounded-full w-9 h-9 text-muted" aria-label="Thêm màu">
-                +
-              </button>
-            )}
-          </div>
-        </div>
-
-        <div>
-          <Label text="Câu chuyện của hai bạn" />
-          <textarea
-            className={cls("love_story")}
-            rows={4}
-            placeholder="Chúng mình gặp nhau lần đầu vào một chiều mưa Hà Nội..."
-            value={form.love_story}
-            onChange={(e) => set("love_story", e.target.value)}
-          />
-          <p className="text-xs text-muted mt-1">Ảnh thứ 2 trong mục Ảnh cưới sẽ hiện kèm câu chuyện. Ảnh đầu tiên dùng làm ảnh bìa.</p>
-        </div>
-        </>
-        ) : (
-          <PremiumNote title="Lịch trình, dress code, câu chuyện">Thêm các phần này vào thiệp mời là tính năng Premium.</PremiumNote>
-        )}
-      </section>
-
-      <section className="bg-surface border border-border rounded-card p-5 sm:p-6 flex flex-col gap-4">
-        <h2 className="font-semibold text-[15px] text-text">Ảnh cưới ({gallery.length})</h2>
-        <p className="text-xs text-muted">Không bắt buộc. Ảnh công khai, hiển thị trên thiệp mời. Tự nén về tối đa 1200px.</p>
-        <div className="grid grid-cols-3 gap-2">
-          {gallery.map((url) => (
-            <div key={url} className="relative">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={url} alt="" className="w-full h-24 object-cover rounded-card" />
-              <button onClick={() => removePhoto(url)} className="absolute top-1 right-1 bg-black/60 text-white text-xs rounded-full w-5 h-5">
-                <Icon name="close" size={14} />
-              </button>
-            </div>
-          ))}
-        </div>
-        <label className="border border-border bg-surface hover:bg-surface-hover hover:border-border-hover rounded-pill px-4 py-2 text-sm w-fit cursor-pointer">
-          {uploading ? "Đang tải lên..." : "+ Tải ảnh lên"}
-          <input type="file" accept="image/*" multiple className="hidden" disabled={uploading} onChange={handleUpload} />
-        </label>
-      </section>
-
-      <section className="bg-surface border border-border rounded-card p-5 sm:p-6 flex flex-col gap-4">
-        <h2 className="font-semibold text-[15px] text-text">Mã QR mừng cưới</h2>
-        <p className="text-xs text-muted">Không bắt buộc. Tải ảnh QR ngân hàng/ví của cô dâu chú rể, khách mở thiệp sẽ thấy và quét để mừng.</p>
-        {premium ? (
-        <>
-        {giftQr && (
-          <div className="flex items-end gap-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={giftQr} alt="QR mừng cưới" className="w-40 h-40 object-contain border border-border rounded-card bg-white" />
-            <button onClick={removeGiftQr} className="text-xs text-rose hover:underline">
-              Xóa QR
-            </button>
-          </div>
-        )}
-        <label className="border border-border bg-surface hover:bg-surface-hover hover:border-border-hover rounded-pill px-4 py-2 text-sm w-fit cursor-pointer">
-          {uploadingQr ? "Đang tải lên..." : giftQr ? "Đổi ảnh QR" : "+ Tải ảnh QR"}
-          <input type="file" accept="image/*" className="hidden" disabled={uploadingQr} onChange={uploadGiftQr} />
-        </label>
-        </>
-        ) : (
-          <PremiumNote compact>Hộp mừng cưới bằng mã QR là tính năng Premium.</PremiumNote>
-        )}
-      </section>
-
-      </>
       )}
 
       {tab === "options" && (

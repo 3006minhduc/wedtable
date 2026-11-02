@@ -125,7 +125,7 @@ function Overview({
     !tables.length && { t: "Tạo bàn đầu tiên", d: "Vẽ sơ đồ sảnh tiệc để khách chọn chỗ.", href: "/seating" },
     !guests.length && { t: "Thêm khách mời", d: "Nhập từ Excel hoặc thêm từng người.", href: "/guests" },
     !detail.published && { t: "Publish thiệp mời", d: "Khách chỉ mở được thiệp sau khi publish.", href: "/settings" },
-    !cover && { t: "Tải ảnh cưới", d: "Ảnh đầu tiên sẽ làm ảnh bìa thiệp.", href: "/settings#thiep-moi" },
+    !cover && { t: "Tải ảnh cưới", d: "Ảnh đầu tiên sẽ làm ảnh bìa thiệp.", href: "/invitation" },
     unseated > 0 && { t: `${unseated} khách chưa có bàn`, d: "Kéo tên khách vào bàn trên sơ đồ.", href: "/seating" },
     stats.pending > 0 && { t: `${stats.pending} khách chưa hồi âm`, d: "Gửi lại link thiệp cho họ.", href: "/guests" },
   ].filter(Boolean) as { t: string; d: string; href: string }[]
@@ -181,7 +181,7 @@ function Overview({
           // eslint-disable-next-line @next/next/no-img-element
           <img src={cover} alt="Ảnh cưới" className="hidden md:block w-full h-full object-cover" />
         ) : (
-          <a href="/settings#thiep-moi" className="hidden md:flex flex-col items-center justify-center gap-2 bg-surface-alt text-sm text-muted hover:text-text border-l border-border">
+          <a href="/invitation" className="hidden md:flex flex-col items-center justify-center gap-2 bg-surface-alt text-sm text-muted hover:text-text border-l border-border">
             <Icon name="plus" size={20} />
             Thêm ảnh bìa
           </a>

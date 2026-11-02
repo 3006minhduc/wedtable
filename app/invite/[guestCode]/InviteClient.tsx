@@ -187,7 +187,9 @@ function Timeline({ items }: { items: any[] }) {
   )
 }
 
-export default function InviteClient(props: { guest: any; event: any; floors: any[]; locked: boolean }) {
+type InviteProps = { guest: any; event: any; floors: any[]; locked: boolean; preview?: boolean; skipIntro?: boolean }
+
+export default function InviteClient(props: InviteProps) {
   // Free plan: only the classic color set (DESIGN.md / lib/plan.ts)
   const palette = (props.event.plan === "premium" ? THEMES[props.event.invite_theme] ?? THEMES.blush : THEMES.classic).p
   return (
@@ -197,16 +199,16 @@ export default function InviteClient(props: { guest: any; event: any; floors: an
   )
 }
 
-function Invite({ guest, event, floors, locked }: { guest: any; event: any; floors: any[]; locked: boolean }) {
+function Invite({ guest, event, floors, locked, preview = false, skipIntro = false }: InviteProps) {
   const IV = useIV()
-  const [opened, setOpened] = useState(false)
+  const [opened, setOpened] = useState(skipIntro)
   const [tableId, setTableId] = useState(guest.table_id ?? "")
   const [companions, setCompanions] = useState<number>(guest.companions ?? 0)
   const [status, setStatus] = useState<{ error?: string; message?: string; success?: boolean } | null>(null)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    markViewed(guest.code)
+    if (!preview) markViewed(guest.code)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -236,6 +238,10 @@ function Invite({ guest, event, floors, locked }: { guest: any; event: any; floo
   const hasFullNames = !!(event.bride_full_name || event.groom_full_name)
 
   async function handleConfirm() {
+    if (preview) {
+      setStatus({ error: "PREVIEW", message: "Đây là bản xem trước. Khách thật sẽ xác nhận được ở đây." })
+      return
+    }
     if (!tableId) {
       setStatus({ error: "NO_TABLE", message: "Vui lòng chọn bàn trên sơ đồ hoặc trong danh sách." })
       return

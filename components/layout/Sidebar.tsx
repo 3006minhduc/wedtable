@@ -7,6 +7,7 @@ import { NAV_BY_ROLE, useEvents } from "@/lib/useEvents"
 
 const NAV_ITEMS = [
   { href: "/", label: "Tổng quan", icon: "overview" },
+  { href: "/invitation", label: "Thiệp mời", icon: "mail" },
   { href: "/seating", label: "Sơ đồ bàn", icon: "seating" },
   { href: "/guests", label: "Khách mời", icon: "guests" },
   { href: "/checkin", label: "Check-in", icon: "checkin" },
