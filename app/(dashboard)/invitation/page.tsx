@@ -7,7 +7,7 @@ import Icon from "@/components/ui/Icon"
 import PremiumNote from "@/components/ui/PremiumNote"
 import { createClient } from "@/lib/supabase/client"
 import { resizeImage } from "@/lib/image"
-import { THEMES, THEME_INFO, TIMELINE_ICONS } from "@/lib/inviteThemes"
+import { THEMES, THEME_INFO, TIMELINE_ICONS, glassTexture } from "@/lib/inviteThemes"
 import { isPremium } from "@/lib/plan"
 import { useEvents } from "@/lib/useEvents"
 
@@ -64,7 +64,24 @@ function ThemeCard({ id, active, locked, onPick }: { id: string; active: boolean
         (active ? "border-brand ring-2 ring-brand/20" : "border-border hover:border-border-hover")
       }
     >
-      {t.style === "gilded" ? (
+      {t.style === "glass" ? (
+        <div className="relative h-28 flex items-center justify-center" style={{ background: glassTexture(p) }}>
+          <div
+            className="w-[62%] h-[82%] flex flex-col items-center justify-center gap-0.5 rounded-t-[60px] rounded-b-[3px]"
+            style={{ background: p.paper, boxShadow: `0 0 0 2px ${p.gold?.[2]}, 0 0 0 5px ${p.blush}, 0 0 0 7px ${p.gold?.[2]}` }}
+          >
+            <span className="text-[8px] tracking-[0.25em] uppercase" style={{ color: p.rose }}>
+              Kính mời
+            </span>
+            <span className="text-[15px] italic leading-none text-center" style={{ color: p.wine, fontFamily: "var(--font-serif)" }}>
+              Ngọc Anh &amp; Minh Khoa
+            </span>
+            <span className="text-[9px] tracking-[0.2em]" style={{ color: p.leaf }}>
+              20 · 12 · 2026
+            </span>
+          </div>
+        </div>
+      ) : t.style === "gilded" ? (
         <div className="relative h-28 flex items-center justify-center" style={{ background: `radial-gradient(ellipse at 50% 30%, ${p.wine}, ${p.deep})` }}>
           <div
             className="w-[62%] h-[82%] flex flex-col items-center justify-center gap-0.5 rounded-[3px]"

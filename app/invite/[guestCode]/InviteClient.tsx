@@ -7,7 +7,9 @@ import FloorLayers from "@/components/seating/FloorLayers"
 import { serif, sans } from "./fonts"
 import { CurtainIntro, Divider, Frame, Garland, PaletteProvider, Reveal, Seal, THEMES, useIV } from "./Ornaments"
 import { Cartouche, EnvelopeIntro, GiltCrest, GiltDivider, GiltFrame, GiltSeal, PhotoStrip } from "./Gilded"
-import type { Palette } from "@/lib/inviteThemes"
+import { DoorsIntro, GlassArch, GlassDivider, GlassFrame, GlassSeal, LeadArch, OvalWindow, RoseCorner } from "./Glass"
+import { glassTexture } from "@/lib/inviteThemes"
+import type { InviteStyle, Palette } from "@/lib/inviteThemes"
 
 const DEFAULT_MESSAGE =
   "Tình yêu của chúng tôi sẽ trọn vẹn hơn khi có sự hiện diện và lời chúc phúc từ bạn. Rất mong được đón tiếp bạn trong ngày trọng đại này."
@@ -197,6 +199,81 @@ function Timeline({ items }: { items: any[] }) {
 
 type InviteProps = { guest: any; event: any; floors: any[]; locked: boolean; preview?: boolean; skipIntro?: boolean }
 
+// ---------- glass hero: frosted pink window with leaded roses, then an olive section with the oval photo ----------
+function GlassHero({ event, shortDate, start, cover }: { event: any; shortDate: string; start: Date | null; cover?: string }) {
+  const IV = useIV()
+  const dark = onDeep(IV)
+  return (
+    <>
+      <section className="relative min-h-[100svh] flex flex-col items-center justify-center text-center px-10 pt-24 pb-24 overflow-hidden" style={{ background: glassTexture(IV) }}>
+        <LeadArch />
+        <RoseCorner className="absolute -top-3 -left-3 w-[46%] max-w-[210px]" />
+        <RoseCorner className="absolute -top-3 -right-3 w-[46%] max-w-[210px]" style={{ transform: "scaleX(-1)" }} />
+        <RoseCorner className="absolute -bottom-3 -left-3 w-[34%] max-w-[160px]" style={{ transform: "scaleY(-1)" }} />
+        <RoseCorner className="absolute -bottom-3 -right-3 w-[34%] max-w-[160px]" style={{ transform: "scale(-1)" }} />
+        <div className="relative flex flex-col items-center w-full">
+          <Reveal>
+            <p className="text-[11px] tracking-[0.3em] uppercase mb-2" style={{ color: IV.rose }}>
+              Cùng gia đình hai bên
+            </p>
+            <p className="text-sm tracking-[0.3em] mb-7" style={{ ...SERIF, color: IV.muted }}>
+              {shortDate}
+            </p>
+          </Reveal>
+          <Reveal delay={150}>
+            <h1 className="italic leading-[1.05]" style={{ ...SERIF, color: IV.wine }}>
+              <span className="block text-[54px]">{event.bride_name}</span>
+              <span className="block text-3xl my-1" style={{ color: IV.rose }}>
+                &amp;
+              </span>
+              <span className="block text-[54px]">{event.groom_name}</span>
+            </h1>
+          </Reveal>
+          <Reveal delay={300}>
+            <GlassDivider className="my-6" />
+            {event.venue_name && (
+              <p className="text-sm" style={{ color: IV.muted }}>
+                {event.venue_name}
+              </p>
+            )}
+          </Reveal>
+          {start && (
+            <Reveal delay={400} className="mt-8">
+              <p className="text-xs mb-3" style={{ color: IV.muted }}>
+                Còn lại đến ngày chung đôi
+              </p>
+              <Countdown start={start} />
+            </Reveal>
+          )}
+        </div>
+        <div className="absolute bottom-8 flex flex-col items-center gap-1 text-[10px] tracking-[0.3em] uppercase animate-bounce" style={{ color: IV.rose }}>
+          <span>Cuộn xuống</span>
+          <span aria-hidden>⌄</span>
+        </div>
+      </section>
+      <section className="px-8 py-16 text-center" style={{ background: IV.deep ?? IV.wine }}>
+        <Reveal>
+          <p className="text-[28px] italic leading-snug mb-8" style={{ ...SERIF, color: IV.soft }}>
+            Chúng mình rất vui được cùng bạn chung vui ngày này
+          </p>
+        </Reveal>
+        <Reveal delay={150}>
+          <OvalWindow photo={cover}>
+            <GlassSeal text={`${initialOf(event.bride_name)}&${initialOf(event.groom_name)}`} size={110} />
+          </OvalWindow>
+        </Reveal>
+        <PaletteProvider value={dark}>
+          <Reveal delay={250}>
+            <p className="text-xs tracking-[0.25em] uppercase mt-10" style={{ color: dark.muted }}>
+              {shortDate}
+            </p>
+          </Reveal>
+        </PaletteProvider>
+      </section>
+    </>
+  )
+}
+
 // ---------- gilded hero: gold cartouche on bordeaux + photobooth strip ----------
 function GildedHero({ event, shortDate, start, photos, opened }: { event: any; shortDate: string; start: Date | null; photos: string[]; opened: boolean }) {
   const IV = useIV()
@@ -255,15 +332,23 @@ export default function InviteClient(props: InviteProps) {
   const theme = props.event.plan === "premium" ? THEMES[props.event.invite_theme] ?? THEMES.blush : THEMES.classic
   return (
     <PaletteProvider value={theme.p}>
-      <Invite {...props} gilded={theme.style === "gilded"} />
+      <Invite {...props} look={theme.style ?? "floral"} />
     </PaletteProvider>
   )
 }
 
-function Invite({ guest, event, floors, locked, preview = false, skipIntro = false, gilded = false }: InviteProps & { gilded?: boolean }) {
+function Invite({ guest, event, floors, locked, preview = false, skipIntro = false, look = "floral" }: InviteProps & { look?: InviteStyle }) {
   const IV = useIV()
-  // Decoration set for this theme
-  const O = gilded ? { Garland: GiltCrest, Divider: GiltDivider, Frame: GiltFrame } : { Garland, Divider, Frame }
+  const gilded = look === "gilded"
+  const glass = look === "glass"
+  // Decoration set for this theme; non-floral looks put RSVP on the dark "deep" color
+  const O =
+    look === "gilded"
+      ? { Garland: GiltCrest, Divider: GiltDivider, Frame: GiltFrame }
+      : look === "glass"
+      ? { Garland: GlassArch, Divider: GlassDivider, Frame: GlassFrame }
+      : { Garland, Divider, Frame }
+  const deepRsvp = look !== "floral"
   const [opened, setOpened] = useState(skipIntro)
   const [tableId, setTableId] = useState(guest.table_id ?? "")
   const [companions, setCompanions] = useState<number>(guest.companions ?? 0)
@@ -320,6 +405,8 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
       {!opened &&
         (gilded ? (
           <EnvelopeIntro initials={initials} photo={cover} onOpened={() => setOpened(true)} />
+        ) : glass ? (
+          <DoorsIntro initials={initials} onOpened={() => setOpened(true)} />
         ) : (
           <CurtainIntro initials={initials} onOpened={() => setOpened(true)} />
         ))}
@@ -328,6 +415,8 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
         {/* ---------- Hero ---------- */}
         {gilded ? (
           <GildedHero event={event} shortDate={shortDate} start={start} photos={gallery.slice(0, 3)} opened={opened} />
+        ) : glass ? (
+          <GlassHero event={event} shortDate={shortDate} start={start} cover={cover} />
         ) : (
         <section
           className="relative min-h-[100svh] flex flex-col items-center justify-center text-center px-8 pt-20 pb-20 overflow-hidden"
@@ -527,8 +616,8 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
         )}
 
         {/* ---------- RSVP ---------- */}
-        <section className="px-6 py-14" style={{ background: gilded ? IV.deep : IV.bg }}>
-          <PaletteProvider value={gilded ? onDeep(IV) : IV}>
+        <section className="px-6 py-14" style={{ background: deepRsvp ? IV.deep : IV.bg }}>
+          <PaletteProvider value={deepRsvp ? onDeep(IV) : IV}>
             <Reveal>
               <SectionTitle kicker="Hồi âm">Xác nhận tham dự</SectionTitle>
             </Reveal>
@@ -630,7 +719,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
           <O.Garland className="opacity-80 mb-4 rotate-180" />
           <Reveal>
             <div className="flex justify-center">
-              {gilded ? <GiltSeal text={initials} size={84} /> : <Seal text={initials} size={84} />}
+              {gilded ? <GiltSeal text={initials} size={84} /> : glass ? <GlassSeal text={initials} size={84} /> : <Seal text={initials} size={84} />}
             </div>
             <p className="text-xl italic mt-4" style={{ ...SERIF, color: IV.wine }}>
               Sự hiện diện của bạn là niềm vinh hạnh của chúng tôi
