@@ -57,7 +57,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     "bride_name", "groom_name", "event_date", "event_time", "venue_name", "venue_type", "menu", "invite_message",
     "published", "lock_at", "template", "gallery", "video_url", "show_guest_names_on_map", "gift_qr_url",
     "bride_full_name", "groom_full_name", "bride_family", "groom_family", "love_story", "dress_code", "dress_colors",
-    "timeline", "invite_theme",
+    "timeline", "invite_theme", "invite_template",
   ]
   const body: Record<string, any> = {}
   for (const k of ALLOWED) if (k in raw) body[k] = raw[k]
@@ -68,6 +68,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     if (ev && ev.plan !== "premium") {
       for (const k of PREMIUM_FIELDS) delete body[k]
       if ("invite_theme" in body && body.invite_theme !== "classic") body.invite_theme = "classic"
+      if ("invite_template" in body && body.invite_template !== "floral") body.invite_template = "floral"
     }
   }
 

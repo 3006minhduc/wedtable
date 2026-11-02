@@ -219,7 +219,7 @@ export function PhotoStrip({ photos, start }: { photos: string[]; start: boolean
 }
 
 /** Full-screen wax-sealed envelope; tap to lift the flap and slide it away */
-export function EnvelopeIntro({ initials, photo, onOpened }: { initials: string; photo?: string; onOpened: () => void }) {
+export function EnvelopeIntro({ initials, photo, onOpened, seal }: { initials: string; photo?: string; onOpened: () => void; seal?: React.ReactNode }) {
   const IV = useIV()
   const [phase, setPhase] = useState(0)
 
@@ -258,7 +258,7 @@ export function EnvelopeIntro({ initials, photo, onOpened }: { initials: string;
         </div>
         <div className={"absolute left-1/2 top-[58%] -translate-x-1/2 -translate-y-1/2 transition-all duration-500 " + (phase >= 1 ? "opacity-0 scale-75" : "")}>
           <div className="drop-shadow-lg animate-[ivPulse_2.6s_ease-in-out_infinite]">
-            <GiltSeal text={initials} size={128} photo={photo} />
+            {seal ?? <GiltSeal text={initials} size={128} photo={photo} />}
           </div>
         </div>
         <p

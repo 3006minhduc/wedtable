@@ -7,7 +7,8 @@ import Icon from "@/components/ui/Icon"
 import PremiumNote from "@/components/ui/PremiumNote"
 import { createClient } from "@/lib/supabase/client"
 import { resizeImage } from "@/lib/image"
-import { THEMES, THEME_INFO, TIMELINE_ICONS, glassTexture } from "@/lib/inviteThemes"
+import { TEMPLATES, THEMES, THEME_INFO, TIMELINE_ICONS, glassTexture, templateOf } from "@/lib/inviteThemes"
+import type { InviteStyle, Palette } from "@/lib/inviteThemes"
 import { isPremium } from "@/lib/plan"
 import { useEvents } from "@/lib/useEvents"
 
@@ -15,6 +16,7 @@ const BUCKET = "wedding-media"
 
 const TEXT_FIELDS = [
   "invite_theme",
+  "invite_template",
   "invite_message",
   "bride_full_name",
   "groom_full_name",
@@ -51,9 +53,61 @@ function Section({ title, desc, children }: { title: string; desc?: string; chil
   )
 }
 
-function ThemeCard({ id, active, locked, onPick }: { id: string; active: boolean; locked: boolean; onPick: () => void }) {
-  const t = THEMES[id]
-  const p = t.p
+/** Mini mock of a template's cover, drawn in the currently chosen colors */
+function TemplateMock({ id, p }: { id: InviteStyle; p: Palette }) {
+  const names = (
+    <>
+      <span className="text-[8px] tracking-[0.25em] uppercase" style={{ color: p.rose }}>
+        Kính mời
+      </span>
+      <span className="text-[15px] italic leading-none text-center" style={{ color: p.wine, fontFamily: "var(--font-serif)" }}>
+        Ngọc Anh &amp; Minh Khoa
+      </span>
+      <span className="text-[9px] tracking-[0.2em]" style={{ color: p.muted }}>
+        20 · 12 · 2026
+      </span>
+    </>
+  )
+  const box = "w-[62%] h-[80%] flex flex-col items-center justify-center gap-0.5"
+  if (id === "gilded")
+    return (
+      <div className="h-32 flex items-center justify-center" style={{ background: `radial-gradient(ellipse at 50% 30%, ${p.wine}, ${p.deep})` }}>
+        <div className={box + " rounded-[3px]"} style={{ background: p.paper, boxShadow: `0 0 0 2px ${p.gold[1]}, 0 0 0 4px ${p.gold[2]}, 0 6px 14px rgba(0,0,0,0.4)` }}>
+          {names}
+        </div>
+      </div>
+    )
+  if (id === "glass")
+    return (
+      <div className="h-32 flex items-center justify-center" style={{ background: glassTexture(p) }}>
+        <div className={box + " rounded-t-[60px] rounded-b-[3px]"} style={{ background: p.paper, boxShadow: `0 0 0 2px ${p.gold[2]}, 0 0 0 5px ${p.blush}, 0 0 0 7px ${p.gold[2]}` }}>
+          {names}
+        </div>
+      </div>
+    )
+  if (id === "emboss")
+    return (
+      <div className="relative h-32 flex items-center justify-center overflow-hidden" style={{ background: p.paper }}>
+        <div className={box + " rounded-[14px]"} style={{ background: p.paper, boxShadow: `inset 2px 3px 4px ${p.muted}66, inset -2px -2px 3px rgba(255,255,255,0.9)` }}>
+          {names}
+        </div>
+        <div className="absolute inset-x-0 top-[44%] h-3" style={{ background: `linear-gradient(180deg, ${p.blush}, ${p.paper}, ${p.sage})`, opacity: 0.9 }} />
+        <div className="absolute inset-y-0 left-1/2 -ml-1.5 w-3" style={{ background: `linear-gradient(90deg, ${p.blush}, ${p.paper}, ${p.sage})`, opacity: 0.9 }} />
+      </div>
+    )
+  return (
+    <div className="relative h-32 flex flex-col items-center justify-center gap-1" style={{ background: p.paper }}>
+      <div className="absolute inset-x-0 top-0 h-12" style={{ background: `radial-gradient(ellipse at top, ${p.blush}, transparent 70%)` }} />
+      <span className="relative w-8 h-8 rounded-full flex items-center justify-center text-[11px] italic" style={{ background: p.blush, color: p.wine, boxShadow: `0 0 0 1px ${p.rose}`, fontFamily: "var(--font-serif)" }}>
+        A&amp;K
+      </span>
+      <span className="relative flex flex-col items-center gap-0.5">{names}</span>
+    </div>
+  )
+}
+
+function TemplateCard({ id, p, active, locked, onPick }: { id: InviteStyle; p: Palette; active: boolean; locked: boolean; onPick: () => void }) {
+  const t = TEMPLATES[id]
   return (
     <button
       onClick={onPick}
@@ -64,54 +118,7 @@ function ThemeCard({ id, active, locked, onPick }: { id: string; active: boolean
         (active ? "border-brand ring-2 ring-brand/20" : "border-border hover:border-border-hover")
       }
     >
-      {t.style === "glass" ? (
-        <div className="relative h-28 flex items-center justify-center" style={{ background: glassTexture(p) }}>
-          <div
-            className="w-[62%] h-[82%] flex flex-col items-center justify-center gap-0.5 rounded-t-[60px] rounded-b-[3px]"
-            style={{ background: p.paper, boxShadow: `0 0 0 2px ${p.gold?.[2]}, 0 0 0 5px ${p.blush}, 0 0 0 7px ${p.gold?.[2]}` }}
-          >
-            <span className="text-[8px] tracking-[0.25em] uppercase" style={{ color: p.rose }}>
-              Kính mời
-            </span>
-            <span className="text-[15px] italic leading-none text-center" style={{ color: p.wine, fontFamily: "var(--font-serif)" }}>
-              Ngọc Anh &amp; Minh Khoa
-            </span>
-            <span className="text-[9px] tracking-[0.2em]" style={{ color: p.leaf }}>
-              20 · 12 · 2026
-            </span>
-          </div>
-        </div>
-      ) : t.style === "gilded" ? (
-        <div className="relative h-28 flex items-center justify-center" style={{ background: `radial-gradient(ellipse at 50% 30%, ${p.wine}, ${p.deep})` }}>
-          <div
-            className="w-[62%] h-[82%] flex flex-col items-center justify-center gap-0.5 rounded-[3px]"
-            style={{ background: p.paper, boxShadow: `0 0 0 2px ${p.gold?.[1]}, 0 0 0 4px ${p.gold?.[2]}, 0 6px 14px rgba(0,0,0,0.4)` }}
-          >
-            <span className="text-[8px] tracking-[0.25em] uppercase" style={{ color: p.rose }}>
-              Kính mời
-            </span>
-            <span className="text-[15px] italic leading-none text-center" style={{ color: p.wine, fontFamily: "var(--font-serif)" }}>
-              Ngọc Anh &amp; Minh Khoa
-            </span>
-            <span className="text-[9px] tracking-[0.2em]" style={{ color: p.muted }}>
-              20 · 12 · 2026
-            </span>
-          </div>
-        </div>
-      ) : (
-      <div className="relative h-28 flex flex-col items-center justify-center gap-1" style={{ background: p.paper }}>
-        <div className="absolute inset-x-0 top-0 h-10" style={{ background: `radial-gradient(ellipse at top, ${p.blush}, transparent 70%)` }} />
-        <span className="relative w-8 h-8 rounded-full flex items-center justify-center text-[11px] italic" style={{ background: p.blush, color: p.wine, boxShadow: `0 0 0 1px ${p.rose}`, fontFamily: "var(--font-serif)" }}>
-          A&amp;K
-        </span>
-        <span className="relative text-lg italic leading-none" style={{ color: p.wine, fontFamily: "var(--font-serif)" }}>
-          Ngọc Anh &amp; Minh Khoa
-        </span>
-        <span className="relative text-[10px] tracking-[0.2em]" style={{ color: p.muted }}>
-          20 · 12 · 2026
-        </span>
-      </div>
-      )}
+      <TemplateMock id={id} p={p} />
       {locked && (
         <span className="absolute top-2 right-2 inline-flex items-center gap-1 h-5 px-1.5 rounded bg-surface/90 text-[10px] text-muted">
           <Icon name="lock" size={10} /> Premium
@@ -122,8 +129,34 @@ function ThemeCard({ id, active, locked, onPick }: { id: string; active: boolean
           <span className="text-sm font-medium text-text">{t.label}</span>
           {active && <Icon name="check" size={16} className="text-brand" />}
         </div>
-        <p className="text-xs text-muted mt-0.5 leading-snug">{THEME_INFO[id]?.desc}</p>
+        <p className="text-xs text-muted mt-0.5 leading-snug">{t.desc}</p>
       </div>
+    </button>
+  )
+}
+
+function PaletteChip({ id, active, locked, onPick }: { id: string; active: boolean; locked: boolean; onPick: () => void }) {
+  const t = THEMES[id]
+  const p = t.p
+  return (
+    <button
+      onClick={onPick}
+      disabled={locked}
+      aria-pressed={active}
+      title={THEME_INFO[id]?.desc}
+      className={
+        "flex items-center gap-2.5 rounded-lg border px-3 h-12 text-left transition-colors disabled:opacity-50 disabled:cursor-not-allowed " +
+        (active ? "border-brand ring-2 ring-brand/20" : "border-border hover:border-border-hover")
+      }
+    >
+      <span className="flex -space-x-1.5 shrink-0" aria-hidden>
+        {[p.paper, p.blush, p.wine, p.deep].map((c, i) => (
+          <span key={i} className="w-5 h-5 rounded-full border border-white shadow-[0_0_0_1px_rgba(0,0,0,0.08)]" style={{ background: c }} />
+        ))}
+      </span>
+      <span className="text-sm text-text leading-tight">{t.label}</span>
+      {locked && <Icon name="lock" size={12} className="text-muted ml-auto" />}
+      {active && !locked && <Icon name="check" size={14} className="text-brand ml-auto" />}
     </button>
   )
 }
@@ -193,6 +226,7 @@ export default function InvitationPage() {
         setFirstCode(e.guests?.[0]?.code ?? null)
         setForm({
           invite_theme: e.invite_theme ?? "blush",
+          invite_template: templateOf(e.invite_template),
           invite_message: e.invite_message ?? "",
           bride_full_name: e.bride_full_name ?? "",
           groom_full_name: e.groom_full_name ?? "",
@@ -322,6 +356,10 @@ export default function InvitationPage() {
 
   const previewSrc = `/invite-preview/${eventId}${intro ? "?intro=1" : ""}`
   const themeIds = Object.keys(THEMES)
+  const templateIds = Object.keys(TEMPLATES) as InviteStyle[]
+  const activeTemplate: InviteStyle = premium ? templateOf(form.invite_template) : "floral"
+  const activeTheme = premium ? form.invite_theme : "classic"
+  const shownPalette = (THEMES[activeTheme] ?? THEMES.blush).p
 
   return (
     <div className="flex flex-col gap-6">
@@ -366,10 +404,32 @@ export default function InvitationPage() {
 
       <div className="grid lg:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">
         <div className="flex flex-col gap-6 min-w-0">
-          <Section title="Giao diện thiệp" desc={premium ? "Chọn một bộ màu. Sẽ có thêm giao diện mới." : "Gói Miễn phí dùng giao diện Trắng đỏ đô. Nâng cấp Premium để mở các giao diện khác."}>
-            <div className="grid grid-cols-2 xl:grid-cols-3 gap-3">
+          <Section
+            title="Mẫu thiệp"
+            desc={premium ? "Hiệu ứng mở thiệp, trang trí và cách trình bày. Chọn mẫu sẽ gợi ý bộ màu đi kèm, bạn đổi màu ở mục dưới." : "Gói Miễn phí dùng mẫu Cổ điển hoa lá. Nâng cấp Premium để mở các mẫu khác."}
+          >
+            <div className="grid grid-cols-2 gap-3">
+              {templateIds.map((id) => (
+                <TemplateCard
+                  key={id}
+                  id={id}
+                  p={shownPalette}
+                  active={activeTemplate === id}
+                  locked={!premium && !TEMPLATES[id].free}
+                  onPick={() => {
+                    if (id === activeTemplate) return
+                    dirty.current = true
+                    setForm((f: any) => ({ ...f, invite_template: id, invite_theme: TEMPLATES[id].palette }))
+                  }}
+                />
+              ))}
+            </div>
+          </Section>
+
+          <Section title="Màu sắc" desc={premium ? "Bộ màu nào cũng dùng được với mọi mẫu thiệp." : "Gói Miễn phí dùng bộ màu Trắng đỏ đô."}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2">
               {themeIds.map((id) => (
-                <ThemeCard key={id} id={id} active={premium ? form.invite_theme === id : id === "classic"} locked={!premium && !THEME_INFO[id]?.free} onPick={() => set("invite_theme", id)} />
+                <PaletteChip key={id} id={id} active={activeTheme === id} locked={!premium && !THEME_INFO[id]?.free} onPick={() => set("invite_theme", id)} />
               ))}
             </div>
           </Section>

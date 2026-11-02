@@ -8,7 +8,8 @@ import { serif, sans } from "./fonts"
 import { CurtainIntro, Divider, Frame, Garland, PaletteProvider, Reveal, Seal, THEMES, useIV } from "./Ornaments"
 import { Cartouche, EnvelopeIntro, GiltCrest, GiltDivider, GiltFrame, GiltSeal, PhotoStrip } from "./Gilded"
 import { DoorsIntro, GlassArch, GlassDivider, GlassFrame, GlassSeal, LeadArch, OvalWindow, RoseCorner } from "./Glass"
-import { glassTexture } from "@/lib/inviteThemes"
+import { ERoseCorner, EmbossDivider, EmbossFrame, EmbossSeal, EmbossVine, Ribbon, useRaised } from "./Emboss"
+import { glassTexture, templateOf } from "@/lib/inviteThemes"
 import type { InviteStyle, Palette } from "@/lib/inviteThemes"
 
 const DEFAULT_MESSAGE =
@@ -197,6 +198,123 @@ function Timeline({ items }: { items: any[] }) {
   )
 }
 
+// ---------- winding timeline (non-floral templates): stops alternate around a curving dashed path ----------
+function WindingTimeline({ items }: { items: any[] }) {
+  const IV = useIV()
+  const lead = IV.gold[1]
+  const ROW = 104
+  const W = 72
+  const pts = items.map((_, i) => ({ x: i % 2 === 0 ? 20 : W - 20, y: ROW / 2 + i * ROW }))
+  let d = `M${W / 2} 0 C ${W / 2} ${ROW / 4}, ${pts[0].x} ${ROW / 4}, ${pts[0].x} ${pts[0].y}`
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1]
+    const b = pts[i]
+    d += ` C ${a.x} ${a.y + ROW / 2}, ${b.x} ${b.y - ROW / 2}, ${b.x} ${b.y}`
+  }
+  const last = pts[pts.length - 1]
+  d += ` C ${last.x} ${last.y + ROW / 4}, ${W / 2} ${last.y + ROW / 4}, ${W / 2} ${last.y + ROW / 2}`
+  return (
+    <div className="relative grid grid-cols-[1fr_72px_1fr]" style={{ gridTemplateRows: `repeat(${items.length}, ${ROW}px)` }}>
+      <svg className="col-start-2 w-[72px] overflow-visible" style={{ gridRow: `1 / span ${items.length}`, height: items.length * ROW }} viewBox={`0 0 ${W} ${items.length * ROW}`} aria-hidden>
+        <path d={d} fill="none" stroke={lead} strokeWidth="1.6" strokeDasharray="5 5" />
+        {pts.map((pt, i) => (
+          <g key={i}>
+            <circle cx={pt.x} cy={pt.y} r="17" fill={IV.blush} stroke={lead} strokeWidth="1.2" />
+            <text x={pt.x} y={pt.y + 6} textAnchor="middle" fontSize="17">
+              {items[i].icon || "✦"}
+            </text>
+          </g>
+        ))}
+      </svg>
+      {items.map((it, i) => (
+        <div key={i} style={{ gridRow: i + 1 }} className={(i % 2 === 0 ? "col-start-3 text-left pl-1" : "col-start-1 text-right pr-1") + " flex flex-col justify-center"}>
+          <Reveal delay={i * 90}>
+            <p className="text-xl" style={{ ...SERIF, color: IV.wine }}>
+              {it.time}
+            </p>
+            <p className="text-[12px] tracking-[0.16em] uppercase leading-snug" style={{ color: IV.ink }}>
+              {it.title}
+            </p>
+            {it.note && (
+              <p className="text-xs mt-0.5" style={{ color: IV.muted }}>
+                {it.note}
+              </p>
+            )}
+          </Reveal>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ---------- emboss hero: raised-paper arch with roses, satin ribbon that unties, dark countdown band ----------
+function EmbossHero({ event, shortDate, start, cover, opened }: { event: any; shortDate: string; start: Date | null; cover?: string; opened: boolean }) {
+  const IV = useIV()
+  const dark = onDeep(IV)
+  const raised = useRaised(1.2)
+  const v = { vectorEffect: "non-scaling-stroke" as const }
+  return (
+    <section className="relative min-h-[100svh] flex flex-col items-center justify-center text-center px-10 pt-24 pb-10 overflow-hidden" style={{ background: `radial-gradient(ellipse at 50% 20%, ${IV.soft} 0%, ${IV.paper} 70%)` }}>
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full pointer-events-none" style={raised} aria-hidden>
+        <path d="M6 97 V30 Q6 9 50 4 Q94 9 94 30 V97 Z" fill="none" stroke={IV.paper} strokeWidth="5" style={v} />
+        <path d="M9 94 V31 Q9 12 50 7.5 Q91 12 91 31 V94 Z" fill="none" stroke={IV.paper} strokeWidth="2" style={v} />
+      </svg>
+      <ERoseCorner className="absolute -top-2 -left-2 w-[42%] max-w-[190px]" />
+      <ERoseCorner className="absolute -top-2 -right-2 w-[42%] max-w-[190px]" style={{ transform: "scaleX(-1)" }} />
+      <ERoseCorner className="absolute bottom-0 -left-2 w-[30%] max-w-[140px]" style={{ transform: "scaleY(-1)" }} />
+      <ERoseCorner className="absolute bottom-0 -right-2 w-[30%] max-w-[140px]" style={{ transform: "scale(-1)" }} />
+      <Ribbon start={opened} />
+      <div className="relative flex flex-col items-center w-full">
+        <Reveal>
+          <p className="text-[11px] tracking-[0.3em] uppercase mb-6" style={{ color: IV.rose }}>
+            Trân trọng báo tin lễ thành hôn
+          </p>
+        </Reveal>
+        <Reveal delay={150}>
+          <h1 className="italic leading-[1.05]" style={{ ...SERIF, color: IV.wine }}>
+            <span className="block text-[54px]">{event.bride_name}</span>
+            <span className="block text-3xl my-1" style={{ color: IV.rose }}>
+              &amp;
+            </span>
+            <span className="block text-[54px]">{event.groom_name}</span>
+          </h1>
+        </Reveal>
+        <Reveal delay={300}>
+          <EmbossDivider className="my-6" />
+          <p className="text-xl tracking-[0.15em]" style={{ ...SERIF, color: IV.ink }}>
+            {shortDate}
+          </p>
+          {event.venue_name && (
+            <p className="text-sm mt-1" style={{ color: IV.muted }}>
+              {event.venue_name}
+            </p>
+          )}
+        </Reveal>
+        {cover && (
+          <Reveal delay={400} className="w-full mt-8">
+            <div className="mx-auto w-[64%] p-2 rounded-t-[999px] rounded-b-2xl" style={{ background: IV.paper, boxShadow: `inset 2px 3px 4px ${IV.muted}66, inset -2px -2px 3px rgba(255,255,255,0.8)` }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={cover} alt="" className="w-full h-52 object-cover rounded-t-[999px] rounded-b-xl" />
+            </div>
+          </Reveal>
+        )}
+      </div>
+      {start && (
+        <PaletteProvider value={dark}>
+          <Reveal delay={450} className="relative w-full mt-10">
+            <div className="rounded-2xl px-3 py-5" style={{ background: IV.deep }}>
+              <p className="text-[11px] tracking-[0.25em] uppercase mb-3" style={{ color: dark.muted }}>
+                Đếm ngược
+              </p>
+              <Countdown start={start} />
+            </div>
+          </Reveal>
+        </PaletteProvider>
+      )}
+    </section>
+  )
+}
+
 type InviteProps = { guest: any; event: any; floors: any[]; locked: boolean; preview?: boolean; skipIntro?: boolean }
 
 // ---------- glass hero: frosted pink window with leaded roses, then an olive section with the oval photo ----------
@@ -329,10 +447,13 @@ function GildedHero({ event, shortDate, start, photos, opened }: { event: any; s
 
 export default function InviteClient(props: InviteProps) {
   // Free plan: only the classic color set (DESIGN.md / lib/plan.ts)
-  const theme = props.event.plan === "premium" ? THEMES[props.event.invite_theme] ?? THEMES.blush : THEMES.classic
+  // Free plan: classic colors + floral template only (lib/plan.ts)
+  const premium = props.event.plan === "premium"
+  const theme = premium ? THEMES[props.event.invite_theme] ?? THEMES.blush : THEMES.classic
+  const look = premium ? templateOf(props.event.invite_template) : "floral"
   return (
     <PaletteProvider value={theme.p}>
-      <Invite {...props} look={theme.style ?? "floral"} />
+      <Invite {...props} look={look} />
     </PaletteProvider>
   )
 }
@@ -341,12 +462,15 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
   const IV = useIV()
   const gilded = look === "gilded"
   const glass = look === "glass"
+  const emboss = look === "emboss"
   // Decoration set for this theme; non-floral looks put RSVP on the dark "deep" color
   const O =
     look === "gilded"
       ? { Garland: GiltCrest, Divider: GiltDivider, Frame: GiltFrame }
       : look === "glass"
       ? { Garland: GlassArch, Divider: GlassDivider, Frame: GlassFrame }
+      : look === "emboss"
+      ? { Garland: EmbossVine, Divider: EmbossDivider, Frame: EmbossFrame }
       : { Garland, Divider, Frame }
   const deepRsvp = look !== "floral"
   const [opened, setOpened] = useState(skipIntro)
@@ -407,6 +531,8 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
           <EnvelopeIntro initials={initials} photo={cover} onOpened={() => setOpened(true)} />
         ) : glass ? (
           <DoorsIntro initials={initials} onOpened={() => setOpened(true)} />
+        ) : emboss ? (
+          <EnvelopeIntro initials={initials} onOpened={() => setOpened(true)} seal={<EmbossSeal text={initials} size={128} />} />
         ) : (
           <CurtainIntro initials={initials} onOpened={() => setOpened(true)} />
         ))}
@@ -417,6 +543,8 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
           <GildedHero event={event} shortDate={shortDate} start={start} photos={gallery.slice(0, 3)} opened={opened} />
         ) : glass ? (
           <GlassHero event={event} shortDate={shortDate} start={start} cover={cover} />
+        ) : emboss ? (
+          <EmbossHero event={event} shortDate={shortDate} start={start} cover={cover} opened={opened} />
         ) : (
         <section
           className="relative min-h-[100svh] flex flex-col items-center justify-center text-center px-8 pt-20 pb-20 overflow-hidden"
@@ -553,7 +681,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
             <Reveal>
               <SectionTitle kicker="Lịch trình">Ngày vui của chúng mình</SectionTitle>
             </Reveal>
-            <Timeline items={timeline} />
+            {look === "floral" ? <Timeline items={timeline} /> : <WindingTimeline items={timeline} />}
           </section>
         )}
 
@@ -719,7 +847,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
           <O.Garland className="opacity-80 mb-4 rotate-180" />
           <Reveal>
             <div className="flex justify-center">
-              {gilded ? <GiltSeal text={initials} size={84} /> : glass ? <GlassSeal text={initials} size={84} /> : <Seal text={initials} size={84} />}
+              {gilded ? <GiltSeal text={initials} size={84} /> : glass ? <GlassSeal text={initials} size={84} /> : emboss ? <EmbossSeal text={initials} size={84} /> : <Seal text={initials} size={84} />}
             </div>
             <p className="text-xl italic mt-4" style={{ ...SERIF, color: IV.wine }}>
               Sự hiện diện của bạn là niềm vinh hạnh của chúng tôi
