@@ -117,7 +117,7 @@ export function GlassFrame({ children, className = "" }: { children: React.React
   const IV = useIV()
   const lead = useLead()
   return (
-    <div className={"p-[12px] " + className} style={{ backgroundImage: paneBorder(IV, lead), backgroundSize: "28px 28px", border: `2px solid ${lead[2]}`, borderRadius: 6 }}>
+    <div className={"p-[16px] " + className} style={{ backgroundImage: paneBorder(IV, lead), backgroundSize: "16px 16px", border: `2px solid ${lead[2]}`, borderRadius: 6 }}>
       <div className="p-6" style={{ background: IV.paper, border: `2px solid ${lead[2]}`, borderRadius: 3 }}>
         {children}
       </div>
@@ -190,7 +190,7 @@ export function DoorsIntro({ initials, onOpened }: { initials: string; onOpened:
   )
 
   return (
-    <div className="fixed inset-0 z-50 cursor-pointer select-none overflow-hidden" style={{ background: IV.deep ?? IV.wine, perspective: 1600 }} onClick={open} role="button" aria-label="Mở thiệp mời">
+    <div className="fixed inset-0 z-50 cursor-pointer select-none overflow-hidden" style={{ perspective: 1600 }} onClick={open} role="button" aria-label="Mở thiệp mời">
       {door("left")}
       {door("right")}
       <div className={"absolute inset-0 flex flex-col items-center justify-center gap-3 transition-all duration-500 " + (opening ? "opacity-0 scale-90" : "")}>
