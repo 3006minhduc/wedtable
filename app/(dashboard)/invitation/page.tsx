@@ -91,8 +91,8 @@ function TemplateMock({ id, p }: { id: InviteStyle; p: Palette }) {
         <div className={box + " rounded-[14px]"} style={{ background: p.paper, boxShadow: `inset 2px 3px 4px ${p.muted}66, inset -2px -2px 3px rgba(255,255,255,0.9)` }}>
           {names}
         </div>
-        <div className="absolute inset-x-0 top-[44%] h-3" style={{ background: `linear-gradient(180deg, ${p.blush}, ${p.paper}, ${p.sage})`, opacity: 0.9 }} />
-        <div className="absolute inset-y-0 left-1/2 -ml-1.5 w-3" style={{ background: `linear-gradient(90deg, ${p.blush}, ${p.paper}, ${p.sage})`, opacity: 0.9 }} />
+        <div className="absolute inset-x-0 bottom-[12%] h-2.5" style={{ background: `linear-gradient(180deg, ${p.blush}, ${p.paper}, ${p.sage})` }} />
+        <span className="absolute left-1/2 bottom-[8%] -translate-x-1/2 w-6 h-4 rounded-full" style={{ background: `radial-gradient(circle, ${p.paper}, ${p.sage})` }} />
       </div>
     )
   return (
