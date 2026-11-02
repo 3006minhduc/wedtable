@@ -21,6 +21,8 @@ const serif = Newsreader({
 export const metadata: Metadata = {
   title: "WedTable — Thiệp mời, sơ đồ bàn và check-in cho đám cưới",
   description: "Gửi thiệp mời riêng cho từng khách, để khách tự chọn chỗ ngồi trên sơ đồ bàn và check-in bằng QR.",
+  // The design is light-only; ask browsers with forced dark mode to keep our colors
+  other: { "color-scheme": "light only" },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

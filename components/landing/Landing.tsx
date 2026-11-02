@@ -134,13 +134,13 @@ function Fragment({ children, className = "" }: { children: React.ReactNode; cla
 }
 
 const SEATS = [
-  { x: 18, y: 42, vip: true },
-  { x: 38, y: 42 },
-  { x: 62, y: 42 },
-  { x: 82, y: 42, vip: true },
-  { x: 28, y: 72 },
-  { x: 50, y: 72 },
-  { x: 72, y: 72 },
+  { x: 15, y: 42, vip: true },
+  { x: 38.3, y: 42 },
+  { x: 61.7, y: 42 },
+  { x: 85, y: 42, vip: true },
+  { x: 26.7, y: 74 },
+  { x: 50, y: 74 },
+  { x: 73.3, y: 74 },
 ]
 
 function MiniSeating({ start }: { start: boolean }) {
@@ -156,24 +156,51 @@ function MiniSeating({ start }: { start: boolean }) {
     return () => clearInterval(t)
   }, [start, total])
 
+  // Everything is sized in container-width units (cqw) so tables never collide on narrow phones
+  const tableSize = "clamp(36px, 12.5cqw, 60px)"
+  const dot = "clamp(5px, 1.5cqw, 8px)"
   return (
-    <div className="relative w-full aspect-[4/3] rounded-card border border-border bg-surface overflow-hidden" style={{ backgroundImage: "radial-gradient(rgb(var(--border-hover-rgb)) 1px, transparent 1px)", backgroundSize: "18px 18px" }}>
-      <div className="absolute left-[22%] right-[22%] top-[8%] h-[13%] rounded-lg border border-brand/40 bg-brand-soft flex items-center justify-center text-xs text-brand">Sân khấu</div>
+    <div
+      className="relative w-full aspect-[4/3] rounded-card border border-border bg-surface overflow-hidden"
+      style={{
+        containerType: "inline-size",
+        backgroundImage: "radial-gradient(rgb(var(--border-hover-rgb)) 1px, transparent 1px)",
+        backgroundSize: "18px 18px",
+      }}
+    >
+      <div
+        className="absolute left-[22%] right-[22%] top-[8%] h-[13%] rounded-lg border border-brand/40 bg-brand-soft flex items-center justify-center text-brand"
+        style={{ fontSize: "clamp(10px, 2.6cqw, 13px)" }}
+      >
+        Sân khấu
+      </div>
       {SEATS.map((s, ti) => {
         const before = ti * 8
         return (
           <div key={ti} className="absolute -translate-x-1/2 -translate-y-1/2" style={{ left: `${s.x}%`, top: `${s.y}%` }}>
-            <div className={"relative w-14 h-14 rounded-full border flex flex-col items-center justify-center " + (s.vip ? "border-brand/50 bg-brand-soft" : "border-border-hover bg-surface")}>
-              <span className="text-[11px] font-medium text-text">Bàn {ti + 1}</span>
-              <span className="text-[10px] text-muted tabular-nums">{Math.max(0, Math.min(8, filled - before))}/8</span>
+            <div
+              className={"relative rounded-full border flex flex-col items-center justify-center leading-tight " + (s.vip ? "border-brand/50 bg-brand-soft" : "border-border-hover bg-surface")}
+              style={{ width: tableSize, height: tableSize }}
+            >
+              <span className="font-medium text-text" style={{ fontSize: "clamp(8px, 2.2cqw, 11px)" }}>
+                Bàn {ti + 1}
+              </span>
+              <span className="text-muted tabular-nums" style={{ fontSize: "clamp(8px, 2cqw, 10px)" }}>
+                {Math.max(0, Math.min(8, filled - before))}/8
+              </span>
               {Array.from({ length: 8 }).map((_, i) => {
                 const a = (i / 8) * Math.PI * 2 - Math.PI / 2
                 const on = filled - before > i
                 return (
                   <span
                     key={i}
-                    className={"absolute w-2 h-2 rounded-full -translate-x-1/2 -translate-y-1/2 transition-colors duration-300 " + (on ? "bg-brand" : "bg-surface border border-border-hover")}
-                    style={{ left: 28 + Math.cos(a) * 34, top: 28 + Math.sin(a) * 34 }}
+                    className={"absolute rounded-full -translate-x-1/2 -translate-y-1/2 transition-colors duration-300 " + (on ? "bg-brand" : "bg-surface border border-border-hover")}
+                    style={{
+                      width: dot,
+                      height: dot,
+                      left: `${(50 + Math.cos(a) * 62).toFixed(2)}%`,
+                      top: `${(50 + Math.sin(a) * 62).toFixed(2)}%`,
+                    }}
                   />
                 )
               })}
