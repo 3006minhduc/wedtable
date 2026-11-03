@@ -57,9 +57,10 @@ export function Collage({ photos, onOpen, offset = 0 }: { photos: string[]; onOp
     <div className="grid grid-cols-2 gap-x-4 gap-y-5 px-1">
       {photos.map((url, i) => {
         const k = i % 5
-        const wide = k === 0
+        // a photo left alone on the last row spans it too
+        const wide = k === 0 || (i === photos.length - 1 && (k === 2 || k === 4))
         return (
-          <Reveal key={url + i} delay={(i % 5) * 70} className={wide ? "col-span-2" : k >= 3 ? "mt-[-18px]" : ""}>
+          <Reveal key={url + i} delay={(i % 5) * 70} className={wide ? "col-span-2" : ""}>
             <button onClick={() => onOpen(offset + i)} className="block w-full cursor-zoom-in" aria-label="Xem ảnh">
               <PrintPhoto src={url} rotate={wide ? (i % 2 ? 1 : -1.2) : k % 2 ? 2.4 : -2} tall={k === 1 || k === 2} />
             </button>

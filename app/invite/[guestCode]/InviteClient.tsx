@@ -666,8 +666,9 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
   const interlude1 = rest.length >= 3 ? rest[0] : undefined
   const interlude2 = rest.length >= 8 ? rest[rest.length - 1] : undefined
   const albumPhotos = rest.filter((u) => u !== interlude1 && u !== interlude2)
-  const collagePhotos = albumPhotos.slice(0, 10)
-  const stripPhotos = albumPhotos.slice(10)
+  // collage up to 10; a swipe strip for the rest when there are at least 3 more
+  const collagePhotos = albumPhotos.length >= 13 ? albumPhotos.slice(0, 10) : albumPhotos
+  const stripPhotos = albumPhotos.length >= 13 ? albumPhotos.slice(10) : []
   // the small second print on the cover reuses an album photo
   const heroSecond = gallery[1]
   const [viewer, setViewer] = useState<number | null>(null)
