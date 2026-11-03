@@ -11,7 +11,7 @@ export const PAPER_GRAIN = `url("data:image/svg+xml,${encodeURIComponent(
 )}")`
 
 /** Woven linen for the table the card sits on */
-export const LINEN = `repeating-linear-gradient(0deg, rgba(0,0,0,0.018) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(255,255,255,0.05) 0 1px, transparent 1px 3px)`
+export const LINEN = `repeating-linear-gradient(0deg, rgba(0,0,0,0.010) 0 1px, transparent 1px 4px), repeating-linear-gradient(90deg, rgba(255,255,255,0.035) 0 1px, transparent 1px 4px)`
 
 /** Ink pressed into the paper (letterpress): light catch below, shadow above */
 export const LETTERPRESS: React.CSSProperties = { textShadow: "0 1px 0 rgba(255,255,255,0.65), 0 -0.5px 0 rgba(0,0,0,0.18)" }

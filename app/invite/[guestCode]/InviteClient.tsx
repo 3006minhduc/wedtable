@@ -324,6 +324,105 @@ function EmbossHero({ event, shortDate, start, cover, opened }: { event: any; sh
   )
 }
 
+// ---------- floral hero as a layered stationery suite: deep stock, arched ivory card, photo print, wax seal ----------
+function SuiteHero({ event, shortDate, start, cover, initials }: { event: any; shortDate: string; start: Date | null; cover?: string; initials: string }) {
+  const IV = useIV()
+  const dark = onDeep(IV)
+  const g = IV.gold
+  const d = (n: number) => ({ "data-depth": "", style: { ["--d" as any]: n } as React.CSSProperties })
+  return (
+    <section
+      className="relative min-h-[100svh] flex flex-col items-center justify-center text-center px-6 pt-14 pb-24 overflow-hidden"
+      style={{ background: `radial-gradient(ellipse at 50% 28%, ${IV.wine} 0%, ${IV.deep} 78%)` }}
+    >
+      <Reveal>
+        <p className="text-[11px] tracking-[0.35em] uppercase mb-8">
+          <Foil>Trân trọng kính mời</Foil>
+        </p>
+      </Reveal>
+      <Reveal delay={120} className="w-full">
+        <Tilt max={8} className="mx-auto w-[min(76vw,310px)]">
+          <div className="relative" style={{ transformStyle: "preserve-3d" }}>
+            {/* photo print tucked behind the card */}
+            {cover && (
+              <div className="absolute -left-[16%] top-[30%] w-[52%]" {...d(8)}>
+                <PrintPhoto src={cover} rotate={-8} tall />
+              </div>
+            )}
+            {/* the arched ivory card */}
+            <div
+              className="relative rounded-t-[999px] rounded-b-[6px] px-7 pt-16 pb-12 flex flex-col items-center"
+              {...d(30)}
+            >
+              <div
+                className="absolute inset-0 rounded-t-[999px] rounded-b-[6px]"
+                style={{
+                  backgroundColor: IV.paper,
+                  backgroundImage: PAPER_GRAIN,
+                  boxShadow: `inset 0 0 0 7px ${IV.paper}, inset 0 0 0 8px ${g[1]}, inset 0 0 0 11px ${IV.paper}, inset 0 0 0 11.5px ${g[1]}, 0 2px 3px rgba(0,0,0,0.2), 0 30px 50px -18px rgba(0,0,0,0.6)`,
+                }}
+              />
+              <div className="relative flex flex-col items-center w-full">
+                <O_Garland />
+                <p className="text-[10px] tracking-[0.28em] uppercase mt-1 mb-4" style={{ color: IV.rose }}>
+                  Lễ thành hôn
+                </p>
+                <h1 className="italic leading-[1.02] break-words max-w-full" style={{ ...SERIF, color: IV.wine, ...LETTERPRESS }}>
+                  <span className="block text-[44px]">{event.bride_name}</span>
+                  <span className="block text-3xl my-0.5" style={{ color: g[2] }}>
+                    &amp;
+                  </span>
+                  <span className="block text-[44px]">{event.groom_name}</span>
+                </h1>
+                <Divider className="my-5 !w-28" />
+                <p className="text-lg tracking-[0.18em]" style={{ ...SERIF, color: IV.ink, ...LETTERPRESS }}>
+                  {shortDate}
+                </p>
+                {event.venue_name && (
+                  <p className="text-xs mt-1" style={{ color: IV.muted }}>
+                    {event.venue_name}
+                  </p>
+                )}
+              </div>
+            </div>
+            {/* wax seal pressed on the bottom edge */}
+            <div className="absolute left-1/2 -bottom-9 -translate-x-1/2">
+              <div {...d(55)}>
+                <div style={{ filter: "drop-shadow(0 6px 8px rgba(0,0,0,0.35))" }}>
+                  <Seal text={initials} size={78} />
+                </div>
+              </div>
+            </div>
+          </div>
+        </Tilt>
+      </Reveal>
+      {start && (
+        <PaletteProvider value={dark}>
+          <Reveal delay={350} className="mt-16">
+            <p className="text-xs mb-3" style={{ color: dark.muted }}>
+              Còn lại đến ngày chung đôi
+            </p>
+            <Countdown start={start} />
+          </Reveal>
+        </PaletteProvider>
+      )}
+      <div className="absolute bottom-6 flex flex-col items-center gap-1 text-[10px] tracking-[0.3em] uppercase animate-bounce" style={{ color: g[1] }}>
+        <span>Cuộn xuống</span>
+        <span aria-hidden>⌄</span>
+      </div>
+    </section>
+  )
+}
+
+/** Small garland sized for the card top */
+function O_Garland() {
+  return (
+    <div className="absolute -top-14 inset-x-0 opacity-90 pointer-events-none">
+      <Garland />
+    </div>
+  )
+}
+
 type InviteProps = { guest: any; event: any; floors: any[]; locked: boolean; preview?: boolean; skipIntro?: boolean }
 
 // ---------- glass hero: frosted pink window with leaded roses, then an olive section with the oval photo ----------
@@ -572,61 +671,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
         ) : emboss ? (
           <EmbossHero event={event} shortDate={shortDate} start={start} cover={cover} opened={opened} />
         ) : (
-        <section
-          className="relative min-h-[100svh] flex flex-col items-center justify-center text-center px-8 pt-20 pb-20 overflow-hidden"
-          style={{ background: `radial-gradient(ellipse at top, ${IV.blush} 0%, ${IV.paper} 62%)` }}
-        >
-          <O.Garland className="absolute top-0 left-0 opacity-90" />
-          <div className="relative flex flex-col items-center w-full">
-            <Reveal>
-              <p className="text-[11px] tracking-[0.35em] uppercase mb-6" style={{ color: IV.rose }}>
-                Trân trọng kính mời
-              </p>
-            </Reveal>
-            <Reveal delay={150}>
-              <Tilt>
-                <h1 className="italic leading-[1.05]" data-depth="" style={{ ...SERIF, color: IV.wine, ...LETTERPRESS, ["--d" as any]: 50 }}>
-                  <span className="block text-[54px]">{event.bride_name}</span>
-                  <span className="block text-3xl my-1">
-                    <Foil>&amp;</Foil>
-                  </span>
-                  <span className="block text-[54px]">{event.groom_name}</span>
-                </h1>
-              </Tilt>
-            </Reveal>
-            <Reveal delay={300}>
-              <O.Divider className="my-6" />
-              <p className="text-2xl tracking-[0.15em]" style={{ ...SERIF, color: IV.ink }}>
-                {shortDate}
-              </p>
-              {event.venue_name && (
-                <p className="text-sm mt-2" style={{ color: IV.muted }}>
-                  {event.venue_name}
-                </p>
-              )}
-            </Reveal>
-            {start && (
-              <Reveal delay={400} className="mt-8">
-                <p className="text-xs mb-3" style={{ color: IV.muted }}>
-                  Còn lại đến ngày chung đôi
-                </p>
-                <Countdown start={start} />
-              </Reveal>
-            )}
-            {cover && (
-              <Reveal delay={450} className="w-full mt-8">
-                <div className="mx-auto w-[78%] p-2 rounded-t-[999px] rounded-b-2xl border bg-white shadow-sm" style={{ borderColor: IV.line }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={cover} alt="" className="w-full h-60 object-cover rounded-t-[999px] rounded-b-xl" />
-                </div>
-              </Reveal>
-            )}
-          </div>
-          <div className="absolute bottom-6 flex flex-col items-center gap-1 text-[10px] tracking-[0.3em] uppercase animate-bounce" style={{ color: IV.rose }}>
-            <span>Cuộn xuống</span>
-            <span aria-hidden>⌄</span>
-          </div>
-        </section>
+          <SuiteHero event={event} shortDate={shortDate} start={start} cover={cover} initials={initials} />
         )}
 
         {/* ---------- Invitation ---------- */}
