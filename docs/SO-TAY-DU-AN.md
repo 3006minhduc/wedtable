@@ -1,6 +1,6 @@
 # Sổ tay dự án WedTable
 
-Cập nhật: 04/11/2026. Tài liệu này mô tả toàn bộ WedTable: dùng để làm gì, gồm những trang nào, dữ liệu nằm ở đâu, cách sửa và đưa lên web, cách sao lưu và khôi phục. Ghi chú kỹ thuật chi tiết hơn cho người sửa code nằm ở `CLAUDE.md` (kiến trúc, bẫy đã gặp) và `DESIGN.md` (quy chuẩn giao diện).
+Cập nhật: 04/11/2026. Tài liệu này mô tả toàn bộ WedTable: dùng để làm gì, gồm những trang nào, dữ liệu nằm ở đâu, cách sửa và đưa lên web, cách sao lưu và khôi phục. Bản Google Docs: Drive → Wedtable → WedTable Backup → "Sổ tay dự án WedTable". Ghi chú kỹ thuật chi tiết hơn cho người sửa code nằm ở `CLAUDE.md` (kiến trúc, bẫy đã gặp) và `DESIGN.md` (quy chuẩn giao diện).
 
 ---
 
@@ -201,13 +201,13 @@ git add -A && git commit -m "mô tả thay đổi" && git push
 | Khoá bí mật | Không sao lưu tự động | Tự lưu trong trình quản lý mật khẩu |
 
 ### Chạy sao lưu
-Trong thư mục code, cần `.env.local` có `SUPABASE_SERVICE_ROLE_KEY`:
+Trong thư mục code, cần `.env.local` có `SUPABASE_SERVICE_ROLE_KEY` (thiếu khoá thì script chỉ sao lưu code và tài liệu):
 ```bash
 node scripts/backup.mjs
 ```
-Kết quả: thư mục `WedTable-Backup/<ngày>/` nằm **cạnh** thư mục code (không bị đưa lên GitHub), kèm file nén `WedTable-Backup-<ngày>.zip`. Tải file nén đó lên thư mục **WedTable Backup** trên Google Drive.
+Kết quả: thư mục `WedTable-Backup/<ngày>/` nằm **cạnh** thư mục code (không bị đưa lên GitHub), kèm file nén `WedTable-Backup-<ngày>.zip`. Tải file nén đó lên thư mục **Wedtable → WedTable Backup** trên Google Drive (trong đó có sẵn bản Google Docs của sổ tay này).
 
-Nên chạy: mỗi tuần một lần, trước và sau những thay đổi lớn, và hằng ngày trong tuần trước ngày cưới.
+Nên chạy: mỗi tuần một lần, trước và sau những thay đổi lớn, và hằng ngày trong tuần trước ngày cưới. File nén chứa tên và số điện thoại khách: chỉ lưu ở nơi riêng tư, không chia sẻ công khai.
 
 ### Khôi phục (khi mất project Supabase)
 1. Tạo project Supabase mới, bật Google OAuth như cũ.

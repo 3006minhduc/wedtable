@@ -62,6 +62,10 @@ Mẹo SQL Editor khi tự động hóa: đặt nội dung bằng `window.monaco.
 - Bắt sự kiện kéo trên canvas bằng `setPointerCapture` trên khung world; item phải `stopPropagation` ở `onPointerDown` để không kích hoạt kéo khung.
 - Chọn bàn qua `get_invite` trả `used` đã loại khách đang xem, nên khách sửa lại lựa chọn không bị tính trùng.
 
+## Sao lưu
+- Sổ tay đầy đủ: `docs/SO-TAY-DU-AN.md` (bản Google Docs ở Drive → Wedtable → WedTable Backup). Cập nhật sổ tay khi thêm tính năng lớn.
+- `node scripts/backup.mjs`: code (bundle + zip), mọi bảng (JSON + `restore-data.sql`), danh sách tài khoản, toàn bộ bucket `wedding-media`; ra `../WedTable-Backup/<ngày>/` + file zip. Cần `SUPABASE_SERVICE_ROLE_KEY` trong `.env.local` (người dùng tự dán), thiếu thì chỉ sao lưu code.
+
 ## Còn dở / chưa làm
 - Zalo nhắc khách: cần Zalo OA + token, và code đang dùng SĐT làm Zalo user id (sai, gửi sẽ lỗi).
 - Gắn tên miền riêng (đã mua ở Tenten, chưa gắn).
