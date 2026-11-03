@@ -1,9 +1,21 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+// Big-screen display for the venue: live seating map drawn to the hall's real scale, a wedding-photo
+// panel beside it, a full-screen photo slideshow, and an auto mode that alternates the two.
+import { useCallback, useEffect, useRef, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import FloorLayers from "@/components/seating/FloorLayers"
 import { hallOf } from "@/lib/hall"
+import { formatInviteDate } from "@/lib/formatDate"
+
+type Mode = "map" | "photos" | "auto"
+
+// Real table footprint in metres (same as the editor: 72px / 132x52px at 32 px/m)
+const ROUND_M = 2.25
+const RECT_M = { w: 4.1, h: 1.6 }
+const SLIDE_MS = 6000
+const AUTO_MAP_MS = 40000
+const AUTO_PHOTO_MS = 20000
 
 function used(guests: any[], tableId: string, onlyCheckedIn = false) {
   return guests
@@ -11,10 +23,37 @@ function used(guests: any[], tableId: string, onlyCheckedIn = false) {
     .reduce((s, g) => s + 1 + (g.companions ?? 0), 0)
 }
 
+/** Size of an element, kept up to date */
+function useBox<T extends HTMLElement>() {
+  const ref = useRef<T | null>(null)
+  const [box, setBox] = useState({ w: 0, h: 0 })
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const ro = new ResizeObserver(([e]) => setBox({ w: e.contentRect.width, h: e.contentRect.height }))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+  return [ref, box] as const
+}
+
+/** Index that advances every `ms` */
+function useTicker(count: number, ms: number) {
+  const [i, setI] = useState(0)
+  useEffect(() => {
+    if (count < 2) return
+    const t = setInterval(() => setI((x) => (x + 1) % count), ms)
+    return () => clearInterval(t)
+  }, [count, ms])
+  return count ? i % count : 0
+}
+
 export default function DisplayPage({ params }: { params: { eventId: string } }) {
   const [event, setEvent] = useState<any>(null)
   const [error, setError] = useState("")
   const [floorIdx, setFloorIdx] = useState(0)
+  const [mode, setMode] = useState<Mode>("map")
+  const [autoShow, setAutoShow] = useState<"map" | "photos">("map")
 
   const load = useCallback(async () => {
     const { data, error } = await createClient().rpc("display_data", { p_event_id: params.eventId })
@@ -32,8 +71,18 @@ export default function DisplayPage({ params }: { params: { eventId: string } })
     return () => clearInterval(poll)
   }, [load])
 
-  if (error) return <div className="min-h-screen flex items-center justify-center text-muted">{error}</div>
-  if (!event) return <div className="min-h-screen flex items-center justify-center text-muted">Đang tải...</div>
+  // auto mode: map for a while, then photos, and back
+  useEffect(() => {
+    if (mode !== "auto") return
+    const t = setTimeout(() => setAutoShow((s) => (s === "map" ? "photos" : "map")), autoShow === "map" ? AUTO_MAP_MS : AUTO_PHOTO_MS)
+    return () => clearTimeout(t)
+  }, [mode, autoShow])
+
+  const photos: string[] = Array.isArray(event?.gallery) ? event.gallery.filter(Boolean) : []
+  const slide = useTicker(photos.length, SLIDE_MS)
+
+  if (error) return <div className="min-h-screen bg-ink flex items-center justify-center text-white/70">{error}</div>
+  if (!event) return <div className="min-h-screen bg-ink flex items-center justify-center text-white/70">Đang tải...</div>
   if (event.plan !== "premium") {
     return (
       <div className="min-h-screen bg-ink text-white flex flex-col items-center justify-center gap-3 p-6 text-center">
@@ -48,95 +97,199 @@ export default function DisplayPage({ params }: { params: { eventId: string } })
   const guests: any[] = event.guests ?? []
   const checkedPeople = guests.filter((g) => g.checked_in).reduce((s, g) => s + 1 + (g.companions ?? 0), 0)
   const expected = guests.filter((g) => !g.no_show).reduce((s, g) => s + 1 + (g.companions ?? 0), 0)
+  const couple = [event.bride_name, event.groom_name].filter(Boolean).join(" & ")
+  const when = formatInviteDate(event.event_date, event.event_time)
+  const showPhotos = photos.length > 0 && (mode === "photos" || (mode === "auto" && autoShow === "photos"))
 
-  return (
-    <div className="min-h-screen bg-ink text-white p-6">
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold">
-            {event.bride_name} &amp; {event.groom_name}
-          </h1>
-          <p className="text-white/60 text-sm">
-            {event.event_date} · {event.venue_name}
-          </p>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="text-right">
-            <div className="text-3xl font-semibold text-pr">
-              {checkedPeople}
-              <span className="text-white/50 text-lg">/{expected}</span>
-            </div>
-            <div className="text-xs text-white/60">khách đã có mặt</div>
-          </div>
-          <button
-            className="border border-white/30 rounded-pill px-3 py-1.5 text-sm"
-            onClick={() => document.documentElement.requestFullscreen?.()}
-          >
-            Toàn màn hình
-          </button>
-        </div>
+  const counter = (
+    <div className="text-right">
+      <div className="text-3xl font-semibold leading-none">
+        <span style={{ color: "#E7B9C1" }}>{checkedPeople}</span>
+        <span className="text-white/45 text-lg">/{expected}</span>
       </div>
+      <div className="text-[11px] text-white/55 mt-1">khách đã có mặt</div>
+    </div>
+  )
 
-      {floors.length > 1 && (
-        <div className="flex gap-2 mb-3">
-          {floors.map((f, i) => (
+  const controls = (
+    <div className="flex items-center gap-2">
+      {photos.length > 0 && (
+        <div className="flex rounded-pill border border-white/20 p-0.5 text-xs">
+          {(
+            [
+              ["map", "Sơ đồ"],
+              ["photos", "Ảnh cưới"],
+              ["auto", "Tự chuyển"],
+            ] as [Mode, string][]
+          ).map(([m, label]) => (
             <button
-              key={f.id}
-              onClick={() => setFloorIdx(i)}
-              className={"rounded-pill px-3 py-1 text-sm border " + (i === floorIdx ? "bg-brand border-brand text-white" : "border-white/30 text-white/70")}
+              key={m}
+              onClick={() => {
+                setMode(m)
+                setAutoShow("map")
+              }}
+              className={"rounded-pill px-3 py-1 " + (mode === m ? "bg-white text-ink" : "text-white/70 hover:text-white")}
             >
-              {f.name}
+              {label}
             </button>
           ))}
         </div>
       )}
-
-      {/* keep the hall proportions: as wide as fits, never taller than 70vh */}
-      <div
-        className="relative mx-auto bg-white/5 border border-white/10 rounded-card overflow-hidden"
-        style={{ width: `min(100%, calc(70vh * ${hallOf(floor).w / hallOf(floor).h}))`, aspectRatio: `${hallOf(floor).w} / ${hallOf(floor).h}` }}
+      <button
+        className="border border-white/25 rounded-pill px-3 py-1.5 text-xs text-white/80 hover:text-white"
+        onClick={() => (document.fullscreenElement ? document.exitFullscreen?.() : document.documentElement.requestFullscreen?.())}
       >
-        <FloorLayers floor={floor} theme="dark" />
-        {(floor?.tables ?? []).map((t: any) => {
-          const total = used(guests, t.id)
-          const here = used(guests, t.id, true)
-          const pct = Math.min(100, Math.round((here / Math.max(1, t.seats)) * 100))
-          const names = guests.filter((g) => g.table_id === t.id && !g.no_show).map((g) => g.name)
-          return (
-            <div
-              key={t.id}
-              className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center"
-              style={{ left: `${t.x_pct}%`, top: `${t.y_pct}%` }}
-            >
-              <div
-                className={(t.shape === "rect" ? "w-36 h-16 rounded-card" : "w-20 h-20 rounded-full") + " flex items-center justify-center"}
-                style={{
-                  background:
-                    t.shape === "rect"
-                      ? `linear-gradient(90deg, var(--pr) ${pct}%, rgba(255,255,255,0.15) 0)`
-                      : `conic-gradient(var(--pr) ${pct}%, rgba(255,255,255,0.15) 0)`,
-                }}
-              >
-                <div
-                  className={
-                    (t.shape === "rect" ? "w-[136px] h-14 rounded-[8px]" : "w-16 h-16 rounded-full") +
-                    " flex flex-col items-center justify-center text-xs " +
-                    (t.vip ? "bg-pr-d" : "bg-ink")
-                  }
-                >
-                  <span className="font-medium">{t.name}</span>
-                  <span className="text-white/60 text-[10px]">
-                    {here}/{total || t.seats}
-                  </span>
-                </div>
-              </div>
-              {event.show_guest_names_on_map && names.length > 0 && (
-                <div className="text-[10px] text-white/60 mt-1 max-w-[110px] text-center leading-tight">{names.slice(0, 4).join(", ")}</div>
-              )}
-            </div>
-          )
-        })}
+        Toàn màn hình
+      </button>
+    </div>
+  )
+
+  return (
+    <div className="h-screen overflow-hidden bg-ink text-white relative">
+      {/* ---------- full-screen photo slideshow ---------- */}
+      <div className={"absolute inset-0 z-20 transition-opacity duration-1000 " + (showPhotos ? "opacity-100" : "opacity-0 pointer-events-none")}>
+        <Slides photos={photos} index={slide} />
+        <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.7) 100%)" }} />
+        <div className="absolute inset-x-0 bottom-0 p-10 flex items-end justify-between gap-6">
+          <div>
+            <p className="text-xs tracking-[0.4em] uppercase text-white/70 mb-2">Chào mừng quý khách đến dự lễ thành hôn</p>
+            <h1 className="font-serif italic text-6xl md:text-7xl leading-none">{couple}</h1>
+            <p className="text-white/75 mt-3">
+              {when}
+              {event.venue_name ? ` · ${event.venue_name}` : ""}
+            </p>
+          </div>
+          {counter}
+        </div>
+        <div className="absolute top-5 right-6">{controls}</div>
       </div>
+
+      {/* ---------- map + photo panel ---------- */}
+      <div className="h-full flex">
+        <div className="flex-1 min-w-0 flex flex-col p-6 gap-3">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-3 flex-wrap">
+              <h2 className="text-lg font-semibold">Sơ đồ chỗ ngồi</h2>
+              {floors.length > 1 &&
+                floors.map((f, i) => (
+                  <button
+                    key={f.id}
+                    onClick={() => setFloorIdx(i)}
+                    className={"rounded-pill px-3 py-1 text-sm border " + (i === floorIdx ? "bg-brand border-brand text-white" : "border-white/25 text-white/70")}
+                  >
+                    {f.name}
+                  </button>
+                ))}
+            </div>
+            <div className="flex items-center gap-4">
+              {photos.length === 0 && counter}
+              {controls}
+            </div>
+          </div>
+          <HallMap floor={floor} guests={guests} showNames={!!event.show_guest_names_on_map} />
+        </div>
+
+        {photos.length > 0 && (
+          <aside className="hidden lg:flex w-[min(34vw,460px)] shrink-0 relative flex-col justify-end overflow-hidden border-l border-white/10">
+            <Slides photos={photos} index={slide} />
+            <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.8) 100%)" }} />
+            <div className="relative p-7">
+              <h1 className="font-serif italic text-5xl leading-tight">{couple}</h1>
+              <p className="text-white/70 text-sm mt-2">
+                {when}
+                {event.venue_name ? ` · ${event.venue_name}` : ""}
+              </p>
+              <div className="mt-5 flex items-end justify-between">
+                <div className="flex gap-1.5">
+                  {photos.length > 1 &&
+                    photos.slice(0, 12).map((_, i) => <span key={i} className={"h-1 rounded-full transition-all " + (i === slide % 12 ? "w-6 bg-white" : "w-2 bg-white/35")} />)}
+                </div>
+                {counter}
+              </div>
+            </div>
+          </aside>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/** Cross-fading photos with a slow zoom */
+function Slides({ photos, index }: { photos: string[]; index: number }) {
+  return (
+    <div className="absolute inset-0 bg-black">
+      {photos.map((src, i) => (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          key={src + i}
+          src={src}
+          alt=""
+          className={"absolute inset-0 w-full h-full object-cover transition-opacity duration-[1500ms] " + (i === index ? "opacity-100 wt-ken" : "opacity-0")}
+        />
+      ))}
+      <style>{`.wt-ken{animation:wtKen 9s ease-out both}@keyframes wtKen{from{transform:scale(1.02)}to{transform:scale(1.1)}}@media (prefers-reduced-motion: reduce){.wt-ken{animation:none}}`}</style>
+    </div>
+  )
+}
+
+/** Seating map that fills the space it gets, at the hall's proportions, tables at real size */
+function HallMap({ floor, guests, showNames }: { floor: any; guests: any[]; showNames: boolean }) {
+  const [wrapRef, box] = useBox<HTMLDivElement>()
+  const hall = hallOf(floor)
+  const ratio = hall.w / hall.h
+  const w = Math.max(0, Math.min(box.w, box.h * ratio))
+  const h = w / ratio
+  const ppm = w / hall.w // pixels per metre on this screen
+
+  return (
+    <div ref={wrapRef} className="flex-1 min-h-0 flex items-center justify-center">
+      {w > 0 && (
+        <div className="relative bg-white/[0.04] border border-white/10 rounded-card overflow-hidden" style={{ width: w, height: h }}>
+          <FloorLayers floor={floor} theme="dark" />
+          {(floor?.tables ?? []).map((t: any) => {
+            const rect = t.shape === "rect"
+            const tw = (rect ? RECT_M.w : ROUND_M) * ppm
+            const th = (rect ? RECT_M.h : ROUND_M) * ppm
+            const ring = Math.max(3, Math.min(tw, th) * 0.09)
+            const total = used(guests, t.id)
+            const here = used(guests, t.id, true)
+            const pct = Math.min(100, Math.round((here / Math.max(1, t.seats)) * 100))
+            const font = Math.max(8, Math.min(18, Math.min(tw, th * 1.4) * 0.2))
+            const names = showNames ? guests.filter((g) => g.table_id === t.id && !g.no_show && g.name).map((g) => g.name) : []
+            const fill = here > 0 ? "#C24A5C" : "rgba(255,255,255,0.14)"
+            return (
+              <div key={t.id} className="absolute flex flex-col items-center" style={{ left: `${t.x_pct}%`, top: `${t.y_pct}%`, transform: "translate(-50%, -50%)" }}>
+                <div
+                  className={"flex items-center justify-center " + (rect ? "rounded-[10px]" : "rounded-full")}
+                  style={{
+                    width: tw,
+                    height: th,
+                    padding: ring,
+                    background: rect
+                      ? `linear-gradient(90deg, ${fill} ${pct}%, rgba(255,255,255,0.14) 0)`
+                      : `conic-gradient(${fill} ${pct}%, rgba(255,255,255,0.14) 0)`,
+                  }}
+                >
+                  <div
+                    className={"w-full h-full flex flex-col items-center justify-center leading-tight text-center overflow-hidden " + (rect ? "rounded-[7px]" : "rounded-full")}
+                    style={{ background: t.vip ? "var(--pr-d)" : "#1d1a1a", fontSize: font }}
+                  >
+                    <span className="font-medium truncate max-w-[88%]">{t.name}</span>
+                    <span className="text-white/60" style={{ fontSize: font * 0.82 }}>
+                      {here}/{total || t.seats}
+                    </span>
+                  </div>
+                </div>
+                {names.length > 0 && (
+                  <div className="text-white/60 mt-1 text-center leading-tight" style={{ fontSize: Math.max(8, font * 0.7), maxWidth: Math.max(tw * 1.4, 70) }}>
+                    {names.slice(0, 4).join(", ")}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
