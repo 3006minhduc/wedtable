@@ -386,10 +386,10 @@ function SuiteHero({ event, shortDate, start, cover, initials }: { event: any; s
               </div>
             </div>
             {/* wax seal pressed on the bottom edge */}
-            <div className="absolute left-1/2 -bottom-9 -translate-x-1/2">
+            <div className="absolute inset-x-0 -bottom-9 flex justify-center" style={{ transformStyle: "preserve-3d" }}>
               <div {...d(55)}>
                 <div style={{ filter: "drop-shadow(0 6px 8px rgba(0,0,0,0.35))" }}>
-                  <Seal text={initials} size={78} />
+                  <GiltSeal text={initials} size={78} />
                 </div>
               </div>
             </div>
