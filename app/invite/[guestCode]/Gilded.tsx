@@ -218,56 +218,132 @@ export function PhotoStrip({ photos, start }: { photos: string[]; start: boolean
   )
 }
 
-/** Full-screen wax-sealed envelope; tap to lift the flap and slide it away */
-export function EnvelopeIntro({ initials, photo, onOpened, seal }: { initials: string; photo?: string; onOpened: () => void; seal?: React.ReactNode }) {
+
+/**
+ * Wax-sealed envelope intro, in four steps after a tap:
+ * 1. seal fades, flap swings up (stays visible above the envelope)  2. the card slides up out of the pocket
+ * 3. the envelope drops away while the card grows and fades into the invite underneath.
+ * Shared by the gilded and emboss templates; `dark` puts it on the palette's deep color.
+ */
+export function EnvelopeIntro({
+  initials,
+  photo,
+  onOpened,
+  seal,
+  title,
+  date,
+  dark = true,
+}: {
+  initials: string
+  photo?: string
+  onOpened: () => void
+  seal?: React.ReactNode
+  title?: string
+  date?: string
+  dark?: boolean
+}) {
   const IV = useIV()
   const [phase, setPhase] = useState(0)
+  const [flapBehind, setFlapBehind] = useState(false)
 
   function open() {
     if (phase) return
     setPhase(1)
+    setTimeout(() => setFlapBehind(true), 420)
     setTimeout(() => setPhase(2), 800)
-    setTimeout(onOpened, 1800)
+    setTimeout(() => setPhase(3), 1900)
+    setTimeout(onOpened, 2700)
   }
 
   const crease = { vectorEffect: "non-scaling-stroke" as const }
+  const t = (ms: number) => `transform ${ms}ms cubic-bezier(.45,.05,.25,1), opacity ${ms}ms ease`
+  const backdrop = dark ? `radial-gradient(ellipse at 50% 40%, ${IV.wine} 0%, ${IV.deep} 75%)` : `radial-gradient(ellipse at 50% 40%, ${IV.paper} 0%, ${IV.line} 100%)`
+
   return (
-    <div className="fixed inset-0 z-50 cursor-pointer select-none overflow-hidden" style={{ background: IV.deep ?? IV.wine }} onClick={open} role="button" aria-label="Mở thiệp mời">
-      <div
-        className="absolute inset-0 transition-transform duration-[1000ms] ease-in motion-reduce:duration-0"
-        style={{ transform: phase === 2 ? "translateY(105%)" : "none", perspective: 1400 }}
-      >
-        <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full" aria-hidden>
-          <rect width="100" height="100" fill={IV.blush} />
-          <polygon points="0,0 50,56 0,100" fill={IV.soft} />
-          <polygon points="100,0 50,56 100,100" fill={IV.soft} />
-          <polygon points="0,100 50,54 100,100" fill={IV.blush} stroke={IV.line} strokeWidth="1" style={crease} />
-          <line x1="0" y1="0" x2="50" y2="56" stroke={IV.line} strokeWidth="1" style={crease} />
-          <line x1="100" y1="0" x2="50" y2="56" stroke={IV.line} strokeWidth="1" style={crease} />
-        </svg>
-        {/* Paper grain */}
-        <div className="absolute inset-0 opacity-40 mix-blend-multiply" style={{ backgroundImage: "radial-gradient(rgba(0,0,0,0.05) 1px, transparent 1px)", backgroundSize: "3px 3px" }} />
-        {/* Top flap */}
+    <div
+      className="fixed inset-0 z-50 cursor-pointer select-none overflow-hidden flex items-center justify-center"
+      style={{ background: backdrop, opacity: phase === 3 ? 0 : 1, transition: "opacity 800ms ease" }}
+      onClick={open}
+      role="button"
+      aria-label="Mở thiệp mời"
+    >
+      <div className="relative w-[min(84vw,360px)] aspect-[3/4] translate-y-[12%]" style={{ perspective: 1200 }}>
+        {/* Inside of the envelope */}
+        <div className="absolute inset-0 rounded-[6px]" style={{ background: IV.soft, boxShadow: "0 24px 50px -18px rgba(0,0,0,0.45)", opacity: phase === 3 ? 0 : 1, transform: phase === 3 ? "translateY(60%)" : "none", transition: t(800) }} />
+
+        {/* The card */}
         <div
-          className="absolute inset-x-0 top-0 h-[58%] transition-transform duration-[800ms] ease-in-out motion-reduce:duration-0"
-          style={{ transformOrigin: "top", transform: phase >= 1 ? "rotateX(180deg)" : "none", filter: "drop-shadow(0 6px 10px rgba(0,0,0,0.18))" }}
+          className="absolute inset-x-[6%] top-[5%] bottom-[5%] rounded-[4px] flex flex-col items-center justify-start pt-[12%] text-center px-4"
+          style={{
+            zIndex: 1,
+            background: IV.paper,
+            boxShadow: "0 10px 26px -10px rgba(0,0,0,0.35)",
+            transform: phase === 3 ? "translateY(-55%) scale(1.25)" : phase === 2 ? "translateY(-55%)" : "none",
+            opacity: phase === 3 ? 0 : 1,
+            transition: phase === 3 ? t(800) : t(1000),
+          }}
+        >
+          <span className="text-[10px] tracking-[0.3em] uppercase" style={{ color: IV.rose }}>
+            Trân trọng kính mời
+          </span>
+          <span className="mt-3 text-[30px] italic leading-tight" style={{ color: IV.wine, fontFamily: "var(--iv-serif)" }}>
+            {title || initials}
+          </span>
+          {date && (
+            <span className="mt-2 text-sm tracking-[0.2em]" style={{ color: IV.muted, fontFamily: "var(--iv-serif)" }}>
+              {date}
+            </span>
+          )}
+        </div>
+
+        {/* Front pocket: side and bottom folds, covers the lower part of the card */}
+        <svg
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+          className="absolute inset-0 w-full h-full"
+          style={{ zIndex: 2, opacity: phase === 3 ? 0 : 1, transform: phase === 3 ? "translateY(60%)" : "none", transition: t(800) }}
+          aria-hidden
+        >
+          <polygon points="0,0 50,55 0,100" fill={IV.blush} />
+          <polygon points="100,0 50,55 100,100" fill={IV.blush} />
+          <polygon points="0,100 50,48 100,100" fill={IV.blush} stroke={IV.line} strokeWidth="1" style={crease} />
+          <line x1="0" y1="0" x2="50" y2="55" stroke={IV.line} strokeWidth="1" style={crease} />
+          <line x1="100" y1="0" x2="50" y2="55" stroke={IV.line} strokeWidth="1" style={crease} />
+          <rect x="0" y="0" width="100" height="100" fill="none" stroke={IV.line} strokeWidth="1" style={crease} />
+        </svg>
+
+        {/* Flap: in front while closed, behind the card once it has swung up */}
+        <div
+          className="absolute inset-x-0 top-0 h-[52%]"
+          style={{
+            zIndex: flapBehind ? 0 : 3,
+            transformOrigin: "top",
+            transform: phase >= 1 ? "rotateX(180deg)" : "none",
+            transition: "transform 800ms cubic-bezier(.45,.05,.25,1), opacity 800ms ease",
+            opacity: phase === 3 ? 0 : 1,
+            filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.15))",
+          }}
         >
           <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full" aria-hidden>
             <polygon points="0,0 100,0 50,100" fill={IV.blush} stroke={IV.line} strokeWidth="1" style={crease} />
           </svg>
         </div>
-        <div className={"absolute left-1/2 top-[58%] -translate-x-1/2 -translate-y-1/2 transition-all duration-500 " + (phase >= 1 ? "opacity-0 scale-75" : "")}>
-          <div className="drop-shadow-lg animate-[ivPulse_2.6s_ease-in-out_infinite]">
-            {seal ?? <GiltSeal text={initials} size={128} photo={photo} />}
-          </div>
-        </div>
-        <p
-          className={"absolute inset-x-0 top-[74%] text-center text-sm tracking-[0.25em] uppercase transition-opacity duration-300 " + (phase ? "opacity-0" : "")}
-          style={{ color: IV.wine, fontFamily: "var(--iv-sans)" }}
+
+        {/* Seal on the flap tip */}
+        <div
+          className="absolute left-1/2 top-[52%] -translate-x-1/2 -translate-y-1/2 transition-all duration-300"
+          style={{ zIndex: 4, opacity: phase >= 1 ? 0 : 1, transform: `translate(-50%, -50%) scale(${phase >= 1 ? 1.3 : 1})` }}
         >
-          Chạm để mở thiệp
-        </p>
+          <div className="drop-shadow-lg animate-[ivPulse_2.6s_ease-in-out_infinite]">{seal ?? <GiltSeal text={initials} size={110} photo={photo} />}</div>
+        </div>
       </div>
+
+      <p
+        className={"absolute inset-x-0 bottom-[7%] text-center text-sm tracking-[0.25em] uppercase transition-opacity duration-300 " + (phase ? "opacity-0" : "")}
+        style={{ color: dark ? IV.gold[0] : IV.wine, fontFamily: "var(--iv-sans)" }}
+      >
+        Chạm để mở thiệp
+      </p>
       <style>{`@keyframes ivPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}`}</style>
     </div>
   )

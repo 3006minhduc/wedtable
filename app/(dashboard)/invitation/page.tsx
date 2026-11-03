@@ -572,7 +572,7 @@ export default function InvitationPage() {
                 src={previewSrc}
                 title="Xem trước thiệp mời"
                 className="border-0 origin-top-left"
-                style={{ width: 390, height: 780, transform: "scale(0.7)" }}
+                style={{ width: 394, height: 823, transform: "scale(0.7)" }}
               />
             </div>
           </div>

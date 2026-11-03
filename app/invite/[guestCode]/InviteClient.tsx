@@ -506,6 +506,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
   const shortDate = start
     ? `${String(start.getDate()).padStart(2, "0")} · ${String(start.getMonth() + 1).padStart(2, "0")} · ${start.getFullYear()}`
     : ""
+  const coupleTitle = [event.bride_name, event.groom_name].filter(Boolean).join(" & ")
   const hasFamilies = !!(event.bride_family || event.groom_family)
   const hasFullNames = !!(event.bride_full_name || event.groom_full_name)
 
@@ -528,11 +529,11 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
     <div className={`${serif.variable} ${sans.variable} min-h-screen`} style={{ background: IV.bg, color: IV.ink, fontFamily: "var(--iv-sans)" }}>
       {!opened &&
         (gilded ? (
-          <EnvelopeIntro initials={initials} photo={cover} onOpened={() => setOpened(true)} />
+          <EnvelopeIntro initials={initials} photo={cover} title={coupleTitle} date={shortDate} onOpened={() => setOpened(true)} />
         ) : glass ? (
           <DoorsIntro initials={initials} onOpened={() => setOpened(true)} />
         ) : emboss ? (
-          <EnvelopeIntro initials={initials} onOpened={() => setOpened(true)} seal={<EmbossSeal text={initials} size={128} />} />
+          <EnvelopeIntro initials={initials} title={coupleTitle} date={shortDate} dark={false} onOpened={() => setOpened(true)} seal={<EmbossSeal text={initials} size={110} />} />
         ) : (
           <CurtainIntro initials={initials} onOpened={() => setOpened(true)} />
         ))}
