@@ -118,8 +118,11 @@ export default function CheckinPage() {
   if (!eventId) return <p className="text-muted">Bạn chưa có sự kiện nào. Tạo ở trang Tổng quan.</p>
 
   const q = query.trim().toLowerCase()
+  // Phone search uses only the last 4 digits; the full number is never shown at the front desk
+  const qDigits = /^\d{4}$/.test(q) ? q : ""
+  const last4 = (phone?: string | null) => (phone ?? "").replace(/\D/g, "").slice(-4)
   const results = q
-    ? guests.filter((g) => g.name.toLowerCase().includes(q) || (g.phone ?? "").includes(q) || g.code.toLowerCase() === q).slice(0, 8)
+    ? guests.filter((g) => g.name.toLowerCase().includes(q) || (qDigits && last4(g.phone) === qDigits) || g.code.toLowerCase() === q).slice(0, 8)
     : []
   const tableName = (id: string | null) => tables.find((t) => t.id === id)?.name ?? "Chưa có bàn"
   const checked = guests.filter((g) => g.checked_in)
@@ -133,7 +136,7 @@ export default function CheckinPage() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="font-serif text-[28px] leading-tight tracking-[-0.01em] text-text">Check-in</h1>
-        <p className="text-sm text-muted mt-1">Tìm tên hoặc quét mã QR trên thiệp của khách.</p>
+        <p className="text-sm text-muted mt-1">Tìm theo tên, 4 số cuối điện thoại, hoặc quét mã QR trên thiệp của khách.</p>
       </div>
 
       <div className="grid lg:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">
@@ -145,7 +148,7 @@ export default function CheckinPage() {
               <input
                 autoFocus
                 className="w-full h-14 pl-12 pr-4 rounded-lg border border-border bg-surface text-base hover:border-border-hover focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-brand/10"
-                placeholder="Tên khách, số điện thoại hoặc mã QR"
+                placeholder="Tên khách, 4 số cuối điện thoại hoặc mã QR"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
               />
@@ -207,7 +210,7 @@ export default function CheckinPage() {
                     </p>
                     <p className="text-sm text-muted truncate">
                       <span className="text-text">{tableName(g.table_id)}</span>
-                      {g.phone ? ` · ${g.phone}` : ""} · {g.code}
+                      {last4(g.phone) ? ` · SĐT …${last4(g.phone)}` : ""} · {g.code}
                     </p>
                   </div>
                   {g.checked_in ? (
