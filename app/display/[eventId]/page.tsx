@@ -42,8 +42,8 @@ function nameFont(name: string, base: number, rect: boolean) {
   const fits = rect ? 16 : 7 // characters that fit on one line at full size
   const len = name.length
   if (len <= fits) return base
-  // two lines hold about twice as much; beyond that shrink further
-  const scale = len <= fits * 2 ? Math.max(0.78, fits / len + 0.25) : Math.max(0.55, (fits * 2) / len)
+  // up to three lines; the longer the name, the smaller the text
+  const scale = len <= fits * 2 ? 0.85 : Math.max(0.5, (fits * 1.7) / len)
   return Math.max(8, base * scale)
 }
 
@@ -297,7 +297,7 @@ function HallMap({ floor, guests, showNames }: { floor: any; guests: any[]; show
                   >
                     {/* long names wrap to two lines and shrink so the whole name fits */}
                     <span
-                      className="font-medium max-w-[84%] break-words line-clamp-2"
+                      className="font-medium max-w-[80%] break-words line-clamp-3"
                       style={{ fontSize: nameFont(String(t.name ?? ""), font, rect), lineHeight: 1.1 }}
                     >
                       {t.name}
