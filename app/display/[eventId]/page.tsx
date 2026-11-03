@@ -37,6 +37,16 @@ function useBox<T extends HTMLElement>() {
   return [ref, box] as const
 }
 
+/** Font size for a table name: full size for short names, smaller for long ones (they also wrap to 2 lines) */
+function nameFont(name: string, base: number, rect: boolean) {
+  const fits = rect ? 16 : 7 // characters that fit on one line at full size
+  const len = name.length
+  if (len <= fits) return base
+  // two lines hold about twice as much; beyond that shrink further
+  const scale = len <= fits * 2 ? Math.max(0.78, fits / len + 0.25) : Math.max(0.55, (fits * 2) / len)
+  return Math.max(8, base * scale)
+}
+
 /** Index that advances every `ms` */
 function useTicker(count: number, ms: number) {
   const [i, setI] = useState(0)
@@ -285,7 +295,13 @@ function HallMap({ floor, guests, showNames }: { floor: any; guests: any[]; show
                     className={"w-full h-full flex flex-col items-center justify-center leading-tight text-center overflow-hidden " + (rect ? "rounded-[7px]" : "rounded-full")}
                     style={{ background: t.vip ? "var(--pr-d)" : "#1d1a1a", fontSize: font }}
                   >
-                    <span className="font-medium truncate max-w-[88%]">{t.name}</span>
+                    {/* long names wrap to two lines and shrink so the whole name fits */}
+                    <span
+                      className="font-medium max-w-[84%] break-words line-clamp-2"
+                      style={{ fontSize: nameFont(String(t.name ?? ""), font, rect), lineHeight: 1.1 }}
+                    >
+                      {t.name}
+                    </span>
                     <span className="text-white/60" style={{ fontSize: font * 0.82 }}>
                       {here}/{total || t.seats}
                     </span>
