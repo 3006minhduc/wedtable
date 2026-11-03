@@ -257,6 +257,7 @@ function WindingTimeline({ items }: { items: any[] }) {
 // ---------- emboss hero: raised-paper arch with roses, satin ribbon that unties, dark countdown band ----------
 function EmbossHero({ event, shortDate, start, cover, opened }: { event: any; shortDate: string; start: Date | null; cover?: string; opened: boolean }) {
   const IV = useIV()
+  const d = (n: number) => ({ "data-depth": "", style: { ["--d" as any]: n } as React.CSSProperties })
   const dark = onDeep(IV)
   const raised = useRaised(1.2)
   const v = { vectorEffect: "non-scaling-stroke" as const }
@@ -271,43 +272,56 @@ function EmbossHero({ event, shortDate, start, cover, opened }: { event: any; sh
       <ERoseCorner className="absolute bottom-0 -left-2 w-[30%] max-w-[140px]" style={{ transform: "scaleY(-1)" }} />
       <ERoseCorner className="absolute bottom-0 -right-2 w-[30%] max-w-[140px]" style={{ transform: "scale(-1)" }} />
       <Ribbon start={opened} />
-      <div className="relative flex flex-col items-center w-full">
-        <Reveal>
-          <p className="text-[11px] tracking-[0.3em] uppercase mb-6" style={{ color: IV.rose }}>
-            Trân trọng báo tin lễ thành hôn
-          </p>
-        </Reveal>
-        <Reveal delay={150}>
-          <Tilt>
-            <h1 className="italic leading-[1.05]" data-depth="" style={{ ...SERIF, color: IV.wine, ...LETTERPRESS, ["--d" as any]: 50 }}>
-              <span className="block text-[54px]">{event.bride_name}</span>
-              <span className="block text-3xl my-1">
-                <Foil>&amp;</Foil>
-              </span>
-              <span className="block text-[54px]">{event.groom_name}</span>
-            </h1>
-          </Tilt>
-        </Reveal>
-        <Reveal delay={300}>
-          <EmbossDivider className="my-6" />
-          <p className="text-xl tracking-[0.15em]" style={{ ...SERIF, color: IV.ink }}>
-            {shortDate}
-          </p>
-          {event.venue_name && (
-            <p className="text-sm mt-1" style={{ color: IV.muted }}>
-              {event.venue_name}
-            </p>
-          )}
-        </Reveal>
-        {cover && (
-          <Reveal delay={400} className="w-full mt-8">
-            <div className="mx-auto w-[64%] p-2 rounded-t-[999px] rounded-b-2xl" style={{ background: IV.paper, boxShadow: `inset 2px 3px 4px ${IV.muted}66, inset -2px -2px 3px rgba(255,255,255,0.8)` }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={cover} alt="" className="w-full h-52 object-cover rounded-t-[999px] rounded-b-xl" />
+      <Reveal className="relative w-full">
+        <Tilt max={8} className="mx-auto w-[min(74vw,300px)]">
+          <div className="relative" style={{ transformStyle: "preserve-3d" }}>
+            {cover && (
+              <div className="absolute -right-[18%] top-[22%] w-[52%]" {...d(8)}>
+                <PrintPhoto src={cover} rotate={7} tall />
+              </div>
+            )}
+            {/* pressed paper card: debossed panel with a raised border */}
+            <div className="relative rounded-[18px] px-7 pt-12 pb-12 flex flex-col items-center" {...d(30)}>
+              <div
+                className="absolute inset-0 rounded-[18px]"
+                style={{
+                  backgroundColor: IV.paper,
+                  backgroundImage: PAPER_GRAIN,
+                  boxShadow: `inset 0 0 0 1px rgba(255,255,255,0.7), 0 2px 3px rgba(0,0,0,0.12), 0 30px 50px -22px rgba(40,30,40,0.5)`,
+                }}
+              />
+              <div className="absolute inset-[10px] rounded-[12px] pointer-events-none" style={{ boxShadow: `1.5px 2px 2px ${IV.muted}66, -1px -1px 1px rgba(255,255,255,0.9), inset 1.5px 2px 2px ${IV.muted}55, inset -1px -1px 1px rgba(255,255,255,0.9)` }} />
+              <div className="relative flex flex-col items-center w-full">
+                <p className="text-[10px] tracking-[0.28em] uppercase mb-4" style={{ color: IV.rose }}>
+                  Trân trọng báo tin lễ thành hôn
+                </p>
+                <h1 className="italic leading-[1.02] break-words max-w-full" style={{ ...SERIF, color: IV.wine, ...LETTERPRESS }}>
+                  <span className="block text-[42px]">{event.bride_name}</span>
+                  <span className="block text-3xl my-0.5" style={{ color: IV.rose }}>
+                    &amp;
+                  </span>
+                  <span className="block text-[42px]">{event.groom_name}</span>
+                </h1>
+                <EmbossDivider className="my-5 !w-28" />
+                <p className="text-lg tracking-[0.15em]" style={{ ...SERIF, color: IV.ink, ...LETTERPRESS }}>
+                  {shortDate}
+                </p>
+                {event.venue_name && (
+                  <p className="text-xs mt-1" style={{ color: IV.muted }}>
+                    {event.venue_name}
+                  </p>
+                )}
+              </div>
             </div>
-          </Reveal>
-        )}
-      </div>
+            <div className="absolute -top-7 -left-8 w-24" {...d(50)}>
+              <ERoseCorner className="w-full" />
+            </div>
+            <div className="absolute -bottom-7 -right-8 w-24" {...d(50)}>
+              <ERoseCorner className="w-full" style={{ transform: "scale(-1)" }} />
+            </div>
+          </div>
+        </Tilt>
+      </Reveal>
       {start && (
         <PaletteProvider value={dark}>
           <Reveal delay={450} className="relative w-full mt-10">
@@ -428,6 +442,7 @@ type InviteProps = { guest: any; event: any; floors: any[]; locked: boolean; pre
 // ---------- glass hero: frosted pink window with leaded roses, then an olive section with the oval photo ----------
 function GlassHero({ event, shortDate, start, cover }: { event: any; shortDate: string; start: Date | null; cover?: string }) {
   const IV = useIV()
+  const d = (n: number) => ({ "data-depth": "", style: { ["--d" as any]: n } as React.CSSProperties })
   const dark = onDeep(IV)
   return (
     <>
@@ -437,43 +452,59 @@ function GlassHero({ event, shortDate, start, cover }: { event: any; shortDate: 
         <RoseCorner className="absolute -top-3 -right-3 w-[46%] max-w-[210px]" style={{ transform: "scaleX(-1)" }} />
         <RoseCorner className="absolute -bottom-3 -left-3 w-[34%] max-w-[160px]" style={{ transform: "scaleY(-1)" }} />
         <RoseCorner className="absolute -bottom-3 -right-3 w-[34%] max-w-[160px]" style={{ transform: "scale(-1)" }} />
-        <div className="relative flex flex-col items-center w-full">
-          <Reveal>
-            <p className="text-[11px] tracking-[0.3em] uppercase mb-2" style={{ color: IV.rose }}>
-              Cùng gia đình hai bên
+        <Reveal className="relative w-full">
+          <Tilt max={8} className="mx-auto w-[min(74vw,300px)]">
+            <div className="relative" style={{ transformStyle: "preserve-3d" }}>
+              {/* leaded ivory card in the window */}
+              <div className="relative rounded-t-[999px] rounded-b-[6px] px-7 pt-16 pb-12 flex flex-col items-center" {...d(30)}>
+                <div
+                  className="absolute inset-0 rounded-t-[999px] rounded-b-[6px]"
+                  style={{
+                    backgroundColor: IV.paper,
+                    backgroundImage: PAPER_GRAIN,
+                    boxShadow: `inset 0 0 0 2px ${IV.gold[2]}, inset 0 0 0 7px ${IV.blush}, inset 0 0 0 9px ${IV.gold[2]}, inset 0 0 0 10px ${IV.gold[1]}, 0 2px 3px rgba(0,0,0,0.15), 0 30px 50px -20px rgba(60,30,30,0.5)`,
+                  }}
+                />
+                <div className="relative flex flex-col items-center w-full">
+                  <p className="text-[10px] tracking-[0.28em] uppercase mb-1" style={{ color: IV.rose }}>
+                    Cùng gia đình hai bên
+                  </p>
+                  <p className="text-xs tracking-[0.3em] mb-5" style={{ ...SERIF, color: IV.muted }}>
+                    {shortDate}
+                  </p>
+                  <h1 className="italic leading-[1.02] break-words max-w-full" style={{ ...SERIF, color: IV.wine, ...LETTERPRESS }}>
+                    <span className="block text-[42px]">{event.bride_name}</span>
+                    <span className="block text-3xl my-0.5" style={{ color: IV.rose }}>
+                      &amp;
+                    </span>
+                    <span className="block text-[42px]">{event.groom_name}</span>
+                  </h1>
+                  <GlassDivider className="my-5 !w-28" />
+                  {event.venue_name && (
+                    <p className="text-xs" style={{ color: IV.muted }}>
+                      {event.venue_name}
+                    </p>
+                  )}
+                </div>
+              </div>
+              {/* roses popping out of the card */}
+              <div className="absolute -top-8 -left-9 w-28" {...d(60)}>
+                <RoseCorner className="w-full" style={{ filter: "drop-shadow(0 8px 8px rgba(60,30,30,0.3))" }} />
+              </div>
+              <div className="absolute -bottom-8 -right-9 w-28" {...d(60)}>
+                <RoseCorner className="w-full" style={{ transform: "scale(-1)", filter: "drop-shadow(0 -6px 8px rgba(60,30,30,0.25))" }} />
+              </div>
+            </div>
+          </Tilt>
+        </Reveal>
+        {start && (
+          <Reveal delay={350} className="relative mt-14">
+            <p className="text-xs mb-3" style={{ color: IV.muted }}>
+              Còn lại đến ngày chung đôi
             </p>
-            <p className="text-sm tracking-[0.3em] mb-7" style={{ ...SERIF, color: IV.muted }}>
-              {shortDate}
-            </p>
+            <Countdown start={start} />
           </Reveal>
-          <Reveal delay={150}>
-            <Tilt>
-              <h1 className="italic leading-[1.05]" data-depth="" style={{ ...SERIF, color: IV.wine, ...LETTERPRESS, ["--d" as any]: 50 }}>
-                <span className="block text-[54px]">{event.bride_name}</span>
-                <span className="block text-3xl my-1">
-                  <Foil>&amp;</Foil>
-                </span>
-                <span className="block text-[54px]">{event.groom_name}</span>
-              </h1>
-            </Tilt>
-          </Reveal>
-          <Reveal delay={300}>
-            <GlassDivider className="my-6" />
-            {event.venue_name && (
-              <p className="text-sm" style={{ color: IV.muted }}>
-                {event.venue_name}
-              </p>
-            )}
-          </Reveal>
-          {start && (
-            <Reveal delay={400} className="mt-8">
-              <p className="text-xs mb-3" style={{ color: IV.muted }}>
-                Còn lại đến ngày chung đôi
-              </p>
-              <Countdown start={start} />
-            </Reveal>
-          )}
-        </div>
+        )}
         <div className="absolute bottom-8 flex flex-col items-center gap-1 text-[10px] tracking-[0.3em] uppercase animate-bounce" style={{ color: IV.rose }}>
           <span>Cuộn xuống</span>
           <span aria-hidden>⌄</span>
@@ -505,6 +536,7 @@ function GlassHero({ event, shortDate, start, cover }: { event: any; shortDate: 
 // ---------- gilded hero: gold cartouche on bordeaux + photobooth strip ----------
 function GildedHero({ event, shortDate, start, photos, opened }: { event: any; shortDate: string; start: Date | null; photos: string[]; opened: boolean }) {
   const IV = useIV()
+  const d = (n: number) => ({ "data-depth": "", style: { ["--d" as any]: n } as React.CSSProperties })
   const dark = onDeep(IV)
   return (
     <section
@@ -513,7 +545,13 @@ function GildedHero({ event, shortDate, start, photos, opened }: { event: any; s
     >
       <div className="w-[min(84vw,330px)]">
         <Reveal>
-          <Tilt max={6}>
+          <Tilt max={7}>
+          <div className="relative" style={{ transformStyle: "preserve-3d" }}>
+          {/* champagne backer card peeking out behind the frame */}
+          <div className="absolute inset-x-[4%] top-[5%] bottom-[8%] rounded-[6px]" {...d(0)}>
+            <div className="w-full h-full rounded-[6px]" style={{ backgroundColor: IV.paper, backgroundImage: PAPER_GRAIN, transform: "rotate(-5deg)", boxShadow: `inset 0 0 0 4px ${IV.paper}, inset 0 0 0 5px ${IV.gold[1]}, 0 20px 40px -18px rgba(0,0,0,0.6)` }} />
+          </div>
+          <div {...d(28)}>
           <Cartouche slot={photos.length > 0}>
             <p className="text-[10px] tracking-[0.32em] uppercase mt-1 mb-4" style={{ color: IV.rose }}>
               Trân trọng kính mời
@@ -535,7 +573,11 @@ function GildedHero({ event, shortDate, start, photos, opened }: { event: any; s
               </p>
             )}
           </Cartouche>
-          <PhotoStrip photos={photos} start={opened} />
+          </div>
+          <div className="relative" {...d(45)}>
+            <PhotoStrip photos={photos} start={opened} />
+          </div>
+          </div>
           </Tilt>
         </Reveal>
       </div>
