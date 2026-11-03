@@ -18,11 +18,10 @@ for (const line of fs.readFileSync(path.join(root, ".env.local"), "utf8").split(
 }
 const url = env.NEXT_PUBLIC_SUPABASE_URL
 const key = env.SUPABASE_SERVICE_ROLE_KEY
-if (!url || !key) {
-  console.error("Thiếu NEXT_PUBLIC_SUPABASE_URL hoặc SUPABASE_SERVICE_ROLE_KEY trong .env.local")
-  process.exit(1)
-}
-const db = createClient(url, key, { auth: { persistSession: false } })
+// Without the service role key only code + docs are backed up
+const withData = !!(url && key)
+if (!withData) console.warn("! Chưa có SUPABASE_SERVICE_ROLE_KEY trong .env.local: chỉ sao lưu code và tài liệu, bỏ qua dữ liệu và ảnh.")
+const db = withData ? createClient(url, key, { auth: { persistSession: false } }) : null
 
 const stamp = new Date().toLocaleString("sv-SE", { timeZone: "Asia/Ho_Chi_Minh" }).slice(0, 16).replace(" ", "_").replace(":", "h")
 const out = path.resolve(root, "..", "WedTable-Backup", stamp)
@@ -37,10 +36,11 @@ git("archive", "--format=zip", "-o", path.join(out, "code.zip"), "HEAD")
 const head = git("log", "-1", "--format=%h %cd %s", "--date=iso")
 log("Code:", head)
 
+const counts = {}
+if (withData) {
 // ---------- 2. database ----------
 // Order matters for restore (parents first)
 const TABLES = ["events", "floors", "tables", "guests", "event_members"]
-const counts = {}
 let restoreSql = `-- WedTable: khôi phục dữ liệu (${stamp}). Chạy SAU khi đã chạy đủ supabase/migrations/001…019.\n-- Chủ tiệc (events.user_id) phải tồn tại trong auth.users. Xem docs/SO-TAY-DU-AN.md mục 9.\n\nBEGIN;\nSET session_replication_role = replica; -- tạm tắt trigger (giới hạn gói, updated_at) khi chèn lại\n\n`
 for (const t of TABLES) {
   const rows = []
@@ -106,6 +106,8 @@ for (const f of files) {
 counts.media_files = files.length
 log(`Ảnh: ${files.length} file, ${(bytes / 1048576).toFixed(1)} MB`)
 
+}
+
 // ---------- 4. docs + summary ----------
 for (const f of ["docs/SO-TAY-DU-AN.md", "CLAUDE.md", "DESIGN.md"]) {
   if (fs.existsSync(path.join(root, f))) fs.copyFileSync(path.join(root, f), path.join(out, path.basename(f)))
@@ -115,6 +117,7 @@ fs.writeFileSync(
   [
     `Bản sao lưu WedTable - ${stamp} (giờ Việt Nam)`,
     `Code: ${head}`,
+    ...(withData ? [] : ["(Không có dữ liệu và ảnh: thiếu SUPABASE_SERVICE_ROLE_KEY)"]),
     ...Object.entries(counts).map(([k, v]) => `${k}: ${v}`),
     "",
     "code.bundle      toàn bộ code + lịch sử (git clone code.bundle wedtable)",
