@@ -240,6 +240,17 @@ function HallMap({ floor, guests, showNames }: { floor: any; guests: any[]; show
   const w = Math.max(0, Math.min(box.w, box.h * ratio))
   const h = w / ratio
   const ppm = w / hall.w // pixels per metre on this screen
+  // On a big screen read from afar, grow tables into the free space around them (up to 2.5x real size)
+  // without letting neighbours touch.
+  const tables: any[] = floor?.tables ?? []
+  let nearest = Infinity
+  for (let i = 0; i < tables.length; i++)
+    for (let j = i + 1; j < tables.length; j++) {
+      const dx = ((tables[i].x_pct - tables[j].x_pct) / 100) * w
+      const dy = ((tables[i].y_pct - tables[j].y_pct) / 100) * h
+      nearest = Math.min(nearest, Math.hypot(dx, dy))
+    }
+  const grow = Number.isFinite(nearest) && ppm > 0 ? Math.max(1, Math.min(2.5, (nearest * 0.78) / (ROUND_M * ppm))) : 1.6
 
   return (
     <div ref={wrapRef} className="flex-1 min-h-0 flex items-center justify-center">
@@ -248,8 +259,8 @@ function HallMap({ floor, guests, showNames }: { floor: any; guests: any[]; show
           <FloorLayers floor={floor} theme="dark" />
           {(floor?.tables ?? []).map((t: any) => {
             const rect = t.shape === "rect"
-            const tw = (rect ? RECT_M.w : ROUND_M) * ppm
-            const th = (rect ? RECT_M.h : ROUND_M) * ppm
+            const tw = (rect ? RECT_M.w : ROUND_M) * ppm * grow
+            const th = (rect ? RECT_M.h : ROUND_M) * ppm * grow
             const ring = Math.max(3, Math.min(tw, th) * 0.09)
             const total = used(guests, t.id)
             const here = used(guests, t.id, true)
