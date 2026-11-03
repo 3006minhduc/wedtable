@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { confirmSeat, markViewed } from "./actions"
 import { formatInviteDate } from "@/lib/formatDate"
 import { videoEmbed } from "@/lib/videoEmbed"
+import { Foil, LETTERPRESS, LINEN, PAPER_GRAIN, PrintPhoto, Tilt } from "./Paper"
 import FloorLayers from "@/components/seating/FloorLayers"
 import { serif, sans } from "./fonts"
 import { CurtainIntro, Divider, Frame, Garland, PaletteProvider, Reveal, Seal, THEMES, useIV } from "./Ornaments"
@@ -130,7 +131,10 @@ function Countdown({ start }: { start: Date }) {
         <div key={it.l} className="flex flex-col items-center gap-2">
           <div
             className="w-[64px] h-[64px] sm:w-[72px] sm:h-[72px] rounded-full flex items-center justify-center"
-            style={{ background: IV.blush, boxShadow: `inset 0 0 0 3px ${IV.paper}, inset 0 0 0 4px ${IV.rose}` }}
+            style={{
+              background: `radial-gradient(circle at 35% 28%, ${IV.paper} 0%, ${IV.blush} 85%)`,
+              boxShadow: `inset 0 1px 0 rgba(255,255,255,0.75), inset 0 -2px 3px rgba(0,0,0,0.08), 0 0 0 1px ${IV.line}, 0 0 0 4px ${IV.paper}, 0 0 0 5px ${IV.gold[1]}, 0 10px 16px -8px rgba(40,25,20,0.4)`,
+            }}
           >
             <span className="text-[26px] tabular-nums" style={{ ...SERIF, color: IV.wine }}>
               {it.v}
@@ -147,6 +151,8 @@ function Countdown({ start }: { start: Date }) {
 
 function SectionTitle({ children, kicker }: { children: React.ReactNode; kicker?: string }) {
   const IV = useIV()
+  // onDeep() makes paper the deep stock color
+  const onDark = IV.paper === IV.deep
   return (
     <div className="text-center mb-6">
       {kicker && (
@@ -154,8 +160,8 @@ function SectionTitle({ children, kicker }: { children: React.ReactNode; kicker?
           {kicker}
         </p>
       )}
-      <h2 className="text-[32px] leading-tight italic" style={{ ...SERIF, color: IV.wine }}>
-        {children}
+      <h2 className="text-[32px] leading-tight italic" style={{ ...SERIF, color: IV.wine, ...(onDark ? {} : LETTERPRESS) }}>
+        {onDark ? <Foil>{children}</Foil> : children}
       </h2>
     </div>
   )
@@ -272,13 +278,15 @@ function EmbossHero({ event, shortDate, start, cover, opened }: { event: any; sh
           </p>
         </Reveal>
         <Reveal delay={150}>
-          <h1 className="italic leading-[1.05]" style={{ ...SERIF, color: IV.wine }}>
-            <span className="block text-[54px]">{event.bride_name}</span>
-            <span className="block text-3xl my-1" style={{ color: IV.rose }}>
-              &amp;
-            </span>
-            <span className="block text-[54px]">{event.groom_name}</span>
-          </h1>
+          <Tilt>
+            <h1 className="italic leading-[1.05]" data-depth="" style={{ ...SERIF, color: IV.wine, ...LETTERPRESS, ["--d" as any]: 50 }}>
+              <span className="block text-[54px]">{event.bride_name}</span>
+              <span className="block text-3xl my-1">
+                <Foil>&amp;</Foil>
+              </span>
+              <span className="block text-[54px]">{event.groom_name}</span>
+            </h1>
+          </Tilt>
         </Reveal>
         <Reveal delay={300}>
           <EmbossDivider className="my-6" />
@@ -340,13 +348,15 @@ function GlassHero({ event, shortDate, start, cover }: { event: any; shortDate: 
             </p>
           </Reveal>
           <Reveal delay={150}>
-            <h1 className="italic leading-[1.05]" style={{ ...SERIF, color: IV.wine }}>
-              <span className="block text-[54px]">{event.bride_name}</span>
-              <span className="block text-3xl my-1" style={{ color: IV.rose }}>
-                &amp;
-              </span>
-              <span className="block text-[54px]">{event.groom_name}</span>
-            </h1>
+            <Tilt>
+              <h1 className="italic leading-[1.05]" data-depth="" style={{ ...SERIF, color: IV.wine, ...LETTERPRESS, ["--d" as any]: 50 }}>
+                <span className="block text-[54px]">{event.bride_name}</span>
+                <span className="block text-3xl my-1">
+                  <Foil>&amp;</Foil>
+                </span>
+                <span className="block text-[54px]">{event.groom_name}</span>
+              </h1>
+            </Tilt>
           </Reveal>
           <Reveal delay={300}>
             <GlassDivider className="my-6" />
@@ -404,11 +414,12 @@ function GildedHero({ event, shortDate, start, photos, opened }: { event: any; s
     >
       <div className="w-[min(84vw,330px)]">
         <Reveal>
+          <Tilt max={6}>
           <Cartouche slot={photos.length > 0}>
             <p className="text-[10px] tracking-[0.32em] uppercase mt-1 mb-4" style={{ color: IV.rose }}>
               Trân trọng kính mời
             </p>
-            <h1 className="italic leading-[1.05] break-words max-w-full" style={{ ...SERIF, color: IV.wine }}>
+            <h1 className="italic leading-[1.05] break-words max-w-full" style={{ ...SERIF, color: IV.wine, ...LETTERPRESS }}>
               <span className="block text-[38px]">{event.bride_name}</span>
               <span className="block text-2xl my-0.5" style={{ color: IV.rose }}>
                 &amp;
@@ -426,6 +437,7 @@ function GildedHero({ event, shortDate, start, photos, opened }: { event: any; s
             )}
           </Cartouche>
           <PhotoStrip photos={photos} start={opened} />
+          </Tilt>
         </Reveal>
       </div>
       {start && (
@@ -531,7 +543,8 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
   }
 
   return (
-    <div className={`${serif.variable} ${sans.variable} min-h-screen`} style={{ background: IV.bg, color: IV.ink, fontFamily: "var(--iv-sans)" }}>
+    <div className={`${serif.variable} ${sans.variable} min-h-screen wt-paper`} style={{ backgroundColor: IV.bg, backgroundImage: LINEN, color: IV.ink, fontFamily: "var(--iv-sans)" }}>
+      <style>{`.wt-paper main section{position:relative}.wt-paper main section::after{content:"";position:absolute;inset:0;pointer-events:none;background-image:${PAPER_GRAIN};mix-blend-mode:multiply}`}</style>
       {!opened &&
         (gilded ? (
           <EnvelopeIntro initials={initials} photo={cover} title={coupleTitle} date={shortDate} onOpened={() => setOpened(true)} />
@@ -543,7 +556,14 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
           <CurtainIntro initials={initials} onOpened={() => setOpened(true)} />
         ))}
 
-      <main className="max-w-md mx-auto shadow-[0_0_60px_rgba(0,0,0,0.06)]" style={{ background: IV.paper }}>
+      <main
+        className="relative max-w-md mx-auto sm:my-10 sm:rounded-[4px] overflow-hidden"
+        style={{
+          backgroundColor: IV.paper,
+          backgroundImage: PAPER_GRAIN,
+          boxShadow: `0 1px 2px rgba(0,0,0,0.08), 0 40px 70px -40px rgba(40,25,20,0.45), 7px 9px 0 -3px ${IV.soft}, 7px 9px 0 -2px ${IV.line}, 14px 18px 0 -6px ${IV.soft}, 14px 18px 0 -5px ${IV.line}`,
+        }}
+      >
         {/* ---------- Hero ---------- */}
         {gilded ? (
           <GildedHero event={event} shortDate={shortDate} start={start} photos={gallery.slice(0, 3)} opened={opened} />
@@ -564,13 +584,15 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
               </p>
             </Reveal>
             <Reveal delay={150}>
-              <h1 className="italic leading-[1.05]" style={{ ...SERIF, color: IV.wine }}>
-                <span className="block text-[54px]">{event.bride_name}</span>
-                <span className="block text-3xl my-1" style={{ color: IV.rose }}>
-                  &amp;
-                </span>
-                <span className="block text-[54px]">{event.groom_name}</span>
-              </h1>
+              <Tilt>
+                <h1 className="italic leading-[1.05]" data-depth="" style={{ ...SERIF, color: IV.wine, ...LETTERPRESS, ["--d" as any]: 50 }}>
+                  <span className="block text-[54px]">{event.bride_name}</span>
+                  <span className="block text-3xl my-1">
+                    <Foil>&amp;</Foil>
+                  </span>
+                  <span className="block text-[54px]">{event.groom_name}</span>
+                </h1>
+              </Tilt>
             </Reveal>
             <Reveal delay={300}>
               <O.Divider className="my-6" />
@@ -658,6 +680,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
           )}
 
           <Reveal>
+            <div style={{ filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.08)) drop-shadow(0 14px 18px rgba(40,25,20,0.14))" }}>
             <O.Frame>
               <p className="text-[11px] tracking-[0.3em] uppercase mb-2" style={{ color: IV.rose }}>
                 Lễ thành hôn &amp; tiệc cưới
@@ -688,6 +711,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
                 </a>
               )}
             </O.Frame>
+            </div>
           </Reveal>
         </section>
 
@@ -744,15 +768,10 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
             <Reveal>
               <SectionTitle kicker="Khoảnh khắc">Album của chúng tôi</SectionTitle>
             </Reveal>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-5 px-1">
               {albumPhotos.map((url, i) => (
                 <Reveal key={url} delay={i * 80} className={i === 0 ? "col-span-2" : ""}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={url}
-                    alt=""
-                    className={"w-full object-cover border-4 border-white shadow-sm " + (i === 0 ? "h-72 rounded-t-[160px] rounded-b-xl" : "h-44 rounded-t-[90px] rounded-b-lg")}
-                  />
+                  <PrintPhoto src={url} rotate={i === 0 ? -1.2 : i % 2 ? 2.4 : -2} tall={i !== 0} />
                 </Reveal>
               ))}
             </div>
@@ -767,7 +786,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
             </Reveal>
           </PaletteProvider>
           <Reveal>
-            <div className="rounded-3xl p-5 sm:p-6 border" style={{ background: IV.paper, borderColor: IV.line }}>
+            <div className="rounded-3xl p-5 sm:p-6 border" style={{ backgroundColor: IV.paper, backgroundImage: PAPER_GRAIN, borderColor: IV.line, boxShadow: `inset 0 1px 0 rgba(255,255,255,0.7), 0 2px 3px rgba(0,0,0,0.08), 0 24px 40px -20px rgba(0,0,0,0.45)` }}>
               {guest.confirmed && !status?.success && (
                 <p className="text-xs text-center mb-4 rounded-full py-1.5 px-3" style={{ background: IV.okBg, color: IV.leaf }}>
                   {locked ? "Bạn đã xác nhận tham dự." : "Bạn đã xác nhận tham dự. Bạn vẫn có thể đổi bàn bên dưới."}
