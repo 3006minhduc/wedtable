@@ -293,7 +293,7 @@ function EmbossHero({ event, shortDate, start, cover, opened }: { event: any; sh
               <div className="absolute inset-[10px] rounded-[12px] pointer-events-none" style={{ boxShadow: `1.5px 2px 2px ${IV.muted}66, -1px -1px 1px rgba(255,255,255,0.9), inset 1.5px 2px 2px ${IV.muted}55, inset -1px -1px 1px rgba(255,255,255,0.9)` }} />
               <div className="relative flex flex-col items-center w-full">
                 <p className="text-[10px] tracking-[0.28em] uppercase mb-4" style={{ color: IV.rose }}>
-                  Trân trọng báo tin lễ thành hôn
+                  Báo tin lễ thành hôn
                 </p>
                 <h1 className="italic leading-[1.02] break-words max-w-full" style={{ ...SERIF, color: IV.wine, ...LETTERPRESS }}>
                   <span className="block text-[42px]">{event.bride_name}</span>
