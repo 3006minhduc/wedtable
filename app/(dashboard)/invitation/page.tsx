@@ -481,7 +481,7 @@ export default function InvitationPage() {
             )}
           </Section>
 
-          <Section title="Ảnh cưới" desc="Ảnh đầu tiên làm ảnh bìa, ảnh thứ hai đi kèm câu chuyện, còn lại vào album. Ảnh tự nén về tối đa 1200px.">
+          <Section title="Ảnh cưới" desc="Ảnh đầu tiên làm ảnh bìa, ảnh thứ hai đi kèm câu chuyện. Từ 3 ảnh trở lên sẽ có ảnh lớn xen giữa các mục, còn lại vào album (không giới hạn số ảnh, khách chạm để xem lớn). Ảnh tự nén về tối đa 1200px.">
             {gallery.length > 0 && (
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                 {gallery.map((url, i) => (

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { confirmSeat, markViewed } from "./actions"
 import { formatInviteDate } from "@/lib/formatDate"
 import { videoEmbed } from "@/lib/videoEmbed"
+import { Collage, FilmStrip, Lightbox, PhotoInterlude } from "./Album"
 import { Foil, LETTERPRESS, LINEN, PAPER_GRAIN, PrintPhoto, Tilt } from "./Paper"
 import FloorLayers from "@/components/seating/FloorLayers"
 import { serif, sans } from "./fonts"
@@ -255,7 +256,7 @@ function WindingTimeline({ items }: { items: any[] }) {
 }
 
 // ---------- emboss hero: raised-paper arch with roses, satin ribbon that unties, dark countdown band ----------
-function EmbossHero({ event, shortDate, start, cover, opened }: { event: any; shortDate: string; start: Date | null; cover?: string; opened: boolean }) {
+function EmbossHero({ event, shortDate, start, cover, second, opened }: { event: any; shortDate: string; start: Date | null; cover?: string; second?: string; opened: boolean }) {
   const IV = useIV()
   const d = (n: number) => ({ "data-depth": "", style: { ["--d" as any]: n } as React.CSSProperties })
   const dark = onDeep(IV)
@@ -278,6 +279,11 @@ function EmbossHero({ event, shortDate, start, cover, opened }: { event: any; sh
             {cover && (
               <div className="absolute -right-[18%] top-[22%] w-[52%]" {...d(8)}>
                 <PrintPhoto src={cover} rotate={7} tall />
+              </div>
+            )}
+            {second && (
+              <div className="absolute -left-[17%] top-[52%] w-[44%]" {...d(14)}>
+                <PrintPhoto src={second} rotate={-6} />
               </div>
             )}
             {/* pressed paper card: debossed panel with a raised border */}
@@ -339,7 +345,7 @@ function EmbossHero({ event, shortDate, start, cover, opened }: { event: any; sh
 }
 
 // ---------- floral hero as a layered stationery suite: deep stock, arched ivory card, photo print, wax seal ----------
-function SuiteHero({ event, shortDate, start, cover, initials }: { event: any; shortDate: string; start: Date | null; cover?: string; initials: string }) {
+function SuiteHero({ event, shortDate, start, cover, second, initials }: { event: any; shortDate: string; start: Date | null; cover?: string; second?: string; initials: string }) {
   const IV = useIV()
   const dark = onDeep(IV)
   const g = IV.gold
@@ -361,6 +367,11 @@ function SuiteHero({ event, shortDate, start, cover, initials }: { event: any; s
             {cover && (
               <div className="absolute -left-[16%] top-[30%] w-[52%]" {...d(8)}>
                 <PrintPhoto src={cover} rotate={-8} tall />
+              </div>
+            )}
+            {second && (
+              <div className="absolute -right-[15%] top-[12%] w-[44%]" {...d(14)}>
+                <PrintPhoto src={second} rotate={7} />
               </div>
             )}
             {/* the arched ivory card */}
@@ -650,7 +661,17 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
   const gallery: string[] = Array.isArray(event.gallery) ? event.gallery : []
   const cover = gallery[0]
   const storyPhoto = gallery[1]
-  const albumPhotos = gallery.slice(storyPhoto && event.love_story ? 2 : 1, 8)
+  // Every photo after the cover (and the story photo) is shown: big photos between sections, then the album
+  const rest = gallery.slice(storyPhoto && event.plan === "premium" && event.love_story ? 2 : 1)
+  const interlude1 = rest.length >= 3 ? rest[0] : undefined
+  const interlude2 = rest.length >= 8 ? rest[rest.length - 1] : undefined
+  const albumPhotos = rest.filter((u) => u !== interlude1 && u !== interlude2)
+  const collagePhotos = albumPhotos.slice(0, 10)
+  const stripPhotos = albumPhotos.slice(10)
+  // the small second print on the cover reuses an album photo
+  const heroSecond = gallery[1]
+  const [viewer, setViewer] = useState<number | null>(null)
+  const openPhoto = (url: string) => setViewer(Math.max(0, gallery.indexOf(url)))
   const premium = event.plan === "premium"
   const timeline: any[] = premium ? (Array.isArray(event.timeline) ? event.timeline : []).filter((t: any) => t?.time || t?.title) : []
   const dressColors: string[] = Array.isArray(event.dress_colors) ? event.dress_colors.filter(Boolean) : []
@@ -711,9 +732,9 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
         ) : glass ? (
           <GlassHero event={event} shortDate={shortDate} start={start} cover={cover} />
         ) : emboss ? (
-          <EmbossHero event={event} shortDate={shortDate} start={start} cover={cover} opened={opened} />
+          <EmbossHero event={event} shortDate={shortDate} start={start} cover={cover} second={heroSecond} opened={opened} />
         ) : (
-          <SuiteHero event={event} shortDate={shortDate} start={start} cover={cover} initials={initials} />
+          <SuiteHero event={event} shortDate={shortDate} start={start} cover={cover} second={heroSecond} initials={initials} />
         )}
 
         {/* ---------- Invitation ---------- */}
@@ -802,6 +823,8 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
           </Reveal>
         </section>
 
+        {interlude1 && <PhotoInterlude src={interlude1} caption={shortDate} title={coupleTitle} onOpen={() => openPhoto(interlude1)} />}
+
         {/* ---------- Timeline ---------- */}
         {timeline.length > 0 && (
           <section className="px-8 py-14">
@@ -855,15 +878,15 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
             <Reveal>
               <SectionTitle kicker="Khoảnh khắc">Album của chúng tôi</SectionTitle>
             </Reveal>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-5 px-1">
-              {albumPhotos.map((url, i) => (
-                <Reveal key={url} delay={i * 80} className={i === 0 ? "col-span-2" : ""}>
-                  <PrintPhoto src={url} rotate={i === 0 ? -1.2 : i % 2 ? 2.4 : -2} tall={i !== 0} />
-                </Reveal>
-              ))}
-            </div>
+            <Collage photos={collagePhotos} onOpen={(i) => openPhoto(collagePhotos[i])} />
+            {stripPhotos.length > 0 && <FilmStrip photos={stripPhotos} onOpen={(i) => openPhoto(stripPhotos[i])} />}
+            <p className="text-center text-xs mt-6" style={{ color: IV.muted }}>
+              Chạm vào ảnh để xem lớn · {gallery.length} ảnh
+            </p>
           </section>
         )}
+
+        {interlude2 && <PhotoInterlude src={interlude2} caption="Hẹn gặp bạn" title="trong ngày vui" onOpen={() => openPhoto(interlude2)} />}
 
         {/* ---------- RSVP ---------- */}
         <section className="px-6 py-14" style={{ background: deepRsvp ? IV.deep : IV.bg }}>
@@ -1006,6 +1029,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
             </p>
           </Reveal>
         </footer>
+        {viewer !== null && gallery.length > 0 && <Lightbox photos={gallery} index={viewer} onIndex={setViewer} onClose={() => setViewer(null)} />}
       </main>
     </div>
   )
