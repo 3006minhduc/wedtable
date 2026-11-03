@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import FloorLayers from "@/components/seating/FloorLayers"
+import { hallOf } from "@/lib/hall"
 
 function used(guests: any[], tableId: string, onlyCheckedIn = false) {
   return guests
@@ -90,7 +91,11 @@ export default function DisplayPage({ params }: { params: { eventId: string } })
         </div>
       )}
 
-      <div className="relative w-full h-[70vh] bg-white/5 border border-white/10 rounded-card overflow-hidden">
+      {/* keep the hall proportions: as wide as fits, never taller than 70vh */}
+      <div
+        className="relative mx-auto bg-white/5 border border-white/10 rounded-card overflow-hidden"
+        style={{ width: `min(100%, calc(70vh * ${hallOf(floor).w / hallOf(floor).h}))`, aspectRatio: `${hallOf(floor).w} / ${hallOf(floor).h}` }}
+      >
         <FloorLayers floor={floor} theme="dark" />
         {(floor?.tables ?? []).map((t: any) => {
           const total = used(guests, t.id)

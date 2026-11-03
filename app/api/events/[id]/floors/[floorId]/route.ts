@@ -10,7 +10,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   }
 
   const raw = await request.json()
-  const ALLOWED = ["name", "elements", "background_url", "background_opacity", "layout_template"]
+  const ALLOWED = ["name", "elements", "background_url", "background_opacity", "layout_template", "hall_w", "hall_h"]
   const body: Record<string, any> = {}
   for (const k of ALLOWED) if (k in raw) body[k] = raw[k]
 

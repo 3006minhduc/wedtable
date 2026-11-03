@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabase/client"
 import { useEvents } from "@/lib/useEvents"
 import { isPremium } from "@/lib/plan"
 import PremiumNote from "@/components/ui/PremiumNote"
+import { clampHall, estimateTables, HALL_PRESETS, hallOf, PX_PER_M } from "@/lib/hall"
 
 const BUCKET = "wedding-media"
 
@@ -77,6 +78,46 @@ export default function SeatingPage() {
   const tables: Table[] = floor?.tables ?? []
   const elements: Block[] = floor?.elements ?? []
   const premium = isPremium(detail)
+  const hall = hallOf(floor)
+  const canvasWrap = useRef<HTMLDivElement | null>(null)
+
+  // zoom so the whole hall width fits the editor
+  const fitZoom = useCallback(() => {
+    const el = canvasWrap.current
+    if (!el) return
+    const z = (el.clientWidth - 4) / (hall.w * PX_PER_M)
+    setZoom(Math.max(0.3, Math.min(2, Math.floor(z * 20) / 20)))
+  }, [hall.w])
+
+  useEffect(() => {
+    if (floorId) fitZoom()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [floorId, hall.w, hall.h, !!floor])
+
+  // Change the hall size and keep every table and block where it physically is (anchored top-left)
+  function resizeHall(w: number, h: number) {
+    if (!floor) return
+    const nw = clampHall(w)
+    const nh = clampHall(h)
+    if (nw === hall.w && nh === hall.h) return
+    const sx = hall.w / nw
+    const sy = hall.h / nh
+    const fit = (v: number) => Math.max(1, Math.min(99, Math.round(v * 100) / 100))
+    // older undo steps are in the old hall's coordinates
+    setHistory([])
+    const nextTables = tables.map((t) => ({ id: t.id, x_pct: fit(t.x_pct * sx), y_pct: fit(t.y_pct * sy) }))
+    const nextElements = elements.map((e) => ({ ...e, x_pct: fit(e.x_pct * sx), y_pct: fit(e.y_pct * sy), w_pct: Math.max(2, e.w_pct * sx), h_pct: Math.max(2, e.h_pct * sy) }))
+    patchFloorLocal({
+      hall_w: nw,
+      hall_h: nh,
+      elements: nextElements,
+      tables: (floor.tables ?? []).map((t: any) => ({ ...t, ...nextTables.find((p) => p.id === t.id) })),
+    })
+    saveFloor({ hall_w: nw, hall_h: nh, elements: nextElements })
+    saveTablePositions(nextTables)
+    if (nw < hall.w || nh < hall.h) flash("Đã thu nhỏ hội trường. Bàn ở ngoài mép được kéo vào trong, kiểm tra lại nhé.")
+    else flash(`Hội trường ${nw} × ${nh} m`)
+  }
 
   const selKeys = Array.from(selected)
   const selTables = selKeys.filter((k) => k.startsWith("t:")).map((k) => tables.find((t) => t.id === k.slice(2))).filter(Boolean) as Table[]
@@ -537,7 +578,10 @@ export default function SeatingPage() {
               </button>
             </div>
           )}
+          <div ref={canvasWrap} className="min-w-0">
           <SeatingCanvas
+            hallW={hall.w}
+            hallH={hall.h}
             tables={tables}
             guests={guests}
             elements={elements}
@@ -553,12 +597,13 @@ export default function SeatingPage() {
             onPlace={handlePlace}
             onDropGuest={(gid, tid) => assignGuest(gid, tid)}
           />
+          </div>
           <div className="flex items-center gap-2 flex-wrap text-xs">
             <div className="flex items-center bg-surface border border-border rounded-pill">
-              <button className="px-2.5 py-1 hover:bg-bg rounded-l-pill" onClick={() => setZoom((z) => Math.max(0.5, +(z - 0.1).toFixed(1)))} aria-label="Thu nhỏ">
+              <button className="px-2.5 py-1 hover:bg-bg rounded-l-pill" onClick={() => setZoom((z) => Math.max(0.3, +(z - 0.1).toFixed(1)))} aria-label="Thu nhỏ">
                 −
               </button>
-              <button className="px-1 py-1 w-12 text-center" onClick={() => setZoom(1)} title="Về 100%">
+              <button className="px-1 py-1 w-12 text-center" onClick={fitZoom} title="Vừa khung">
                 {Math.round(zoom * 100)}%
               </button>
               <button className="px-2.5 py-1 hover:bg-bg rounded-r-pill" onClick={() => setZoom((z) => Math.min(2, +(z + 0.1).toFixed(1)))} aria-label="Phóng to">
@@ -623,6 +668,8 @@ export default function SeatingPage() {
                 <p className="text-xs text-muted">Chọn công cụ bên trái rồi bấm vào sơ đồ để thêm bàn hoặc khối. Bấm vào một bàn để sửa.</p>
               </div>
 
+              <HallSize key={floorId ?? ""} w={hall.w} h={hall.h} tableCount={tables.length} onChange={resizeHall} />
+
               <div>
                 <div className="text-xs font-medium text-muted mb-1.5">Ảnh nền mặt bằng</div>
                 {floor?.background_url ? (
@@ -667,6 +714,77 @@ export default function SeatingPage() {
 // ---------- panels ----------
 
 const field = "border border-border rounded-card px-3 py-2 text-sm w-full bg-surface"
+
+/** Hall length x width in metres, with presets and a rough table capacity */
+function HallSize({ w, h, tableCount, onChange }: { w: number; h: number; tableCount: number; onChange: (w: number, h: number) => void }) {
+  const [dw, setDw] = useState(String(w))
+  const [dh, setDh] = useState(String(h))
+  useEffect(() => {
+    setDw(String(w))
+    setDh(String(h))
+  }, [w, h])
+  const commit = () => {
+    const nw = Number(dw.replace(",", "."))
+    const nh = Number(dh.replace(",", "."))
+    if (nw > 0 && nh > 0) onChange(nw, nh)
+    else {
+      setDw(String(w))
+      setDh(String(h))
+    }
+  }
+  const est = estimateTables(w, h)
+  const input = "w-full border border-border rounded-card px-2 py-1.5 text-sm bg-surface text-center"
+  return (
+    <div>
+      <div className="text-xs font-medium text-muted mb-1.5">Kích thước hội trường</div>
+      <div className="flex items-center gap-1.5">
+        <label className="flex-1">
+          <span className="sr-only">Chiều dài (m)</span>
+          <input
+            className={input}
+            inputMode="decimal"
+            value={dw}
+            onChange={(e) => setDw(e.target.value)}
+            onBlur={commit}
+            onKeyDown={(e) => e.key === "Enter" && (e.currentTarget as HTMLInputElement).blur()}
+            aria-label="Chiều dài hội trường (mét)"
+          />
+        </label>
+        <span className="text-muted text-sm">×</span>
+        <label className="flex-1">
+          <input
+            className={input}
+            inputMode="decimal"
+            value={dh}
+            onChange={(e) => setDh(e.target.value)}
+            onBlur={commit}
+            onKeyDown={(e) => e.key === "Enter" && (e.currentTarget as HTMLInputElement).blur()}
+            aria-label="Chiều rộng hội trường (mét)"
+          />
+        </label>
+        <span className="text-muted text-xs">m</span>
+      </div>
+      <div className="flex flex-wrap gap-1 mt-2">
+        {HALL_PRESETS.map((p) => {
+          const on = p.w === w && p.h === h
+          return (
+            <button
+              key={p.label}
+              onClick={() => onChange(p.w, p.h)}
+              className={"rounded-pill px-2.5 py-1 text-[11px] border " + (on ? "bg-brand-soft border-brand/30 text-brand" : "bg-surface border-border text-muted hover:bg-bg")}
+            >
+              {p.label} {p.w}×{p.h}
+            </button>
+          )
+        })}
+      </div>
+      <p className="text-[11px] text-muted mt-2 leading-relaxed">
+        Xếp vừa khoảng <b className="text-text">{est}</b> bàn tròn 10 người (đã chừa sân khấu, lối đi).
+        {tableCount > est && est > 0 && <span className="text-rose"> Đang có {tableCount} bàn, có thể hơi chật.</span>} Bàn giữ nguyên kích thước thật, hội trường to hơn thì có thêm chỗ.
+      </p>
+    </div>
+  )
+}
 
 function TablePanel({
   table,

@@ -7,6 +7,7 @@
 
 import { useRef, useState } from "react"
 import Icon from "@/components/ui/Icon"
+import { PX_PER_M } from "@/lib/hall"
 
 export type Table = { id: string; name: string; seats: number; x_pct: number; y_pct: number; vip: boolean; shape?: string }
 export type Guest = { id: string; table_id: string | null; companions: number; no_show: boolean }
@@ -14,7 +15,6 @@ export type Block = { id: string; type: string; label: string; x_pct: number; y_
 export type Tool = "select" | "round" | "rect" | "stage" | "path" | "decor"
 export type Move = { key: string; x_pct: number; y_pct: number }
 
-export const BASE_HEIGHT = 600
 export const GRID_PX = 20
 
 export function occupiedSeats(guests: Guest[], tableId: string) {
@@ -40,6 +40,9 @@ type Props = {
   backgroundOpacity?: number
   tool: Tool
   zoom: number
+  /** hall size in metres */
+  hallW: number
+  hallH: number
   snap: boolean
   selected: Set<string>
   onSelect: (keys: Set<string>) => void
@@ -60,7 +63,9 @@ export default function SeatingCanvas(p: Props) {
   const [box, setBox] = useState<{ x: number; y: number; w: number; h: number } | null>(null)
   const [dropTarget, setDropTarget] = useState<string | null>(null)
 
-  const height = BASE_HEIGHT * p.zoom
+  // the hall is drawn at a fixed metres-to-pixels scale
+  const width = p.hallW * PX_PER_M * p.zoom
+  const height = p.hallH * PX_PER_M * p.zoom
   const gridPx = GRID_PX * p.zoom
 
   function pos(key: string) {
@@ -193,8 +198,7 @@ export default function SeatingCanvas(p: Props) {
         onPointerCancel={onUp}
         className={"relative select-none " + (p.tool === "select" ? "cursor-default" : "cursor-crosshair")}
         style={{
-          width: `${p.zoom * 100}%`,
-          minWidth: 560 * p.zoom,
+          width,
           height,
           touchAction: "none",
           backgroundColor: "rgb(var(--surface-rgb))",

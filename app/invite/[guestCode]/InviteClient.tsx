@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { confirmSeat, markViewed } from "./actions"
 import { formatInviteDate } from "@/lib/formatDate"
 import { videoEmbed } from "@/lib/videoEmbed"
+import { hallOf } from "@/lib/hall"
 import { Collage, FilmStrip, Lightbox, PhotoInterlude } from "./Album"
 import { Foil, LETTERPRESS, LINEN, PAPER_GRAIN, PrintPhoto, Tilt } from "./Paper"
 import FloorLayers from "@/components/seating/FloorLayers"
@@ -38,6 +39,7 @@ function TableMap({ floors, value, companions, onChange }: { floors: any[]; valu
   const [floorIdx, setFloorIdx] = useState(initial)
   const floor = floors[Math.min(floorIdx, floors.length - 1)]
   if (!floor) return null
+  const hall = hallOf(floor)
 
   return (
     <div>
@@ -56,7 +58,9 @@ function TableMap({ floors, value, companions, onChange }: { floors: any[]; valu
           ))}
         </div>
       )}
-      <div className="relative w-full h-72 sm:h-80 rounded-2xl overflow-hidden border" style={{ background: IV.paper, borderColor: IV.line }}>
+      {/* drawn to the hall's real proportions; a big hall scrolls sideways instead of squeezing the tables */}
+      <div className="w-full rounded-2xl overflow-auto border" style={{ background: IV.paper, borderColor: IV.line }}>
+      <div className="relative" style={{ width: `max(100%, ${hall.w * 20}px)`, aspectRatio: `${hall.w} / ${hall.h}` }}>
         <FloorLayers floor={floor} theme="light" />
         {(floor.tables ?? []).map((t: any) => {
           const left = t.seats - (t.used ?? 0)
@@ -88,8 +92,9 @@ function TableMap({ floors, value, companions, onChange }: { floors: any[]; valu
           )
         })}
       </div>
+      </div>
       <p className="text-xs mt-2" style={{ color: IV.muted }}>
-        Chạm vào bàn để chọn chỗ ngồi. Bàn mờ đã đủ chỗ cho nhóm của bạn.
+        Chạm vào bàn để chọn chỗ ngồi. Bàn mờ đã đủ chỗ cho nhóm của bạn.{hall.w > 18 ? " Vuốt ngang để xem hết sơ đồ." : ""}
       </p>
     </div>
   )
