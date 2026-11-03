@@ -1,49 +1,13 @@
 "use client"
 
 import Link from "next/link"
-import { useCallback, useEffect, useState } from "react"
-import { createClient } from "@/lib/supabase/client"
-import { daysLeft, useEvents } from "@/lib/useEvents"
+import { useEvents } from "@/lib/useEvents"
 import Icon from "@/components/ui/Icon"
 import Logo from "@/components/ui/Logo"
 import UserMenu from "./UserMenu"
 
 export default function Navbar({ onMenu, menuOpen }: { onMenu?: () => void; menuOpen?: boolean }) {
   const { events, eventId, setEventId } = useEvents()
-  const [detail, setDetail] = useState<any>(null)
-
-  const fetchDetail = useCallback(async () => {
-    if (!eventId) {
-      setDetail(null)
-      return
-    }
-    const res = await fetch(`/api/events/${eventId}`)
-    if (res.ok) setDetail(await res.json())
-  }, [eventId])
-
-  useEffect(() => {
-    fetchDetail()
-  }, [fetchDetail])
-
-  useEffect(() => {
-    if (!eventId) return
-    const supabase = createClient()
-    const channel = (supabase.channel("guests-stats-" + eventId) as any)
-      .on("postgres_changes", { event: "*", schema: "public", table: "guests", filter: `event_id=eq.${eventId}` }, () => fetchDetail())
-      .subscribe()
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [eventId, fetchDetail])
-
-  const stats = detail?._stats
-  const left = daysLeft(detail?.event_date)
-  const pct = stats && stats.total ? Math.round((stats.confirmed / stats.total) * 100) : 0
-  const summary = stats
-    ? [left !== null ? (left > 0 ? `Còn ${left} ngày` : left === 0 ? "Hôm nay" : "Đã diễn ra") : null, `${stats.total} khách`, `${pct}% đã xác nhận`, `${stats.checked_in} đã check-in`]
-        .filter(Boolean)
-        .join(" · ")
-    : ""
 
   return (
     <header className="h-14 sticky top-0 z-40 bg-surface border-b border-border flex items-center gap-3 px-3 md:px-0">
@@ -78,7 +42,6 @@ export default function Navbar({ onMenu, menuOpen }: { onMenu?: () => void; menu
             <Icon name="chevronDown" size={16} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-faint pointer-events-none" />
           </div>
         )}
-        {summary && <p className="hidden lg:block text-sm text-muted truncate">{summary}</p>}
       </div>
 
       <div className="md:pr-6">
