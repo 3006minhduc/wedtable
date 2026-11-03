@@ -10,6 +10,7 @@ import { resizeImage } from "@/lib/image"
 import { TEMPLATES, THEMES, THEME_INFO, TIMELINE_ICONS, glassTexture, templateOf } from "@/lib/inviteThemes"
 import type { InviteStyle, Palette } from "@/lib/inviteThemes"
 import { isPremium } from "@/lib/plan"
+import { videoEmbed } from "@/lib/videoEmbed"
 import { useEvents } from "@/lib/useEvents"
 
 const BUCKET = "wedding-media"
@@ -27,6 +28,7 @@ const TEXT_FIELDS = [
   "dress_colors",
   "timeline",
   "video_url",
+  "venue_address",
 ] as const
 
 const field =
@@ -202,6 +204,7 @@ export default function InvitationPage() {
   const [giftQr, setGiftQr] = useState("")
   const [premium, setPremium] = useState(true)
   const [published, setPublished] = useState(false)
+  const [venueName, setVenueName] = useState("")
   const [firstCode, setFirstCode] = useState<string | null>(null)
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle")
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null)
@@ -223,6 +226,7 @@ export default function InvitationPage() {
         setGiftQr(e.gift_qr_url ?? "")
         setPremium(isPremium(e))
         setPublished(!!e.published)
+        setVenueName(e.venue_name ?? "")
         setFirstCode(e.guests?.[0]?.code ?? null)
         setForm({
           invite_theme: e.invite_theme ?? "blush",
@@ -237,6 +241,7 @@ export default function InvitationPage() {
           dress_colors: Array.isArray(e.dress_colors) ? e.dress_colors : [],
           timeline: Array.isArray(e.timeline) ? e.timeline : [],
           video_url: e.video_url ?? "",
+          venue_address: e.venue_address ?? "",
         })
       })
   }, [eventId])
@@ -459,6 +464,23 @@ export default function InvitationPage() {
             </div>
           </Section>
 
+          <Section title="Địa chỉ và bản đồ" desc="Thiệp sẽ hiện bản đồ Google ngay trong khung địa điểm, kèm nút Chỉ đường.">
+            <div>
+              <Label hint={venueName ? `Tên địa điểm: ${venueName} (đổi trong Cài đặt)` : "Tên địa điểm nhập trong Cài đặt"}>Địa chỉ tiệc</Label>
+              <input className={field} placeholder="Số 1 Đường ABC, Phường X, Quận Y, Hà Nội" value={form.venue_address} onChange={(e) => set("venue_address", e.target.value)} />
+            </div>
+            {form.venue_address.trim() && (
+              <div className="overflow-hidden rounded-lg border border-border">
+                <iframe
+                  title="Bản đồ"
+                  loading="lazy"
+                  className="block w-full h-52 border-0"
+                  src={`https://maps.google.com/maps?q=${encodeURIComponent([venueName, form.venue_address].filter(Boolean).join(", "))}&z=16&output=embed`}
+                />
+              </div>
+            )}
+          </Section>
+
           <Section title="Ảnh cưới" desc="Ảnh đầu tiên làm ảnh bìa, ảnh thứ hai đi kèm câu chuyện, còn lại vào album. Ảnh tự nén về tối đa 1200px.">
             {gallery.length > 0 && (
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
@@ -557,8 +579,19 @@ export default function InvitationPage() {
             <PremiumNote title="Lịch trình, dress code, câu chuyện, hộp mừng cưới">Các phần này có trong gói Premium.</PremiumNote>
           )}
 
-          <Section title="Video cưới" desc="Dán link YouTube hoặc Google Drive, thiệp sẽ có nút xem video.">
-            <input className={field} placeholder="https://youtube.com/…" value={form.video_url} onChange={(e) => set("video_url", e.target.value)} />
+          <Section title="Video cưới" desc="Dán link YouTube, Vimeo hoặc Google Drive. Khách xem video ngay trong thiệp.">
+            <input className={field} placeholder="https://youtube.com/watch?v=…" value={form.video_url} onChange={(e) => set("video_url", e.target.value)} />
+            {form.video_url.trim() &&
+              (() => {
+                const v = videoEmbed(form.video_url)
+                if (!v) return <p className="text-xs text-error">Link chưa đúng, hãy dán cả đường dẫn bắt đầu bằng https://</p>
+                if (v.kind === "link") return <p className="text-xs text-muted">Không phát trực tiếp được link này, thiệp sẽ hiện nút mở video.</p>
+                return (
+                  <p className="text-xs text-success">
+                    Video sẽ phát ngay trong thiệp.{form.video_url.includes("drive.google") ? " Nhớ chia sẻ file ở chế độ “Bất kỳ ai có đường liên kết”." : ""}
+                  </p>
+                )
+              })()}
           </Section>
         </div>
 

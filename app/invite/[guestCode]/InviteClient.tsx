@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { confirmSeat, markViewed } from "./actions"
 import { formatInviteDate } from "@/lib/formatDate"
+import { videoEmbed } from "@/lib/videoEmbed"
 import FloorLayers from "@/components/seating/FloorLayers"
 import { serif, sans } from "./fonts"
 import { CurtainIntro, Divider, Frame, Garland, PaletteProvider, Reveal, Seal, THEMES, useIV } from "./Ornaments"
@@ -502,10 +503,14 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
   const dressColors: string[] = Array.isArray(event.dress_colors) ? event.dress_colors.filter(Boolean) : []
   const start = eventStart(event.event_date, event.event_time)
   const initials = `${initialOf(event.bride_name)}&${initialOf(event.groom_name)}`
-  const mapUrl = event.venue_name ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.venue_name)}` : ""
+  // Map: the address when given, else the venue name
+  const mapQuery = [event.venue_name, event.venue_address].filter(Boolean).join(", ")
+  const mapUrl = mapQuery ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}` : ""
+  const mapEmbed = event.venue_address ? `https://maps.google.com/maps?q=${encodeURIComponent(mapQuery)}&z=16&output=embed` : ""
   const shortDate = start
     ? `${String(start.getDate()).padStart(2, "0")} · ${String(start.getMonth() + 1).padStart(2, "0")} · ${start.getFullYear()}`
     : ""
+  const video = videoEmbed(event.video_url)
   const coupleTitle = [event.bride_name, event.groom_name].filter(Boolean).join(" & ")
   const hasFamilies = !!(event.bride_family || event.groom_family)
   const hasFullNames = !!(event.bride_full_name || event.groom_full_name)
@@ -661,6 +666,16 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
                 {event.venue_name || "Đang cập nhật địa điểm"}
               </p>
               <p className="text-sm font-medium">{formatInviteDate(event.event_date, event.event_time)}</p>
+              {event.venue_address && (
+                <p className="text-sm mt-2 whitespace-pre-line" style={{ color: IV.muted }}>
+                  {event.venue_address}
+                </p>
+              )}
+              {mapEmbed && (
+                <div className="mt-5 -mx-1 overflow-hidden rounded-xl border" style={{ borderColor: IV.line }}>
+                  <iframe src={mapEmbed} title="Bản đồ địa điểm" loading="lazy" referrerPolicy="no-referrer-when-downgrade" className="block w-full h-56 border-0" />
+                </div>
+              )}
               {mapUrl && (
                 <a
                   href={mapUrl}
@@ -669,7 +684,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
                   className="inline-block mt-5 rounded-full px-5 py-2 text-xs tracking-[0.15em] uppercase border transition-colors hover:bg-white"
                   style={{ borderColor: IV.rose, color: IV.wine }}
                 >
-                  Xem bản đồ
+                  {mapEmbed ? "Chỉ đường" : "Xem bản đồ"}
                 </a>
               )}
             </O.Frame>
@@ -829,17 +844,44 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
         )}
 
         {/* ---------- Video ---------- */}
-        {event.video_url && (
-          <section className="px-8 pb-10 text-center">
-            <a
-              href={event.video_url}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-block rounded-full px-6 py-2.5 text-xs tracking-[0.15em] uppercase border"
-              style={{ borderColor: IV.rose, color: IV.wine }}
-            >
-              ▶ Xem video cưới
-            </a>
+        {video && (
+          <section className="px-6 py-14 text-center">
+            <Reveal>
+              <SectionTitle kicker="Thước phim">Video cưới</SectionTitle>
+            </Reveal>
+            <Reveal>
+              {video.kind === "link" ? (
+                <a
+                  href={video.src}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-block rounded-full px-6 py-2.5 text-xs tracking-[0.15em] uppercase border"
+                  style={{ borderColor: IV.rose, color: IV.wine }}
+                >
+                  ▶ Xem video cưới
+                </a>
+              ) : (
+                <div
+                  className={"mx-auto p-2 rounded-2xl border " + (video.kind === "iframe" && video.vertical ? "max-w-[300px]" : "w-full")}
+                  style={{ background: IV.paper, borderColor: IV.line, boxShadow: "0 12px 30px -14px rgba(0,0,0,0.25)" }}
+                >
+                  <div className={"relative overflow-hidden rounded-xl bg-black " + (video.kind === "iframe" && video.vertical ? "aspect-[9/16]" : "aspect-video")}>
+                    {video.kind === "iframe" ? (
+                      <iframe
+                        src={video.src}
+                        title="Video cưới"
+                        loading="lazy"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                        allowFullScreen
+                        className="absolute inset-0 w-full h-full border-0"
+                      />
+                    ) : (
+                      <video src={video.src} controls playsInline preload="metadata" poster={cover} className="absolute inset-0 w-full h-full object-contain" />
+                    )}
+                  </div>
+                </div>
+              )}
+            </Reveal>
           </section>
         )}
 
