@@ -40,8 +40,8 @@ const counts = {}
 if (withData) {
 // ---------- 2. database ----------
 // Order matters for restore (parents first)
-const TABLES = ["events", "floors", "tables", "guests", "event_members"]
-let restoreSql = `-- WedTable: khôi phục dữ liệu (${stamp}). Chạy SAU khi đã chạy đủ supabase/migrations/001…019.\n-- Chủ tiệc (events.user_id) phải tồn tại trong auth.users. Xem docs/SO-TAY-DU-AN.md mục 9.\n\nBEGIN;\nSET session_replication_role = replica; -- tạm tắt trigger (giới hạn gói, updated_at) khi chèn lại\n\n`
+const TABLES = ["events", "floors", "tables", "guests", "event_members", "checklist_items"]
+let restoreSql = `-- WedTable: khôi phục dữ liệu (${stamp}). Chạy SAU khi đã chạy đủ supabase/migrations/001…022.\n-- Chủ tiệc (events.user_id) phải tồn tại trong auth.users. Xem docs/SO-TAY-DU-AN.md mục 9.\n\nBEGIN;\nSET session_replication_role = replica; -- tạm tắt trigger (giới hạn gói, updated_at) khi chèn lại\n\n`
 for (const t of TABLES) {
   const rows = []
   for (let from = 0; ; from += 1000) {

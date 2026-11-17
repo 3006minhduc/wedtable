@@ -1,6 +1,6 @@
 # Sổ tay dự án WedTable
 
-Cập nhật: 04/11/2026. Tài liệu này mô tả toàn bộ WedTable: dùng để làm gì, gồm những trang nào, dữ liệu nằm ở đâu, cách sửa và đưa lên web, cách sao lưu và khôi phục. Bản Google Docs: Drive → Wedtable → WedTable Backup → "Sổ tay dự án WedTable". Ghi chú kỹ thuật chi tiết hơn cho người sửa code nằm ở `CLAUDE.md` (kiến trúc, bẫy đã gặp) và `DESIGN.md` (quy chuẩn giao diện).
+Cập nhật: 18/11/2026. Tài liệu này mô tả toàn bộ WedTable: dùng để làm gì, gồm những trang nào, dữ liệu nằm ở đâu, cách sửa và đưa lên web, cách sao lưu và khôi phục. Bản Google Docs: Drive → Wedtable → WedTable Backup → "Sổ tay dự án WedTable". Ghi chú kỹ thuật chi tiết hơn cho người sửa code nằm ở `CLAUDE.md` (kiến trúc, bẫy đã gặp) và `DESIGN.md` (quy chuẩn giao diện).
 
 ---
 
@@ -13,7 +13,8 @@ Cập nhật: 04/11/2026. Tài liệu này mô tả toàn bộ WedTable: dùng �
 3. Vẽ sơ đồ hội trường và bàn.
 4. Nhập danh sách khách, mỗi khách có một link thiệp riêng và mã QR.
 5. Khách mở thiệp, xác nhận tham dự và tự chọn bàn.
-6. Ngày cưới: nhân viên check-in khách bằng QR hoặc tìm tên / 4 số cuối điện thoại; màn hình lớn tại tiệc trình chiếu sơ đồ, ảnh cưới và chào khách vừa đến.
+6. Theo dõi việc chuẩn bị bằng checklist đám cưới soạn theo vùng miền và các lễ của hai bạn.
+7. Ngày cưới: nhân viên check-in khách bằng QR hoặc tìm tên / 4 số cuối điện thoại; màn hình lớn tại tiệc trình chiếu sơ đồ, ảnh cưới và chào khách vừa đến.
 
 Web thật: **https://wedtable.vercel.app**
 
@@ -62,10 +63,11 @@ Ngoài ra nên lưu: mật khẩu cơ sở dữ liệu Supabase (Settings → Da
 ### Trang quản lý (sau khi đăng nhập), theo thứ tự trên thanh bên trái
 | Trang | Đường dẫn | Làm gì |
 |---|---|---|
-| Tổng quan | `/` | Số liệu đám cưới, việc cần làm, tạo đám cưới mới |
-| Thiệp mời | `/invitation` | Chọn mẫu thiệp + bộ màu, lời mời, gia đình, địa chỉ + bản đồ, ảnh cưới, lịch trình, dress code, câu chuyện, QR mừng cưới, video. Bên phải là khung điện thoại xem trước (`/invite-preview/[id]`), tự lưu. |
-| Sơ đồ bàn | `/seating` | Vẽ hội trường theo mét (mỗi tầng một kích thước), đặt bàn tròn / bàn dài, sân khấu, lối đi; kéo thả khách vào bàn; bố cục mẫu; ảnh nền mặt bằng |
-| Khách mời | `/guests` | Danh sách khách, nhập / xuất Excel, link thiệp + QR từng khách, nhắc khách |
+| Tổng quan | `/` | Số liệu đám cưới, thẻ **Việc sắp tới** (5 việc gần hạn trong checklist), thẻ **Gợi ý cho bạn** (theo tình huống, có nút Để sau), tạo đám cưới mới bằng trình 4 bước, nút xem thử đám cưới mẫu |
+| Checklist | `/checklist` | Lần đầu trả lời 3 câu (vùng miền, các lễ, tiệc ở nhà hay nhà hàng) để soạn ~49 việc theo 6 mốc, hạn tự tính theo ngày cưới. Tick, đổi người phụ trách, thêm/sửa/xoá việc, lọc theo người. Việc làm trong app (thiệp, nhập khách, sơ đồ, gửi link, xếp chỗ, check-in) tự đánh dấu |
+| Thiệp mời | `/invitation` | Thước đo **thiệp hoàn thiện x%** ở đầu trang. Chọn mẫu thiệp + bộ màu, lời mời, gia đình, địa chỉ + bản đồ, ảnh cưới, lịch trình, dress code, câu chuyện, QR mừng cưới, video. Bên phải là khung điện thoại xem trước (`/invite-preview/[id]`), tự lưu. |
+| Sơ đồ bàn | `/seating` | Vẽ hội trường theo mét (mỗi tầng một kích thước), đặt bàn tròn / bàn dài, sân khấu, lối đi; kéo thả khách vào bàn; bố cục mẫu; ảnh nền mặt bằng. Tầng chưa có bàn thì hỏi số khách và cỡ hội trường để **tạo sơ đồ mẫu**; lần đầu vào có **bong bóng chỉ dẫn** 4 bước (nút Hướng dẫn để xem lại) |
+| Khách mời | `/guests` | Danh sách khách, nhập / xuất Excel, **dán danh sách** khi chưa có khách, link thiệp + QR từng khách, nhắc khách |
 | Check-in | `/checkin` | Tìm khách theo tên, **4 số cuối điện thoại**, mã; quét QR bằng camera; thêm khách vãng lai |
 | Cài đặt | `/settings` | Thông tin tiệc, tuỳ chọn (công khai thiệp, hiện tên khách trên sơ đồ…), thành viên hỗ trợ |
 | Trình chiếu | nút cuối thanh bên | Mở `/display/[id]` |
@@ -80,13 +82,14 @@ Ngoài ra nên lưu: mật khẩu cơ sở dữ liệu Supabase (Settings → Da
 | Vai trò | Được làm |
 |---|---|
 | Chủ tiệc (`owner`) | Mọi thứ |
-| Thiết kế (`design`) | Thiệp, ảnh, QR, sơ đồ; không thấy danh sách khách |
-| Sắp xếp (`setup`) | Bàn + khách |
+| Thiết kế (`design`) | Thiệp, ảnh, QR, sơ đồ, checklist; không thấy danh sách khách |
+| Sắp xếp (`setup`) | Bàn + khách + checklist |
 | Check-in (`checkin`) | Chỉ trang Check-in |
 
 ### Gói cước
 - Theo từng đám cưới: Miễn phí hoặc Premium (199.000đ). Đám cưới tạo trước **30/6/2027** tự động là Premium (ưu đãi ra mắt).
 - Miễn phí: 50 khách, 1 tầng, không bàn dài, không mời thành viên, chỉ mẫu thiệp Cổ điển + màu classic, không màn hình trình chiếu, không quét QR camera, không xuất Excel.
+- **Đám cưới mẫu** (nút "Xem thử với đám cưới mẫu"): mỗi tài khoản 1 cái, đủ tính năng Premium để thử, không công khai được, không tính vào giới hạn gói Miễn phí, xoá được bất cứ lúc nào.
 - **Chưa có thanh toán.** Muốn nâng cấp một đám cưới thì đổi tay cột `events.plan` thành `premium` trong Supabase.
 
 ---
@@ -101,6 +104,9 @@ Ngoài ra nên lưu: mật khẩu cơ sở dữ liệu Supabase (Settings → Da
 | `tables` | Bàn | `floor_id`, `name`, `seats`, `vip`, `shape` (round/rect), `x_pct`, `y_pct` (vị trí theo % hội trường) |
 | `guests` | Khách | `event_id`, `table_id`, `name`, `phone`, `code` (mã trong link thiệp), `companions`, `confirmed`, `viewed`, `checked_in`, `checked_in_at`, `no_show`, `walk_in` |
 | `event_members` | Người hỗ trợ | `event_id`, `email`, `role`, `user_id` |
+| `checklist_items` | Việc trong checklist | `event_id`, `phase` (m12/m3/m1/w1/d0/after), `title`, `note`, `owner`, `ceremony`, `auto_key` (việc tự đánh dấu), `done`, `sort` |
+
+Cột thêm ở `events`: `guide_state` (gợi ý đã bấm Để sau), `is_demo` (đám cưới mẫu), `checklist_setup` (vùng miền, các lễ, nơi đãi tiệc).
 
 Tài khoản đăng nhập nằm trong `auth.users` của Supabase (quản lý ở Authentication).
 
@@ -117,7 +123,7 @@ Quyền truy cập được kiểm ở chính cơ sở dữ liệu (RLS + `has_e
 Bucket công khai `wedding-media`, đường dẫn `{id người tải}/{id đám cưới}/...`: ảnh cưới, ảnh mặt bằng, QR mừng cưới.
 
 ### Lịch sử thay đổi cấu trúc
-`supabase/migrations/001…019` trong code, chạy **bằng tay** trong Supabase → SQL Editor theo đúng thứ tự. Đã chạy đủ tới 019. Thêm cột mới: chạy SQL trước, rồi mới đẩy code dùng cột đó.
+`supabase/migrations/001…022` trong code, chạy **bằng tay** trong Supabase → SQL Editor theo đúng thứ tự. Đã chạy đủ tới 022. Thêm cột mới: chạy SQL trước, rồi mới đẩy code dùng cột đó.
 
 ---
 
@@ -133,15 +139,29 @@ Bucket công khai `wedding-media`, đường dẫn `{id người tải}/{id đá
 | `components/layout/` | Thanh trên, thanh bên, menu tài khoản |
 | `components/landing/` | Trang giới thiệu, bảng giá |
 | `lib/inviteThemes.ts` | Mẫu thiệp và 10 bộ màu |
+| `lib/eventHealth.ts` | Tự suy ra tình trạng đám cưới: các bước chuẩn bị, gợi ý, độ hoàn thiện thiệp |
+| `lib/checklistTemplate.ts` | Bộ việc mẫu của checklist theo vùng miền, các lễ, nơi đãi tiệc |
+| `components/overview/` | Thẻ Việc sắp tới, Gợi ý, trình tạo đám cưới 4 bước |
+| `components/ui/Logo.tsx`, `components/ui/Tour.tsx` | Logo, bong bóng chỉ dẫn |
 | `lib/hall.ts` | Kích thước hội trường, quy đổi mét ↔ điểm ảnh |
 | `lib/plan.ts`, `lib/pricing.ts` | Gói cước, giá, hạn ưu đãi |
 | `lib/videoEmbed.ts` | Đổi link YouTube/Vimeo/Drive thành video phát trong thiệp |
 | `lib/supabase/` | Kết nối Supabase |
 | `supabase/migrations/` | SQL cấu trúc dữ liệu |
 | `scripts/backup.mjs` | Script sao lưu (mục 9) |
+| `public/brand/`, `docs/logo/` | File logo chính thức; các phương án logo đã thử |
 | `CLAUDE.md`, `DESIGN.md` | Ghi chú kỹ thuật và quy chuẩn giao diện |
 
 Công nghệ: Next.js 14 (App Router), React 18, Tailwind CSS, Supabase (Postgres + Auth + Storage), triển khai trên Vercel.
+
+---
+
+## 5b. Thương hiệu
+
+- **Logo** (18/11/2026): cô dâu chú rể bên bàn tiệc, màu trắng trên nền vuông bo góc đỏ đô `#8E1F2F`. Chữ W của "Wed" là hai người đứng cạnh nhau (đầu tròn phía trên), đỉnh giữa chữ W là chân bàn, thanh ngang là mặt bàn (chữ T của "Table").
+- **Chữ logo**: "WedTable" font **Quicksand** đậm, "Wed" đỏ đô.
+- **Font giao diện**: tiêu đề Quicksand (cùng font logo), chữ thân bài **Be Vietnam Pro**. Thiệp mời dùng font riêng của từng mẫu thiệp.
+- File: `public/brand/` (logo ngang, logo trên nền tối, logo dọc, biểu tượng, bản một màu, icon app 512 px); icon tab `app/icon.svg`, icon điện thoại `app/apple-icon.png`.
 
 ---
 
@@ -184,6 +204,7 @@ git add -A && git commit -m "mô tả thay đổi" && git push
 | Đẩy code xong web không đổi | Vercel → Deployments xem bản mới có báo lỗi build không |
 | Khách mở link báo chưa công khai | Cài đặt → bật Công khai |
 | Lưu ở trang Thiệp mời / Cài đặt bị lỗi "column does not exist" | Thiếu migration: chạy file SQL tương ứng trong SQL Editor |
+| Vào web thấy trang "Vercel Security Checkpoint" | Lớp chống bot của Vercel, chờ vài giây là vào. Công cụ tự động (curl) sẽ bị chặn 403 |
 | Không đăng nhập Google được | Kiểm tra Supabase → Auth → URL Configuration (Site URL `https://wedtable.vercel.app`, redirect `/auth/callback`) và Google OAuth còn hiệu lực |
 
 ---
@@ -194,7 +215,7 @@ git add -A && git commit -m "mô tả thay đổi" && git push
 | Phần | Ở đâu | Cách sao lưu |
 |---|---|---|
 | Code + lịch sử | GitHub + máy | `scripts/backup.mjs` tạo `code.bundle` (toàn bộ lịch sử) và `code.zip` |
-| Dữ liệu | Supabase | Script xuất từng bảng ra `data/*.json` và một file `restore-data.sql` |
+| Dữ liệu | Supabase | Script xuất từng bảng (events, floors, tables, guests, event_members, checklist_items) ra `data/*.json` và một file `restore-data.sql` |
 | Tài khoản đăng nhập | Supabase Auth | Script xuất danh sách `data/auth_users.json` (id, email, ngày tạo; không có mật khẩu) |
 | Ảnh | Supabase Storage | Script tải toàn bộ bucket `wedding-media` về `media/` |
 | Tài liệu | Code (`docs/`) + Google Drive | Sổ tay này |
@@ -211,10 +232,10 @@ Nên chạy: mỗi tuần một lần, trước và sau những thay đổi lớ
 
 ### Khôi phục (khi mất project Supabase)
 1. Tạo project Supabase mới, bật Google OAuth như cũ.
-2. SQL Editor: chạy lần lượt `supabase/migrations/001…019`.
+2. SQL Editor: chạy lần lượt `supabase/migrations/001…022`.
 3. Để khách mời giữ được chủ tiệc: các chủ tiệc phải đăng nhập lại một lần (tạo lại tài khoản), rồi thay `user_id` cũ bằng id mới (đối chiếu email trong `auth_users.json`). Nếu dùng chung project cũ chỉ bị mất dữ liệu thì bỏ qua bước này.
 4. Tải lại ảnh trong `media/` vào bucket `wedding-media`, **giữ nguyên đường dẫn thư mục**. Nếu tên project đổi, link ảnh trong `events.gallery`, `gift_qr_url`, `floors.background_url` cần đổi phần đầu `https://<project cũ>.supabase.co` thành project mới (có thể sửa ngay trong `restore-data.sql` bằng tìm và thay thế).
-5. SQL Editor: chạy `restore-data.sql` (chèn lại events → floors → tables → guests → event_members).
+5. SQL Editor: chạy `restore-data.sql` (chèn lại events → floors → tables → guests → event_members → checklist_items).
 6. Đổi `NEXT_PUBLIC_SUPABASE_URL` và khoá trên Vercel sang project mới, build lại.
 
 Khôi phục code: `git clone code.bundle wedtable` (hoặc giải nén `code.zip`).
