@@ -48,11 +48,14 @@ export function useEvents() {
   useEffect(() => {
     function onChange() {
       const saved = readSaved()
-      if (saved) setEventIdState(saved)
+      if (!saved) return
+      setEventIdState(saved)
+      // another part of the page may have created or deleted a wedding: refresh this instance's list too (e.g. the navbar)
+      load()
     }
     window.addEventListener(EVT, onChange)
     return () => window.removeEventListener(EVT, onChange)
-  }, [])
+  }, [load])
 
   function setEventId(id: string) {
     try {
