@@ -3,6 +3,7 @@
 // Step-by-step coach marks: dims the page, spotlights one element (found by CSS selector) and
 // shows a small card next to it. Skippable; callers decide when to open it (e.g. first visit).
 import { useEffect, useLayoutEffect, useState } from "react"
+import { createPortal } from "react-dom"
 
 export type TourStep = { target: string; title: string; body: string }
 
@@ -62,7 +63,9 @@ export default function Tour({ steps, open, onClose }: { steps: TourStep[]; open
     else style = { left: Math.max(12, Math.min(vw - W - 12, rect.left + rect.width / 2 - W / 2)), top: Math.max(12, rect.top - pad - 200) }
   }
 
-  return (
+  // portal to <body>: the page wrapper has a transform (page-enter animation) that would
+  // otherwise make position:fixed relative to it
+  return createPortal(
     <div className="fixed inset-0 z-[60]" role="dialog" aria-label={step.title}>
       {/* dimmed page with a hole around the target */}
       {rect ? (
@@ -94,7 +97,8 @@ export default function Tour({ steps, open, onClose }: { steps: TourStep[]; open
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 
