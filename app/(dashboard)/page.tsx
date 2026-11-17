@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import Icon from "@/components/ui/Icon"
-import { JourneyCard, SuggestionList } from "@/components/overview/Guide"
+import { SuggestionList, UpcomingCard } from "@/components/overview/Guide"
 import CreateWizard from "@/components/overview/CreateWizard"
 import { isPremium, PROMO_END_TEXT } from "@/lib/plan"
 import { daysLeft, seatsUsed, useEvents } from "@/lib/useEvents"
@@ -189,7 +189,7 @@ function Overview({
 
       {creating && <CreateWizard onCreated={onCreated} onCancel={() => setCreating(false)} onDemo={events.some((e) => e.is_demo) ? undefined : onDemo} />}
 
-      <JourneyCard ev={detail} />
+      <UpcomingCard ev={detail} />
 
       <div className="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
         <div className="flex flex-col gap-6">

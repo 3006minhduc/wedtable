@@ -5,6 +5,7 @@
 import { useEffect, useState } from "react"
 import Icon from "@/components/ui/Icon"
 import { journey, snooze, suggestions } from "@/lib/eventHealth"
+import { phaseDue, PHASES } from "@/lib/checklistTemplate"
 import type { GuideState } from "@/lib/eventHealth"
 
 const COLLAPSE_KEY = "wt-journey-collapsed"
@@ -171,6 +172,99 @@ export function SuggestionList({ ev, onSaved }: { ev: any; onSaved?: (state: Gui
           ))}
         </div>
       )}
+    </section>
+  )
+}
+
+/**
+ * Overview card: checklist progress and the next few tasks by due date (overdue first), tickable here.
+ * Without a checklist yet it invites the couple to create one.
+ */
+export function UpcomingCard({ ev }: { ev: any }) {
+  const [items, setItems] = useState<any[] | null>(null)
+  useEffect(() => {
+    setItems(null)
+    fetch(`/api/events/${ev.id}/checklist`)
+      .then((r) => (r.ok ? r.json() : { items: [] }))
+      .then((d) => setItems(d.items ?? []))
+      .catch(() => setItems([]))
+  }, [ev.id])
+  if (!items) return <section className="bg-surface border border-border rounded-card p-5 h-[132px]" />
+
+  const steps = journey(ev).steps
+  const isDone = (i: any) => (i.auto_key ? !!steps.find((s) => s.key === i.auto_key)?.done : i.done)
+  if (items.length === 0) {
+    return (
+      <section className="bg-surface border border-border rounded-card p-5 flex items-center gap-4 flex-wrap">
+        <span className="w-10 h-10 rounded-lg bg-brand-soft text-brand flex items-center justify-center shrink-0">
+          <Icon name="check" size={20} />
+        </span>
+        <div className="flex-1 min-w-[220px]">
+          <h2 className="font-semibold text-[15px]">Checklist đám cưới</h2>
+          <p className="text-sm text-muted mt-0.5">Trả lời 3 câu về vùng miền và các lễ, WedTable soạn sẵn danh sách việc kèm hạn cho từng việc.</p>
+        </div>
+        <a href="/checklist" className="h-10 px-4 rounded-lg bg-brand text-white text-sm font-medium hover:bg-brand-hover inline-flex items-center">
+          Tạo checklist
+        </a>
+      </section>
+    )
+  }
+  const total = items.length
+  const done = items.filter(isDone).length
+  const pct = Math.round((done / total) * 100)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const order = (p: string) => PHASES.findIndex((x) => x.key === p)
+  const next = items
+    .filter((i) => !isDone(i))
+    .sort((a, b) => order(a.phase) - order(b.phase) || a.sort - b.sort)
+    .slice(0, 5)
+  async function tick(i: any) {
+    setItems((list) => list!.map((x) => (x.id === i.id ? { ...x, done: true } : x)))
+    await fetch(`/api/events/${ev.id}/checklist/${i.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ done: true }) })
+  }
+  return (
+    <section className="bg-surface border border-border rounded-card p-5">
+      <div className="flex items-start gap-4">
+        <div className="flex-1 min-w-0">
+          <h2 className="font-semibold text-[15px]">Việc sắp tới</h2>
+          <p className="text-sm text-muted mt-0.5">
+            {done}/{total} việc trong checklist đã xong
+          </p>
+        </div>
+        <p className="font-serif text-3xl leading-none tabular-nums">{pct}%</p>
+      </div>
+      <div className="h-1.5 rounded-full bg-surface-alt overflow-hidden mt-3" aria-hidden>
+        <div className="h-full bg-brand rounded-full transition-[width] duration-700" style={{ width: `${pct}%` }} />
+      </div>
+      {next.length === 0 ? (
+        <p className="text-sm text-success mt-4 flex items-center gap-2">
+          <Icon name="check" size={16} /> Đã xong mọi việc trong checklist.
+        </p>
+      ) : (
+        <ul className="mt-3 -mx-5">
+          {next.map((i) => {
+            const due = phaseDue(i.phase, ev.event_date)
+            const late = due && due.getTime() < today.getTime()
+            const step = i.auto_key ? steps.find((s) => s.key === i.auto_key) : null
+            return (
+              <li key={i.id} className="flex items-center gap-3 px-5 py-2.5 border-t border-border">
+                {step ? (
+                  <a href={step.href} className="w-4 h-4 rounded border border-border-hover shrink-0" title="WedTable tự đánh dấu khi bạn làm xong trong app" />
+                ) : (
+                  <input type="checkbox" className="w-4 h-4 shrink-0 accent-[rgb(var(--brand-rgb))]" onChange={() => tick(i)} aria-label="Đánh dấu xong" />
+                )}
+                <span className="flex-1 min-w-0 text-sm text-text truncate">{i.title}</span>
+                <span className="text-xs text-muted shrink-0">{i.owner}</span>
+                {due && <span className={"text-xs shrink-0 tabular-nums " + (late ? "text-error" : "text-muted")}>{late ? "quá hạn" : `${String(due.getDate()).padStart(2, "0")}/${String(due.getMonth() + 1).padStart(2, "0")}`}</span>}
+              </li>
+            )
+          })}
+        </ul>
+      )}
+      <a href="/checklist" className="mt-3 inline-flex items-center gap-1 text-sm text-brand hover:underline underline-offset-4">
+        Xem cả checklist <Icon name="arrowRight" size={14} />
+      </a>
     </section>
   )
 }
