@@ -1,47 +1,42 @@
-// WedTable logo (approved 2026-11-02): round banquet table seen from above,
-// 8 pen-stroke chairs, a two-layer camellia in the middle; wordmark "Wed" + "Table"
-// both in italic Newsreader ("Wed" in brand red).
+// WedTable logo (2026-11-18): bride and groom at the banquet table, white on a brand-red rounded square.
+// The W of "Wed" is the couple (each V a person, a round head above), the middle peak of the W is the
+// table's legs with a short bar on top = the T of "Table". Wordmark in Quicksand (rounded, has Vietnamese).
+// Master SVGs: public/brand/, design notes and concepts: docs/logo/.
 
-const PETAL = "M0,-1 C-4.6,-3.4 -5,-10 0,-12 C5,-10 4.6,-3.4 0,-1 Z"
-const CHAIR = "M-5,-24 Q0,-26.8 5,-24"
-const ANGLES = [0, 72, 144, 216, 288]
-
-/** The round-table mark on its own. `light` = for dark/photo backgrounds. */
-export function LogoMark({ size = 28, light = false, className = "" }: { size?: number; light?: boolean; className?: string }) {
-  const line = light ? "rgb(var(--brand-soft-rgb))" : "rgb(var(--brand-rgb))"
-  const petalFill = light ? "rgb(var(--brand-rgb) / 0.35)" : "rgb(var(--brand-soft-rgb))"
-  const innerFill = light ? "rgb(var(--ink-rgb))" : "rgb(var(--surface-rgb))"
+/** Couple + table drawn on the 256 grid (strokes, round caps/joins) */
+export function CoupleGlyph({ color = "#fff" }: { color?: string }) {
   return (
-    <svg width={size} height={size} viewBox="-32 -32 64 64" aria-hidden className={"shrink-0 " + className}>
-      <circle r="17" fill="none" stroke={line} strokeWidth="1" />
-      <g fill="none" stroke={line} strokeWidth="1.7" strokeLinecap="round">
-        {[0, 45, 90, 135, 180, 225, 270, 315].map((a) => (
-          <path key={a} d={CHAIR} transform={`rotate(${a})`} />
-        ))}
+    <>
+      <g fill="none" stroke={color} strokeWidth="22" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M36 104 L78 210 L128 126 L178 210 L220 104" />
+        <path d="M100 118 L156 118" />
       </g>
-      <g stroke={line} strokeWidth="0.9" fill={petalFill} strokeLinejoin="round">
-        {ANGLES.map((a) => (
-          <path key={a} d={PETAL} transform={`rotate(${a})`} />
-        ))}
+      <g fill={color}>
+        <circle cx="78" cy="72" r="21" />
+        <circle cx="178" cy="72" r="21" />
       </g>
-      <g transform="rotate(36) scale(0.58)" stroke={line} strokeWidth="1.3" fill={innerFill} strokeLinejoin="round">
-        {ANGLES.map((a) => (
-          <path key={a} d={PETAL} transform={`rotate(${a})`} />
-        ))}
+    </>
+  )
+}
+
+/** The mark on its own: white couple on a brand-red rounded square */
+export function LogoMark({ size = 28, className = "" }: { size?: number; light?: boolean; className?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 256 256" aria-hidden className={"shrink-0 " + className}>
+      <rect width="256" height="256" rx="60" fill="rgb(var(--brand-rgb))" />
+      <g transform="translate(128 132) scale(0.72) translate(-128 -140)">
+        <CoupleGlyph />
       </g>
-      <circle r="1.6" fill={line} />
     </svg>
   )
 }
 
-/** Wordmark: both words italic so they flow without touching */
+/** Wordmark: rounded Quicksand, "Wed" in brand red */
 export function LogoWordmark({ light = false, className = "" }: { light?: boolean; className?: string }) {
   return (
-    <span className={"font-serif italic font-light leading-none tracking-[-0.012em] whitespace-nowrap " + className}>
+    <span className={"font-logo font-bold leading-none tracking-[-0.02em] whitespace-nowrap " + className}>
       <span className={light ? "text-brand-soft" : "text-brand"}>Wed</span>
-      <span className={light ? "text-white" : "text-text"} style={{ marginLeft: "0.04em" }}>
-        Table
-      </span>
+      <span className={light ? "text-white" : "text-text"}>Table</span>
     </span>
   )
 }
@@ -60,8 +55,8 @@ export default function Logo({
 }) {
   if (stacked) {
     return (
-      <span className={"inline-flex flex-col items-center gap-2.5 " + className}>
-        <LogoMark size={size ?? 72} light={light} />
+      <span className={"inline-flex flex-col items-center gap-3 " + className}>
+        <LogoMark size={size ?? 72} />
         <LogoWordmark light={light} className="text-[34px]" />
         <span className={"text-xs " + (light ? "text-white/70" : "text-muted")}>Mỗi vị khách, một chỗ ngồi đúng</span>
       </span>
@@ -69,8 +64,8 @@ export default function Logo({
   }
   return (
     <span className={"inline-flex items-center gap-2 " + className}>
-      <LogoMark size={size ?? 30} light={light} />
-      <LogoWordmark light={light} className="text-[23px]" />
+      <LogoMark size={size ?? 30} />
+      <LogoWordmark light={light} className="text-[22px]" />
     </span>
   )
 }

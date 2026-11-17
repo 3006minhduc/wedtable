@@ -1,11 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-32 -32 64 64" width="64" height="64">
-  <rect x="-32" y="-32" width="64" height="64" rx="14" fill="#8E1F2F"/>
-  <g transform="scale(2)" fill="#FFFFFF">
-    <path d="M0,-1 C-4.6,-3.4 -5,-10 0,-12 C5,-10 4.6,-3.4 0,-1 Z"/>
-    <path transform="rotate(72)" d="M0,-1 C-4.6,-3.4 -5,-10 0,-12 C5,-10 4.6,-3.4 0,-1 Z"/>
-    <path transform="rotate(144)" d="M0,-1 C-4.6,-3.4 -5,-10 0,-12 C5,-10 4.6,-3.4 0,-1 Z"/>
-    <path transform="rotate(216)" d="M0,-1 C-4.6,-3.4 -5,-10 0,-12 C5,-10 4.6,-3.4 0,-1 Z"/>
-    <path transform="rotate(288)" d="M0,-1 C-4.6,-3.4 -5,-10 0,-12 C5,-10 4.6,-3.4 0,-1 Z"/>
-  </g>
-  <circle r="3.6" fill="#8E1F2F"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="64" height="64"><title>WedTable</title><rect width="256" height="256" rx="60" fill="#8E1F2F"/><g transform="translate(128 132) scale(0.72) translate(-128 -140)"><g fill="none" stroke="#FFFFFF" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"><path d="M36 104 L78 210 L128 126 L178 210 L220 104"/><path d="M100 118 L156 118"/></g><g fill="#FFFFFF"><circle cx="78" cy="72" r="21"/><circle cx="178" cy="72" r="21"/></g></g></svg>

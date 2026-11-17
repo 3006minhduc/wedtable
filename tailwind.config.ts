@@ -36,6 +36,7 @@ const config: Config = {
       },
       fontFamily: {
         sans: ["var(--font-sans)", "system-ui", "-apple-system", "Segoe UI", "sans-serif"],
+        logo: ["var(--font-logo)", "ui-rounded", "system-ui", "sans-serif"],
         serif: ["var(--font-serif)", "Georgia", "Times New Roman", "serif"],
       },
       borderRadius: {

@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { Be_Vietnam_Pro, Newsreader } from "next/font/google"
+import { Be_Vietnam_Pro, Newsreader, Quicksand } from "next/font/google"
 import "./globals.css"
 
 const sans = Be_Vietnam_Pro({
@@ -18,6 +18,14 @@ const serif = Newsreader({
   adjustFontFallback: false,
 })
 
+// Logo wordmark: rounded, soft, has Vietnamese
+const logo = Quicksand({
+  subsets: ["latin", "vietnamese"],
+  weight: ["600", "700"],
+  variable: "--font-logo",
+  display: "swap",
+})
+
 export const metadata: Metadata = {
   title: "WedTable — Thiệp mời, sơ đồ bàn và check-in cho đám cưới",
   description: "Gửi thiệp mời riêng cho từng khách, để khách tự chọn chỗ ngồi trên sơ đồ bàn và check-in bằng QR.",
@@ -27,7 +35,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="vi" className={`${sans.variable} ${serif.variable}`}>
+    <html lang="vi" className={`${sans.variable} ${serif.variable} ${logo.variable}`}>
       <body>{children}</body>
     </html>
   )

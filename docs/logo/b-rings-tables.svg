@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256"><title>B - Hai nhẫn, hai bàn</title>
+<g fill="none" stroke-width="18">
+<circle cx="98" cy="128" r="56" stroke="#111"/>
+<path d="M116.8 90.1 A56 56 0 0 1 141.3 74.6" stroke="#fff" stroke-width="32"/>
+<circle cx="158" cy="128" r="56" stroke="#111"/>
+<path d="M139.2 165.9 A56 56 0 0 1 114.7 181.4" stroke="#fff" stroke-width="32"/>
+<path d="M139.2 165.9 A56 56 0 0 1 114.7 181.4" stroke="#111"/>
+</g>
+<g fill="#111"><circle cx="12" cy="128" r="10"/><circle cx="32.1" cy="72.7" r="10"/><circle cx="32.1" cy="183.3" r="10"/><circle cx="244" cy="128" r="10"/><circle cx="223.9" cy="72.7" r="10"/><circle cx="223.9" cy="183.3" r="10"/></g>
+</svg>
