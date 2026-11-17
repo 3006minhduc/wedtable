@@ -1088,7 +1088,8 @@ const SEATING_TOUR: TourStep[] = [
 
 /** Shown on a floor without tables: builds a sample plan from guest count and hall size */
 function EmptyFloor({ people, hall, onCreate, onSkip }: { people: number; hall: { w: number; h: number }; onCreate: (people: number, seats: number, w: number, h: number) => Promise<void>; onSkip: () => void }) {
-  const [count, setCount] = useState(String(people > 0 ? people : 100))
+  // a handful of guests entered so far isn't the real headcount yet: suggest 100 instead
+  const [count, setCount] = useState(String(people >= 20 ? people : 100))
   const [seats, setSeats] = useState("10")
   const [size, setSize] = useState(`${hall.w}x${hall.h}`)
   const [busy, setBusy] = useState(false)
