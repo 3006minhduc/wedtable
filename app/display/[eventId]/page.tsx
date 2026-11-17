@@ -192,7 +192,7 @@ export default function DisplayPage({ params }: { params: { eventId: string } })
         <div className="absolute inset-x-0 bottom-0 p-10 flex items-end justify-between gap-6">
           <div>
             <p className="text-xs tracking-[0.4em] uppercase text-white/70 mb-2">Chào mừng quý khách đến dự lễ thành hôn</p>
-            <h1 className="font-serif italic text-6xl md:text-7xl leading-none">{couple}</h1>
+            <h1 className="font-serif text-6xl md:text-7xl leading-none">{couple}</h1>
             <p className="text-white/75 mt-3">
               {when}
               {event.venue_name ? ` · ${event.venue_name}` : ""}
@@ -247,7 +247,7 @@ export default function DisplayPage({ params }: { params: { eventId: string } })
             <Slides photos={photos} index={slide} />
             <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.8) 100%)" }} />
             <div className="relative p-7">
-              <h1 className="font-serif italic text-5xl leading-tight">{couple}</h1>
+              <h1 className="font-serif text-5xl leading-tight">{couple}</h1>
               <p className="text-white/70 text-sm mt-2">
                 {when}
                 {event.venue_name ? ` · ${event.venue_name}` : ""}
@@ -460,7 +460,7 @@ function Arrivals({ items }: { items: Arrival[] }) {
       {items.map((a) => (
         <div key={a.key} className="wt-arrive rounded-2xl px-5 py-4 border border-white/15 backdrop-blur-md shadow-2xl" style={{ background: "linear-gradient(120deg, rgba(142,31,47,0.85), rgba(40,20,24,0.85))" }}>
           <p className="text-[10px] tracking-[0.35em] uppercase text-white/70">Vừa đến</p>
-          <p className="font-serif italic text-2xl leading-tight mt-0.5">Chào mừng {a.name || "quý khách"}</p>
+          <p className="font-serif text-2xl leading-tight mt-0.5">Chào mừng {a.name || "quý khách"}</p>
           <p className="text-sm text-white/75 mt-1">
             {a.table ? `Mời ngồi ${a.table}` : "Mời vào tiệc"}
             {a.people > 1 ? ` · ${a.people} người` : ""}

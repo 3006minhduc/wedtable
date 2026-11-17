@@ -113,3 +113,9 @@ textarea {
     transform: none;
   }
 }
+
+/* Headings use rounded Quicksand; its regular weight is thin, so headings default to semibold.
+   Explicit font-weight utilities still win (utilities layer comes later). */
+@layer components {
+  .font-serif { font-weight: 600; letter-spacing: -0.015em; }
+}

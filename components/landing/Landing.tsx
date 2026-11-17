@@ -527,7 +527,7 @@ export default function Landing() {
           </div>
           <p className="text-faint text-xs">Ảnh minh họa: Unsplash · © {new Date().getFullYear()} WedTable</p>
         </div>
-        <p className="text-center text-faint pb-8 font-serif italic text-base">Chúc hai bạn trăm năm hạnh phúc.</p>
+        <p className="text-center text-faint pb-8 font-serif text-base">Chúc hai bạn trăm năm hạnh phúc.</p>
       </footer>
     </div>
   )

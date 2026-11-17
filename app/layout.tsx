@@ -21,7 +21,7 @@ const serif = Newsreader({
 // Logo wordmark: rounded, soft, has Vietnamese
 const logo = Quicksand({
   subsets: ["latin", "vietnamese"],
-  weight: ["600", "700"],
+  weight: ["500", "600", "700"],
   variable: "--font-logo",
   display: "swap",
 })
