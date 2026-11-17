@@ -78,6 +78,9 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       return Response.json({ error: "EVENT_NOT_FOUND", message: "Không tìm thấy sự kiện." }, { status: 404 })
     }
     const merged: Record<string, any> = { ...current, ...body }
+    if (current.is_demo) {
+      return Response.json({ error: "DEMO_EVENT", message: "Đám cưới mẫu chỉ để thử, không công khai được. Hãy tạo đám cưới thật ở trang Tổng quan." }, { status: 400 })
+    }
     const missing: string[] = []
     if (!String(merged.bride_name ?? "").trim()) missing.push("Tên cô dâu")
     if (!String(merged.groom_name ?? "").trim()) missing.push("Tên chú rể")

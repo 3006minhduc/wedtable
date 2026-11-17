@@ -3,55 +3,9 @@
 import { useCallback, useEffect, useState } from "react"
 import Icon from "@/components/ui/Icon"
 import { JourneyCard, SuggestionList } from "@/components/overview/Guide"
+import CreateWizard from "@/components/overview/CreateWizard"
 import { isPremium, PROMO_END_TEXT } from "@/lib/plan"
 import { daysLeft, seatsUsed, useEvents } from "@/lib/useEvents"
-
-function CreateEventForm({ onCreated, onCancel }: { onCreated: (id: string) => void; onCancel?: () => void }) {
-  const [form, setForm] = useState({ bride_name: "", groom_name: "", event_date: "", venue_name: "" })
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState("")
-
-  async function submit() {
-    setSaving(true)
-    setError("")
-    const res = await fetch("/api/events", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, event_date: form.event_date || null }),
-    })
-    const data = await res.json()
-    setSaving(false)
-    if (!res.ok) {
-      setError(data.message ?? "Không tạo được sự kiện")
-      return
-    }
-    onCreated(data.id)
-  }
-
-  const input = "border border-border hover:border-border-hover focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-brand/10 rounded-lg h-10 px-3 text-sm w-full bg-surface"
-  return (
-    <div className="bg-surface border border-border rounded-card p-5 max-w-lg">
-      <h2 className="font-semibold text-[15px] text-text mb-4">Tạo đám cưới mới</h2>
-      {error && <p className="text-sm text-error mb-2">{error}</p>}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-        <input className={input} placeholder="Tên cô dâu" value={form.bride_name} onChange={(e) => setForm({ ...form, bride_name: e.target.value })} />
-        <input className={input} placeholder="Tên chú rể" value={form.groom_name} onChange={(e) => setForm({ ...form, groom_name: e.target.value })} />
-        <input className={input} type="date" value={form.event_date} onChange={(e) => setForm({ ...form, event_date: e.target.value })} />
-        <input className={input} placeholder="Địa điểm" value={form.venue_name} onChange={(e) => setForm({ ...form, venue_name: e.target.value })} />
-      </div>
-      <div className="flex gap-2">
-        <button disabled={saving} onClick={submit} className="bg-brand text-white hover:bg-brand-hover font-medium rounded-lg h-10 px-4 text-sm disabled:opacity-50">
-          {saving ? "Đang tạo..." : "Tạo đám cưới"}
-        </button>
-        {onCancel && (
-          <button onClick={onCancel} className="h-10 px-4 rounded-lg text-sm text-muted hover:bg-surface-alt hover:text-text">
-            Hủy
-          </button>
-        )}
-      </div>
-    </div>
-  )
-}
 
 export default function DashboardHome() {
   const { events, eventId, setEventId, loading, reload } = useEvents()
@@ -77,19 +31,46 @@ export default function DashboardHome() {
     await reload()
   }
 
+  // Sample wedding to click around in (one per account)
+  const [demoBusy, setDemoBusy] = useState(false)
+  async function handleDemo() {
+    setDemoBusy(true)
+    const res = await fetch("/api/events/demo", { method: "POST" })
+    const d = await res.json().catch(() => ({}))
+    setDemoBusy(false)
+    if (!res.ok) return alert(d.message ?? "Không tạo được đám cưới mẫu")
+    await handleCreated(d.id)
+  }
+
   if (loading) return <p className="text-muted">Đang tải...</p>
 
   if (events.length === 0) {
     return (
-      <div className="max-w-lg">
+      <div className="max-w-2xl">
         <h1 className="font-serif text-[34px] leading-tight text-text mb-2">Chào mừng tới WedTable</h1>
-        <p className="text-muted mb-6">Tạo đám cưới đầu tiên. Bạn có thể sửa mọi thông tin sau.</p>
-        <CreateEventForm onCreated={handleCreated} />
+        <p className="text-muted mb-6">Trả lời 4 câu ngắn, WedTable dựng sẵn đám cưới, sơ đồ bàn và thiệp cho bạn. Sửa được mọi thứ sau.</p>
+        {demoBusy ? <p className="text-sm text-muted">Đang tạo đám cưới mẫu…</p> : <CreateWizard onCreated={handleCreated} onDemo={handleDemo} />}
       </div>
     )
   }
 
-  return <Overview detail={detail} events={events} eventId={eventId} setEventId={setEventId} creating={creating} setCreating={setCreating} onCreated={handleCreated} />
+  return (
+    <Overview
+      detail={detail}
+      events={events}
+      eventId={eventId}
+      setEventId={setEventId}
+      creating={creating}
+      setCreating={setCreating}
+      onCreated={handleCreated}
+      onDemo={handleDemo}
+      onDeleted={async () => {
+        const other = events.find((e) => e.id !== eventId)
+        if (other) setEventId(other.id)
+        await reload()
+      }}
+    />
+  )
 }
 
 function Overview({
@@ -100,6 +81,8 @@ function Overview({
   creating,
   setCreating,
   onCreated,
+  onDemo,
+  onDeleted,
 }: {
   detail: any
   events: any[]
@@ -108,6 +91,8 @@ function Overview({
   creating: boolean
   setCreating: (v: boolean) => void
   onCreated: (id: string) => void
+  onDemo: () => void
+  onDeleted: () => void
 }) {
   if (!detail) return <p className="text-muted">Đang tải...</p>
 
@@ -180,7 +165,29 @@ function Overview({
         )}
       </div>
 
-      {creating && <CreateEventForm onCreated={onCreated} onCancel={() => setCreating(false)} />}
+      {detail.is_demo && (
+        <div className="rounded-card border border-brand/30 bg-brand-soft px-4 py-3 flex items-center gap-3 flex-wrap text-sm">
+          <Icon name="sparkle" size={18} className="text-brand shrink-0" />
+          <span className="flex-1 min-w-[220px] text-text">
+            <b className="font-medium">Đây là đám cưới mẫu.</b> Cứ bấm thử mọi thứ: thiệp, sơ đồ, khách, check-in, trình chiếu. Đám cưới mẫu không gửi được cho khách và không tính vào gói của bạn.
+          </span>
+          <button onClick={() => setCreating(true)} className="h-9 px-3 rounded-lg bg-brand text-white font-medium hover:bg-brand-hover">
+            Tạo đám cưới thật
+          </button>
+          <button
+            onClick={async () => {
+              if (!confirm("Xoá đám cưới mẫu? Mọi dữ liệu mẫu sẽ mất.")) return
+              await fetch(`/api/events/${detail.id}`, { method: "DELETE" })
+              onDeleted()
+            }}
+            className="h-9 px-3 rounded-lg text-muted hover:text-text hover:bg-surface"
+          >
+            Xoá đám cưới mẫu
+          </button>
+        </div>
+      )}
+
+      {creating && <CreateWizard onCreated={onCreated} onCancel={() => setCreating(false)} onDemo={events.some((e) => e.is_demo) ? undefined : onDemo} />}
 
       <JourneyCard ev={detail} />
 

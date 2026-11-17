@@ -48,6 +48,8 @@ export async function POST(request: Request) {
       groom_name: body.groom_name ?? "",
       event_date: body.event_date ?? null,
       venue_name: body.venue_name ?? "",
+      ...(body.event_time ? { event_time: body.event_time } : {}),
+      ...(body.venue_address ? { venue_address: body.venue_address } : {}),
     })
     .select()
     .single()
