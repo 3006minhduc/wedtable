@@ -4,6 +4,7 @@
 // Autosaves like Settings; the phone preview on the right updates instantly via postMessage.
 import { useEffect, useRef, useState } from "react"
 import Icon from "@/components/ui/Icon"
+import { inviteCompleteness } from "@/lib/eventHealth"
 import PremiumNote from "@/components/ui/PremiumNote"
 import { createClient } from "@/lib/supabase/client"
 import { resizeImage } from "@/lib/image"
@@ -43,9 +44,9 @@ function Label({ children, hint }: { children: React.ReactNode; hint?: string })
   )
 }
 
-function Section({ title, desc, children }: { title: string; desc?: string; children: React.ReactNode }) {
+function Section({ title, desc, children, id }: { title: string; desc?: string; children: React.ReactNode; id?: string }) {
   return (
-    <section className="bg-surface border border-border rounded-card p-5 sm:p-6 flex flex-col gap-4">
+    <section id={id} className="bg-surface border border-border rounded-card p-5 sm:p-6 flex flex-col gap-4 scroll-mt-20 transition-shadow">
       <div>
         <h2 className="font-semibold text-[15px] text-text">{title}</h2>
         {desc && <p className="text-sm text-muted mt-0.5">{desc}</p>}
@@ -409,6 +410,7 @@ export default function InvitationPage() {
 
       <div className="grid lg:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">
         <div className="flex flex-col gap-6 min-w-0">
+          <InviteMeter ev={{ ...form, gallery, gift_qr_url: giftQr }} premium={premium} />
           <Section
             title="Mẫu thiệp"
             desc={premium ? "Hiệu ứng mở thiệp, trang trí và cách trình bày. Chọn mẫu sẽ gợi ý bộ màu đi kèm, bạn đổi màu ở mục dưới." : "Gói Miễn phí dùng mẫu Cổ điển hoa lá. Nâng cấp Premium để mở các mẫu khác."}
@@ -439,7 +441,7 @@ export default function InvitationPage() {
             </div>
           </Section>
 
-          <Section title="Lời mời và hai bên gia đình" desc="Mục nào để trống sẽ không hiện trên thiệp.">
+          <Section id="loi-moi" title="Lời mời và hai bên gia đình" desc="Mục nào để trống sẽ không hiện trên thiệp.">
             <div>
               <Label hint="Để trống sẽ dùng lời mời mặc định">Lời mời gửi khách</Label>
               <textarea className={field} rows={3} value={form.invite_message} onChange={(e) => set("invite_message", e.target.value)} placeholder="Tình yêu của chúng tôi sẽ trọn vẹn hơn khi có sự hiện diện của bạn…" />
@@ -464,7 +466,7 @@ export default function InvitationPage() {
             </div>
           </Section>
 
-          <Section title="Địa chỉ và bản đồ" desc="Thiệp sẽ hiện bản đồ Google ngay trong khung địa điểm, kèm nút Chỉ đường.">
+          <Section id="ban-do" title="Địa chỉ và bản đồ" desc="Thiệp sẽ hiện bản đồ Google ngay trong khung địa điểm, kèm nút Chỉ đường.">
             <div>
               <Label hint={venueName ? `Tên địa điểm: ${venueName} (đổi trong Cài đặt)` : "Tên địa điểm nhập trong Cài đặt"}>Địa chỉ tiệc</Label>
               <input className={field} placeholder="Số 1 Đường ABC, Phường X, Quận Y, Hà Nội" value={form.venue_address} onChange={(e) => set("venue_address", e.target.value)} />
@@ -481,7 +483,7 @@ export default function InvitationPage() {
             )}
           </Section>
 
-          <Section title="Ảnh cưới" desc="Ảnh đầu tiên làm ảnh bìa, ảnh thứ hai đi kèm câu chuyện. Từ 3 ảnh trở lên sẽ có ảnh lớn xen giữa các mục, còn lại vào album (không giới hạn số ảnh, khách chạm để xem lớn). Ảnh tự nén về tối đa 1200px.">
+          <Section id="anh-cuoi" title="Ảnh cưới" desc="Ảnh đầu tiên làm ảnh bìa, ảnh thứ hai đi kèm câu chuyện. Từ 3 ảnh trở lên sẽ có ảnh lớn xen giữa các mục, còn lại vào album (không giới hạn số ảnh, khách chạm để xem lớn). Ảnh tự nén về tối đa 1200px.">
             {gallery.length > 0 && (
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                 {gallery.map((url, i) => (
@@ -514,11 +516,11 @@ export default function InvitationPage() {
 
           {premium ? (
             <>
-              <Section title="Lịch trình ngày cưới" desc="Các mốc tự xếp theo giờ.">
+              <Section id="lich-trinh" title="Lịch trình ngày cưới" desc="Các mốc tự xếp theo giờ.">
                 <TimelineEditor items={form.timeline} onChange={(next) => set("timeline", next)} />
               </Section>
 
-              <Section title="Dress code">
+              <Section id="dress-code" title="Dress code">
                 <textarea className={field} rows={2} placeholder="Trang phục lịch sự, ưu tiên tông pastel." value={form.dress_code} onChange={(e) => set("dress_code", e.target.value)} />
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-sm text-muted">Màu gợi ý:</span>
@@ -548,11 +550,11 @@ export default function InvitationPage() {
                 </div>
               </Section>
 
-              <Section title="Câu chuyện của hai bạn" desc="Hiện kèm ảnh thứ hai trong mục Ảnh cưới.">
+              <Section id="cau-chuyen" title="Câu chuyện của hai bạn" desc="Hiện kèm ảnh thứ hai trong mục Ảnh cưới.">
                 <textarea className={field} rows={5} placeholder="Chúng mình gặp nhau lần đầu vào một chiều mưa Hà Nội…" value={form.love_story} onChange={(e) => set("love_story", e.target.value)} />
               </Section>
 
-              <Section title="Hộp mừng cưới" desc="Tải ảnh mã QR ngân hàng hoặc ví điện tử, khách quét để gửi quà mừng.">
+              <Section id="mung-cuoi" title="Hộp mừng cưới" desc="Tải ảnh mã QR ngân hàng hoặc ví điện tử, khách quét để gửi quà mừng.">
                 {giftQr && (
                   <div className="flex items-end gap-3">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -579,7 +581,7 @@ export default function InvitationPage() {
             <PremiumNote title="Lịch trình, dress code, câu chuyện, hộp mừng cưới">Các phần này có trong gói Premium.</PremiumNote>
           )}
 
-          <Section title="Video cưới" desc="Dán link YouTube, Vimeo hoặc Google Drive. Khách xem video ngay trong thiệp.">
+          <Section id="video" title="Video cưới" desc="Dán link YouTube, Vimeo hoặc Google Drive. Khách xem video ngay trong thiệp.">
             <input className={field} placeholder="https://youtube.com/watch?v=…" value={form.video_url} onChange={(e) => set("video_url", e.target.value)} />
             {form.video_url.trim() &&
               (() => {
@@ -633,5 +635,63 @@ export default function InvitationPage() {
         </aside>
       </div>
     </div>
+  )
+}
+
+/** "Thiệp hoàn thiện x%" with the missing parts, each jumping to its editor block */
+function InviteMeter({ ev, premium }: { ev: any; premium: boolean }) {
+  const { pct, missing, total } = inviteCompleteness(ev, premium)
+  const [open, setOpen] = useState(false)
+  const shown = open ? missing : missing.slice(0, 3)
+  const r = 15.5
+  const c = 2 * Math.PI * r
+  const go = (id: string) => {
+    const el = document.getElementById(id)
+    if (!el) return
+    el.scrollIntoView({ behavior: "smooth", block: "start" })
+    el.classList.add("ring-2", "ring-brand/40")
+    setTimeout(() => el.classList.remove("ring-2", "ring-brand/40"), 1800)
+  }
+  return (
+    <section className="bg-surface border border-border rounded-card p-5 sm:p-6">
+      <div className="flex items-center gap-4">
+        <div className="relative w-16 h-16 shrink-0">
+          <svg viewBox="0 0 36 36" className="w-16 h-16 -rotate-90" aria-hidden>
+            <circle cx="18" cy="18" r={r} fill="none" strokeWidth="3.5" className="stroke-surface-alt" />
+            <circle cx="18" cy="18" r={r} fill="none" strokeWidth="3.5" strokeLinecap="round" className={pct === 100 ? "stroke-success" : "stroke-brand"} strokeDasharray={c} strokeDashoffset={c * (1 - pct / 100)} style={{ transition: "stroke-dashoffset .6s ease" }} />
+          </svg>
+          <span className="absolute inset-0 flex items-center justify-center text-sm font-semibold tabular-nums">{pct}%</span>
+        </div>
+        <div className="min-w-0">
+          <h2 className="font-semibold text-[15px] text-text">{pct === 100 ? "Thiệp đã đủ thông tin" : `Thiệp hoàn thiện ${pct}%`}</h2>
+          <p className="text-sm text-muted mt-0.5">
+            {pct === 100 ? "Khách có đủ mọi thứ cần biết. Mở khung xem trước để kiểm tra lần cuối." : "Thêm các phần dưới đây để khách có đủ thông tin và thiệp đẹp hơn."}
+          </p>
+        </div>
+      </div>
+      {missing.length > 0 && (
+        <div className="mt-4 -mx-5 sm:-mx-6">
+          {shown.map((m) => (
+            <div key={m.key} className="flex items-center gap-3 px-5 sm:px-6 py-3 border-t border-border">
+              <Icon name="plus" size={16} className="text-faint shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-text">
+                  {m.title} <span className="text-xs text-muted tabular-nums">+{Math.round((m.weight / total) * 100)}%</span>
+                </p>
+                <p className="text-xs text-muted mt-0.5">{m.why}</p>
+              </div>
+              <button onClick={() => go(m.section)} className="shrink-0 h-8 px-3 rounded-lg border border-border text-xs font-medium text-text hover:bg-surface-hover">
+                Thêm
+              </button>
+            </div>
+          ))}
+          {missing.length > 3 && (
+            <button onClick={() => setOpen((o) => !o)} className="px-5 sm:px-6 pt-3 text-xs text-muted hover:text-text">
+              {open ? "Thu gọn" : `Xem thêm ${missing.length - 3} mục`}
+            </button>
+          )}
+        </div>
+      )}
+    </section>
   )
 }

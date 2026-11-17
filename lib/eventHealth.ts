@@ -295,3 +295,34 @@ export function snooze(state: GuideState | null | undefined, key: string): Guide
   const kept = Object.fromEntries(Object.entries(state?.snoozed ?? {}).filter(([, until]) => new Date(until).getTime() > now))
   return { ...(state ?? {}), snoozed: { ...kept, [key]: new Date(now + SNOOZE_DAYS * 86400000).toISOString() } }
 }
+
+export type InviteItem = { key: string; title: string; why: string; weight: number; done: boolean; section: string }
+
+/**
+ * How complete the invitation is. Weights reflect what guests notice most (cover photo, map,
+ * wording); Premium-only parts count only on Premium. `section` is the id of the editor block.
+ */
+export function inviteCompleteness(ev: any, premium: boolean) {
+  const gallery: string[] = Array.isArray(ev?.gallery) ? ev.gallery.filter(Boolean) : []
+  const has = (v: any) => (Array.isArray(v) ? v.filter((x) => x && (typeof x !== "object" || x.time || x.title)).length > 0 : !!String(v ?? "").trim())
+  const items: InviteItem[] = [
+    { key: "cover", title: "Ảnh bìa", why: "Ảnh đầu tiên làm bìa thiệp, khách thấy ngay khi mở.", weight: 18, done: gallery.length >= 1, section: "anh-cuoi" },
+    { key: "map", title: "Địa chỉ và bản đồ", why: "Khách bấm Chỉ đường ngay trong thiệp, không phải hỏi lại.", weight: 16, done: has(ev?.venue_address), section: "ban-do" },
+    { key: "message", title: "Lời mời riêng", why: "Lời của chính hai bạn ấm áp hơn câu mời mặc định.", weight: 10, done: has(ev?.invite_message), section: "loi-moi" },
+    { key: "families", title: "Thông tin hai bên gia đình", why: "Thiệp truyền thống thường ghi tên bố mẹ hai bên.", weight: 10, done: has(ev?.bride_family) && has(ev?.groom_family), section: "loi-moi" },
+    { key: "photos3", title: "Từ 3 ảnh cưới", why: "Có ảnh lớn xen giữa các mục và album đầy đặn hơn.", weight: 10, done: gallery.length >= 3, section: "anh-cuoi" },
+    { key: "fullnames", title: "Họ tên đầy đủ cô dâu chú rể", why: "Hiện ở phần báo tin lễ thành hôn.", weight: 5, done: has(ev?.bride_full_name) && has(ev?.groom_full_name), section: "loi-moi" },
+    { key: "video", title: "Video cưới", why: "Khách xem pre-wedding ngay trong thiệp.", weight: 5, done: has(ev?.video_url), section: "video" },
+    ...(premium
+      ? [
+          { key: "timeline", title: "Lịch trình ngày cưới", why: "Khách biết giờ đón khách, làm lễ, khai tiệc.", weight: 10, done: has(ev?.timeline), section: "lich-trinh" },
+          { key: "story", title: "Câu chuyện của hai bạn", why: "Phần khách hay đọc nhất sau ảnh.", weight: 6, done: has(ev?.love_story), section: "cau-chuyen" },
+          { key: "dress", title: "Dress code", why: "Gợi ý trang phục, ảnh chụp chung đẹp và đồng đều hơn.", weight: 4, done: has(ev?.dress_code) || has(ev?.dress_colors), section: "dress-code" },
+          { key: "gift", title: "QR mừng cưới", why: "Khách ở xa gửi quà mừng tiện hơn.", weight: 6, done: has(ev?.gift_qr_url), section: "mung-cuoi" },
+        ]
+      : []),
+  ]
+  const total = items.reduce((s, i) => s + i.weight, 0)
+  const got = items.filter((i) => i.done).reduce((s, i) => s + i.weight, 0)
+  return { pct: Math.round((got / total) * 100), missing: items.filter((i) => !i.done), items, total }
+}

@@ -11,7 +11,9 @@ import { createClient } from "@/lib/supabase/client"
 import { useEvents } from "@/lib/useEvents"
 import { isPremium } from "@/lib/plan"
 import PremiumNote from "@/components/ui/PremiumNote"
-import { clampHall, estimateTables, HALL_PRESETS, hallOf, PX_PER_M } from "@/lib/hall"
+import Tour, { markTourSeen, tourSeen } from "@/components/ui/Tour"
+import type { TourStep } from "@/components/ui/Tour"
+import { clampHall, estimateTables, HALL_PRESETS, hallOf, PX_PER_M, sampleLayout } from "@/lib/hall"
 
 const BUCKET = "wedding-media"
 
@@ -52,6 +54,8 @@ export default function SeatingPage() {
   const [showTemplates, setShowTemplates] = useState(false)
   const [uploadingBg, setUploadingBg] = useState(false)
   const [history, setHistory] = useState<Snapshot[]>([])
+  const [skipEmpty, setSkipEmpty] = useState<Set<string>>(new Set())
+  const [tourOpen, setTourOpen] = useState(false)
 
   const preDrag = useRef<Snapshot | null>(null)
   const tableTimers = useRef<Record<string, any>>({})
@@ -78,6 +82,13 @@ export default function SeatingPage() {
   const tables: Table[] = floor?.tables ?? []
   const elements: Block[] = floor?.elements ?? []
   const premium = isPremium(detail)
+  const hasTables = tables.length > 0
+  useEffect(() => {
+    if (hasTables && !tourSeen(TOUR_KEY)) {
+      const t = setTimeout(() => setTourOpen(true), 800)
+      return () => clearTimeout(t)
+    }
+  }, [hasTables])
   const hall = hallOf(floor)
   const canvasWrap = useRef<HTMLDivElement | null>(null)
 
@@ -368,6 +379,30 @@ export default function SeatingPage() {
   }
 
   // ---------- templates / floors / background ----------
+  // Empty floor → sample plan: set hall size, add a stage and enough round tables for the guests
+  async function createSample(people: number, seats: number, w: number, h: number) {
+    if (!floorId || !floor) return
+    const count = Math.max(1, Math.ceil(people / seats))
+    const { positions, stage, fits } = sampleLayout(count, w, h)
+    const nextElements = elements.some((e) => e.type === "stage") ? elements : [...elements, stage as Block]
+    patchFloorLocal({ hall_w: w, hall_h: h, elements: nextElements, layout_template: "rows" })
+    saveFloor({ hall_w: w, hall_h: h, elements: nextElements, layout_template: "rows" })
+    const start = floors.reduce((s, f) => s + (f.tables?.length ?? 0), 0)
+    const res = await track(
+      fetch(`/api/events/${eventId}/tables`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tables: positions.map((p, i) => ({ floor_id: floorId, name: `Bàn ${start + i + 1}`, seats, ...p })) }),
+      })
+    )
+    if (res?.ok) {
+      const rows = await res.json()
+      setDetail((prev: any) => ({ ...prev, floors: prev.floors.map((f: any) => (f.id === floorId ? { ...f, tables: [...(f.tables ?? []), ...rows] } : f)) }))
+      setHistory([])
+      flash(fits ? `Đã tạo ${rows.length} bàn. Kéo để chỉnh vị trí.` : `Đã tạo ${rows.length} bàn, hội trường hơi chật. Thử cỡ lớn hơn ở bảng bên phải.`)
+    }
+  }
+
   async function applyTemplate(key: TemplateKey) {
     setShowTemplates(false)
     pushHistory()
@@ -511,7 +546,7 @@ export default function SeatingPage() {
         <span className="text-xs text-muted hidden sm:inline">
           {tables.length} bàn · {floorUsed}/{floorSeats} ghế · {status}
         </span>
-        <div className="ml-auto relative">
+        <div className="ml-auto relative" data-tour="templates">
           <button onClick={() => setShowTemplates((s) => !s)} className="border border-border bg-surface rounded-pill px-3 py-1.5 text-sm hover:bg-bg">
             <span className="inline-flex items-center gap-1.5">Bố cục mẫu: {templateLabel} <Icon name="chevronDown" size={14} /></span>
           </button>
@@ -537,7 +572,7 @@ export default function SeatingPage() {
 
       <div className="grid gap-3 lg:grid-cols-[auto_minmax(0,1fr)_288px]">
         {/* Tool rail */}
-        <div className="flex lg:flex-col gap-1 bg-surface border border-border rounded-card p-1.5 h-fit overflow-x-auto">
+        <div className="flex lg:flex-col gap-1 bg-surface border border-border rounded-card p-1.5 h-fit overflow-x-auto" data-tour="tools">
           {TOOLS.map((t, i) => (
             <div key={t.tool} className="contents">
               {i === 3 && <div className="w-px lg:w-auto lg:h-px bg-border mx-1 lg:mx-0 lg:my-1 self-stretch" />}
@@ -578,7 +613,16 @@ export default function SeatingPage() {
               </button>
             </div>
           )}
-          <div ref={canvasWrap} className="min-w-0">
+          <div ref={canvasWrap} className="min-w-0 relative" data-tour="canvas">
+          {tables.length === 0 && floorId && !skipEmpty.has(floorId) && (
+            <EmptyFloor
+              key={floorId}
+              people={guests.filter((g: any) => !g.no_show).reduce((s: number, g: any) => s + 1 + (g.companions ?? 0), 0)}
+              hall={hall}
+              onCreate={createSample}
+              onSkip={() => setSkipEmpty((cur) => new Set([...Array.from(cur), floorId]))}
+            />
+          )}
           <SeatingCanvas
             hallW={hall.w}
             hallH={hall.h}
@@ -621,12 +665,15 @@ export default function SeatingPage() {
               <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full border border-dashed border-muted" /> Trống</span>
               <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-rose" /> Quá chỗ</span>
             </div>
+            <button onClick={() => setTourOpen(true)} className="rounded-pill px-3 py-1 border bg-surface border-border text-muted hover:text-text inline-flex items-center gap-1">
+              <Icon name="sparkle" size={13} /> Hướng dẫn
+            </button>
             <span className="ml-auto text-muted hidden md:inline">Shift + bấm hoặc kéo khung để chọn nhiều · phím mũi tên để dịch nhẹ · Delete để xóa</span>
           </div>
         </div>
 
         {/* Properties panel */}
-        <div className="bg-surface border border-border rounded-card p-4 h-fit flex flex-col gap-4">
+        <div className="bg-surface border border-border rounded-card p-4 h-fit flex flex-col gap-4" data-tour="panel">
           {selected.size > 1 && (
             <MultiPanel
               count={selected.size}
@@ -706,6 +753,14 @@ export default function SeatingPage() {
         </div>
       </div>
 
+      <Tour
+        steps={SEATING_TOUR}
+        open={tourOpen}
+        onClose={() => {
+          setTourOpen(false)
+          markTourSeen(TOUR_KEY)
+        }}
+      />
       {toast && <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-ink text-white text-sm rounded-pill px-4 py-2 shadow-lg z-30">{toast}</div>}
     </div>
   )
@@ -1018,6 +1073,86 @@ function UnseatedList({ unseated, hint, compact = false }: { unseated: any[]; hi
             {g.companions > 0 && <span className="text-muted">+{g.companions}</span>}
           </span>
         ))}
+      </div>
+    </div>
+  )
+}
+
+const TOUR_KEY = "wt-tour-seating"
+const SEATING_TOUR: TourStep[] = [
+  { target: '[data-tour="tools"]', title: "Chọn công cụ", body: "Chọn bàn tròn, bàn dài, sân khấu, lối đi hoặc khu vực, rồi bấm lên sơ đồ để đặt vào." },
+  { target: '[data-tour="canvas"]', title: "Kéo để sắp xếp", body: "Kéo bàn để đổi chỗ. Giữ Shift khi bấm, hoặc kéo một khung, để chọn nhiều bàn. Ctrl+Z để hoàn tác." },
+  { target: '[data-tour="panel"]', title: "Sửa bàn và xếp khách", body: "Bấm một bàn để đổi tên, số ghế, đánh dấu VIP. Khi không chọn gì: chỉnh kích thước hội trường và kéo tên khách chưa có bàn thả vào bàn." },
+  { target: '[data-tour="templates"]', title: "Bố cục mẫu", body: "Muốn xếp lại cả tầng cho gọn: chọn xếp hàng ngang, tỏa tròn hoặc chữ U. Vẫn hoàn tác được." },
+]
+
+/** Shown on a floor without tables: builds a sample plan from guest count and hall size */
+function EmptyFloor({ people, hall, onCreate, onSkip }: { people: number; hall: { w: number; h: number }; onCreate: (people: number, seats: number, w: number, h: number) => Promise<void>; onSkip: () => void }) {
+  const [count, setCount] = useState(String(people > 0 ? people : 100))
+  const [seats, setSeats] = useState("10")
+  const [size, setSize] = useState(`${hall.w}x${hall.h}`)
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState("")
+  const options = [...HALL_PRESETS.map((p) => ({ label: `${p.label} ${p.w}×${p.h} m`, v: `${p.w}x${p.h}` }))]
+  if (!options.some((o) => o.v === `${hall.w}x${hall.h}`)) options.unshift({ label: `Hiện tại ${hall.w}×${hall.h} m`, v: `${hall.w}x${hall.h}` })
+  const n = Math.round(Number(count))
+  const s = Math.round(Number(seats))
+  const [w, h] = size.split("x").map(Number)
+  const tablesNeeded = n > 0 && s >= 2 ? Math.ceil(n / s) : 0
+  const fit = estimateTables(w, h)
+  async function go() {
+    if (!(n > 0)) return setErr("Nhập số khách dự kiến")
+    if (!(s >= 2 && s <= 30)) return setErr("Số ghế mỗi bàn từ 2 đến 30")
+    if (tablesNeeded > 200) return setErr("Tối đa 200 bàn mỗi lần")
+    setErr("")
+    setBusy(true)
+    await onCreate(n, s, w, h)
+    setBusy(false)
+  }
+  const field = "w-full border border-border rounded-lg h-10 px-3 text-sm bg-surface focus:border-brand focus:outline-none"
+  return (
+    <div className="absolute inset-0 z-10 flex items-center justify-center p-4 bg-bg/70 backdrop-blur-[2px] rounded-card">
+      <div className="bg-surface border border-border rounded-card shadow-lg p-6 w-full max-w-md">
+        <span className="w-10 h-10 rounded-lg bg-brand-soft text-brand flex items-center justify-center">
+          <Icon name="seating" size={20} />
+        </span>
+        <h2 className="font-semibold text-[17px] text-text mt-3">Dựng sơ đồ cho tầng này</h2>
+        <p className="text-sm text-muted mt-1">Cho biết số khách và cỡ hội trường, WedTable dựng sẵn sân khấu và bàn. Bạn kéo chỉnh lại sau.</p>
+        <div className="grid grid-cols-2 gap-3 mt-4">
+          <label className="text-xs text-muted">
+            Số khách dự kiến
+            <input className={field + " mt-1"} inputMode="numeric" value={count} onChange={(e) => (setCount(e.target.value), setErr(""))} />
+          </label>
+          <label className="text-xs text-muted">
+            Ghế mỗi bàn
+            <input className={field + " mt-1"} inputMode="numeric" value={seats} onChange={(e) => (setSeats(e.target.value), setErr(""))} />
+          </label>
+          <label className="text-xs text-muted col-span-2">
+            Cỡ hội trường
+            <select className={field + " mt-1"} value={size} onChange={(e) => setSize(e.target.value)}>
+              {options.map((o) => (
+                <option key={o.v} value={o.v}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        {tablesNeeded > 0 && (
+          <p className={"text-xs mt-3 " + (tablesNeeded > fit ? "text-error" : "text-muted")}>
+            Sẽ tạo {tablesNeeded} bàn {s} ghế.{" "}
+            {tablesNeeded > fit ? `Hội trường này vừa khoảng ${fit} bàn, nên chọn cỡ lớn hơn.` : `Hội trường vừa khoảng ${fit} bàn.`}
+          </p>
+        )}
+        {err && <p className="text-xs text-error mt-2">{err}</p>}
+        <div className="flex items-center gap-2 mt-5">
+          <button onClick={go} disabled={busy} className="h-10 px-4 rounded-lg bg-brand text-white text-sm font-medium hover:bg-brand-hover disabled:opacity-60">
+            {busy ? "Đang tạo…" : "Tạo sơ đồ mẫu"}
+          </button>
+          <button onClick={onSkip} className="h-10 px-3 rounded-lg text-sm text-muted hover:text-text hover:bg-surface-hover">
+            Vẽ từ đầu
+          </button>
+        </div>
       </div>
     </div>
   )

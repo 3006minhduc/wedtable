@@ -263,6 +263,22 @@ export default function GuestsPage() {
         <input className={input + " ml-auto"} placeholder="Tìm tên / SĐT / mã..." value={search} onChange={(e) => setSearch(e.target.value)} />
       </div>
 
+      {guests.length === 0 ? (
+        <EmptyGuests
+          onPickFile={() => fileInputRef.current?.click()}
+          onTemplate={downloadTemplate}
+          onPaste={async (rows) => {
+            const res = await fetch(`/api/events/${eventId}/guests/import`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ guests: rows }),
+            })
+            const d = await res.json()
+            setNotice(res.ok ? `Đã thêm ${d.added} khách${d.skipped ? `, bỏ qua ${d.skipped}` : ""}` : d.message ?? "Lỗi thêm khách")
+            load()
+          }}
+        />
+      ) : (
       <GuestTable
         guests={visible}
         tables={tables}
@@ -273,6 +289,7 @@ export default function GuestsPage() {
         onDelete={handleDelete}
         onQr={openQr}
       />
+      )}
 
       {qr && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-20" onClick={() => setQr(null)}>
@@ -296,6 +313,67 @@ export default function GuestsPage() {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+/** First-run guest list: import a file, get the template, or paste names straight from Zalo/Excel */
+function EmptyGuests({ onPickFile, onTemplate, onPaste }: { onPickFile: () => void; onTemplate: () => void; onPaste: (rows: { name: string; phone: string }[]) => Promise<void> }) {
+  const [text, setText] = useState("")
+  const [busy, setBusy] = useState(false)
+  const rows = text
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .map((l) => {
+      // "Tên, SĐT" / "Tên<TAB>SĐT" / "Tên 0912…": the phone is the trailing run of digits
+      const m = l.match(/^(.*?)[\s,;\t-]*((?:\+?84|0)[\d .]{8,})$/)
+      return m ? { name: m[1].replace(/[,;\t]+$/, "").trim(), phone: m[2].replace(/\D/g, "") } : { name: l.replace(/[,;\t]+$/, ""), phone: "" }
+    })
+    .filter((r) => r.name)
+  return (
+    <div className="bg-surface border border-border rounded-card p-6">
+      <span className="w-10 h-10 rounded-lg bg-brand-soft text-brand flex items-center justify-center">
+        <Icon name="guests" size={20} />
+      </span>
+      <h2 className="font-semibold text-[17px] text-text mt-3">Thêm khách mời đầu tiên</h2>
+      <p className="text-sm text-muted mt-1">Mỗi khách có một link thiệp và mã QR riêng. Chọn cách nhanh nhất với bạn:</p>
+      <div className="grid sm:grid-cols-2 gap-3 mt-5">
+        <button onClick={onPickFile} className="text-left rounded-lg border border-border p-4 hover:bg-surface-hover hover:border-border-hover">
+          <p className="text-sm font-medium text-text">Nhập từ file Excel</p>
+          <p className="text-xs text-muted mt-1">File .xlsx, .xls hoặc .csv có cột Tên và SĐT.</p>
+        </button>
+        <button onClick={onTemplate} className="text-left rounded-lg border border-border p-4 hover:bg-surface-hover hover:border-border-hover">
+          <p className="text-sm font-medium text-text">Tải file Excel mẫu</p>
+          <p className="text-xs text-muted mt-1">Điền danh sách vào file mẫu rồi nhập lại.</p>
+        </button>
+      </div>
+      <div className="mt-5">
+        <p className="text-sm font-medium text-text">Hoặc dán danh sách</p>
+        <p className="text-xs text-muted mt-0.5">Mỗi dòng một khách, số điện thoại để cuối dòng (có thể bỏ trống). Dán thẳng từ Zalo, Excel hay ghi chú đều được.</p>
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          rows={5}
+          placeholder={"Bác Hùng 0912345678\nCô Lan, 0987654321\nAnh Tuấn"}
+          className="mt-2 w-full border border-border rounded-lg px-3 py-2 text-sm bg-surface focus:border-brand focus:outline-none"
+        />
+        <div className="flex items-center gap-3 mt-2">
+          <button
+            disabled={!rows.length || busy}
+            onClick={async () => {
+              setBusy(true)
+              await onPaste(rows)
+              setBusy(false)
+              setText("")
+            }}
+            className="h-10 px-4 rounded-lg bg-brand text-white text-sm font-medium hover:bg-brand-hover disabled:opacity-50"
+          >
+            {busy ? "Đang thêm…" : rows.length ? `Thêm ${rows.length} khách` : "Thêm khách"}
+          </button>
+          {rows.length > 0 && <span className="text-xs text-muted">{rows.filter((r) => r.phone).length} khách có số điện thoại</span>}
+        </div>
+      </div>
     </div>
   )
 }

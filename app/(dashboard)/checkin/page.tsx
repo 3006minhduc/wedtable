@@ -139,6 +139,23 @@ export default function CheckinPage() {
         <p className="text-sm text-muted mt-1">Tìm theo tên, 4 số cuối điện thoại, hoặc quét mã QR trên thiệp của khách.</p>
       </div>
 
+      {guests.length === 0 && (
+        <div className="bg-surface border border-border rounded-card p-5 flex items-start gap-4 flex-wrap">
+          <span className="w-10 h-10 rounded-lg bg-brand-soft text-brand flex items-center justify-center shrink-0">
+            <Icon name="checkin" size={20} />
+          </span>
+          <div className="flex-1 min-w-[220px]">
+            <p className="font-semibold text-[15px] text-text">Chưa có khách để check-in</p>
+            <p className="text-sm text-muted mt-0.5">
+              Thêm danh sách khách trước. Ngày cưới, người đón khách mở trang này trên điện thoại: quét mã QR trên thiệp, hoặc gõ tên hay 4 số cuối điện thoại. Khách không có trong danh sách thì thêm ở khung Khách vãng lai.
+            </p>
+          </div>
+          <a href="/guests" className="h-10 px-4 rounded-lg bg-brand text-white text-sm font-medium hover:bg-brand-hover inline-flex items-center">
+            Thêm khách
+          </a>
+        </div>
+      )}
+
       <div className="grid lg:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">
         {/* Front desk */}
         <div className="flex flex-col gap-4">

@@ -310,6 +310,12 @@ function HallMap({ floor, guests, showNames, glowing }: { floor: any; guests: an
       {w > 0 && (
         <div className="relative bg-white/[0.04] border border-white/10 rounded-card overflow-hidden" style={{ width: w, height: h }}>
           <FloorLayers floor={floor} theme="dark" />
+          {tables.length === 0 && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 text-white/70">
+              <p className="text-lg font-medium text-white">Tầng này chưa có bàn</p>
+              <p className="text-sm mt-1">Chủ tiệc vẽ sơ đồ ở trang Sơ đồ bàn, màn hình này sẽ tự cập nhật.</p>
+            </div>
+          )}
           {(floor?.tables ?? []).map((t: any, idx: number) => {
             const rect = t.shape === "rect"
             const tw = (rect ? RECT_M.w : ROUND_M) * ppm * grow
