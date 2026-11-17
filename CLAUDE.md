@@ -52,6 +52,8 @@ Skill hướng dẫn kèm theo: `.claude/skills/webtable-fullstack/` (schema, AP
 - Thêm cột cho `events` mà API PATCH gửi lên: phải chạy SQL TRƯỚC rồi mới push code, nếu không tự lưu ở Cài đặt sẽ lỗi (PostgREST báo cột không tồn tại).
 - Ảnh: bucket public `wedding-media`, đường dẫn `${userId}/${eventId}/...` (policy cũ theo thư mục = uid người tải).
 
+- Hướng dẫn trên Tổng quan (2026-11-17, migration 020): `lib/eventHealth.ts` tự suy ra từ dữ liệu: `journey()` 8 bước có mốc ngày (`dueDays` trước ngày cưới, quá mốc thì `late`), `suggestions()` thẻ gợi ý theo tình huống; sau ngày cưới chỉ còn gợi ý xem khách đã đến. Giao diện `components/overview/Guide.tsx` (`JourneyCard`, `SuggestionList`). "Để sau" lưu `events.guide_state.snoozed[key]` = hạn 7 ngày; key gợi ý đổi khi tình huống đổi (vd. kích thước hội trường) nên gợi ý mới vẫn hiện.
+
 ## Migration
 `supabase/migrations/001…016`. Chúng được chạy **thủ công** trong Supabase SQL Editor (không dùng CLI), file trong repo chỉ là bản ghi. Thứ tự áp dụng thực tế đã đủ tới 013 (013 thay `display_data` và `get_invite`, trả thêm `elements`/`background_url`/`background_opacity` của tầng). Chạy lại an toàn (`CREATE OR REPLACE`). Claude bị chặn tự bấm Run trên database thật: dán SQL vào editor rồi để người dùng bấm Run.
 Mẹo SQL Editor khi tự động hóa: đặt nội dung bằng `window.monaco.editor.getEditors()[0].setValue(sql)`, chạy bằng Ctrl+Enter; câu có `DROP POLICY` sẽ hiện hộp xác nhận.
