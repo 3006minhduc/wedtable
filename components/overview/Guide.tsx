@@ -10,16 +10,20 @@ import type { GuideState } from "@/lib/eventHealth"
 const COLLAPSE_KEY = "wt-journey-collapsed"
 
 export function JourneyCard({ ev }: { ev: any }) {
-  const { steps, done, next, stage } = journey(ev)
+  const { steps, done, next, stage, past } = journey(ev)
   const total = steps.length
   const pct = Math.round((done / total) * 100)
   const allDone = done === total
   const [collapsed, setCollapsed] = useState(false)
   useEffect(() => {
     try {
-      setCollapsed(localStorage.getItem(COLLAPSE_KEY + ev.id) === "1")
-    } catch {}
-  }, [ev.id])
+      const saved = localStorage.getItem(COLLAPSE_KEY + ev.id)
+      // a wedding that already happened starts collapsed
+      setCollapsed(saved ? saved === "1" : past)
+    } catch {
+      setCollapsed(past)
+    }
+  }, [ev.id, past])
   const toggle = () => {
     setCollapsed((c) => {
       try {
@@ -55,7 +59,7 @@ export function JourneyCard({ ev }: { ev: any }) {
       ) : (
         <>
           {/* next step stays visible even when collapsed */}
-          {collapsed && next && <NextLine step={next} />}
+          {collapsed && next && !past && <NextLine step={next} />}
           {showList && (
             <ol className="mt-3 -mx-5">
               {steps.map((s, i) => {

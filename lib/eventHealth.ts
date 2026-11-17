@@ -57,7 +57,7 @@ export function analyze(ev: any) {
   return { floors, guests, tables, gallery, active, unseated, viewed, pending, notViewed, checkedIn, freeSeats, overTables, left, premium }
 }
 
-export function journey(ev: any): { steps: Step[]; done: number; next: Step | null; stage: string } {
+export function journey(ev: any): { steps: Step[]; done: number; next: Step | null; stage: string; past: boolean } {
   const a = analyze(ev)
   const infoOk = !!(ev?.bride_name && ev?.groom_name && ev?.event_date && ev?.event_time && ev?.venue_name)
   const raw: Omit<Step, "late" | "dueText">[] = [
@@ -146,7 +146,8 @@ export function journey(ev: any): { steps: Step[]; done: number; next: Step | nu
       d.setDate(d.getDate() - s.dueDays)
       dueText = s.dueDays === 0 ? "ngày cưới" : `trước ${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`
     }
-    return { ...s, dueText, late: !s.done && a.left !== null && a.left < s.dueDays }
+    // after the wedding nothing is "late" any more
+    return { ...s, dueText, late: !s.done && a.left !== null && a.left >= 0 && a.left < s.dueDays }
   })
   const next = steps.find((s) => !s.done) ?? null
   const left = a.left
@@ -164,12 +165,25 @@ export function journey(ev: any): { steps: Step[]; done: number; next: Step | nu
       : left <= 60
       ? `Chuẩn bị thiệp và sơ đồ · còn ${left} ngày`
       : `Còn ${left} ngày`
-  return { steps, done: steps.filter((s) => s.done).length, next, stage }
+  return { steps, done: steps.filter((s) => s.done).length, next, stage, past: left !== null && left < 0 }
 }
 
 export function suggestions(ev: any, state?: GuideState | null): Tip[] {
   const a = analyze(ev)
-  const tips: (Tip | false)[] = [
+  // After the wedding, preparation nudges no longer make sense
+  const past = a.left !== null && a.left < 0
+  const tips: (Tip | false)[] = past
+    ? [
+        a.guests.length > 0 && {
+          key: "after",
+          icon: "check",
+          title: `${a.checkedIn}/${a.guests.length} khách đã đến dự`,
+          desc: "Xem lại ai đã đến để gửi lời cảm ơn. Gói Premium tải được danh sách ra Excel.",
+          href: "/guests",
+          cta: "Xem khách",
+        },
+      ]
+    : [
     a.left === 0 && {
       key: "today",
       icon: "display",
