@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import Icon from "@/components/ui/Icon"
+import { JourneyCard, SuggestionList } from "@/components/overview/Guide"
 import { isPremium, PROMO_END_TEXT } from "@/lib/plan"
 import { daysLeft, seatsUsed, useEvents } from "@/lib/useEvents"
 
@@ -121,15 +122,6 @@ function Overview({
   const cover = Array.isArray(detail.gallery) ? detail.gallery[0] : null
   const pct = (n: number, d: number) => (d ? Math.round((n / d) * 100) : 0)
 
-  const todos = [
-    !tables.length && { t: "Tạo bàn đầu tiên", d: "Vẽ sơ đồ sảnh tiệc để khách chọn chỗ.", href: "/seating" },
-    !guests.length && { t: "Thêm khách mời", d: "Nhập từ Excel hoặc thêm từng người.", href: "/guests" },
-    !detail.published && { t: "Publish thiệp mời", d: "Khách chỉ mở được thiệp sau khi publish.", href: "/settings" },
-    !cover && { t: "Tải ảnh cưới", d: "Ảnh đầu tiên sẽ làm ảnh bìa thiệp.", href: "/invitation" },
-    unseated > 0 && { t: `${unseated} khách chưa có bàn`, d: "Kéo tên khách vào bàn trên sơ đồ.", href: "/seating" },
-    stats.pending > 0 && { t: `${stats.pending} khách chưa hồi âm`, d: "Gửi lại link thiệp cho họ.", href: "/guests" },
-  ].filter(Boolean) as { t: string; d: string; href: string }[]
-
   const dateText = detail.event_date
     ? new Date(detail.event_date + "T00:00:00").toLocaleDateString("vi-VN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
     : "Chưa đặt ngày"
@@ -189,6 +181,8 @@ function Overview({
       </div>
 
       {creating && <CreateEventForm onCreated={onCreated} onCancel={() => setCreating(false)} />}
+
+      <JourneyCard ev={detail} />
 
       <div className="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
         <div className="flex flex-col gap-6">
@@ -254,27 +248,7 @@ function Overview({
 
         {/* Next steps */}
         <aside className="flex flex-col gap-6">
-          <section className="bg-surface border border-border rounded-card p-5">
-            <h2 className="font-semibold text-[15px]">Việc cần làm tiếp</h2>
-            {todos.length === 0 ? (
-              <p className="text-sm text-muted mt-3 flex items-center gap-2">
-                <Icon name="check" size={16} className="text-success" /> Mọi thứ đã sẵn sàng.
-              </p>
-            ) : (
-              <div className="mt-2 -mx-2">
-                {todos.map((x) => (
-                  <a key={x.t} href={x.href} className="flex items-start gap-3 rounded-lg px-2 py-2.5 hover:bg-surface-hover group">
-                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-brand shrink-0" />
-                    <span className="flex-1 min-w-0">
-                      <span className="block text-sm font-medium text-text">{x.t}</span>
-                      <span className="block text-xs text-muted mt-0.5">{x.d}</span>
-                    </span>
-                    <Icon name="chevronRight" size={16} className="text-faint mt-0.5 group-hover:text-text" />
-                  </a>
-                ))}
-              </div>
-            )}
-          </section>
+          <SuggestionList ev={detail} />
 
           {events.length > 1 && (
             <section className="bg-surface border border-border rounded-card p-5">
