@@ -103,10 +103,11 @@ export function journey(ev: any): { steps: Step[]; done: number; next: Step | nu
     {
       key: "publish",
       title: "Công khai thiệp",
-      desc: ev?.published ? "Khách đã mở được thiệp" : "Khách chỉ mở được link thiệp sau bước này",
+      // a sample wedding can't be published, so this step is skipped for it
+      desc: ev?.is_demo ? "Đám cưới mẫu không công khai, xem thiệp ở trang Thiệp mời" : ev?.published ? "Khách đã mở được thiệp" : "Khách chỉ mở được link thiệp sau bước này",
       href: "/settings",
       cta: "Công khai",
-      done: !!ev?.published,
+      done: !!ev?.published || !!ev?.is_demo,
       dueDays: 30,
     },
     {
