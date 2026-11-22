@@ -11,11 +11,13 @@ function createClient() {
   )
 }
 
-export async function confirmSeat(guestCode: string, tableId: string, companions: number) {
+export async function confirmSeat(guestCode: string, tableId: string, companions: number, dietary = "", note = "") {
   const { data, error } = await createClient().rpc("confirm_seat", {
     p_code: guestCode,
     p_table_id: tableId,
     p_companions: companions,
+    p_dietary: dietary.slice(0, 300),
+    p_note: note.slice(0, 1000),
   })
 
   if (error) {

@@ -9,6 +9,7 @@ import { Collage, FilmStrip, Lightbox, PhotoInterlude } from "./Album"
 import { Foil, LETTERPRESS, LINEN, PAPER_GRAIN, PrintPhoto, Tilt } from "./Paper"
 import FloorLayers from "@/components/seating/FloorLayers"
 import { caps, script, serif, sans } from "./fonts"
+import { DietaryPicker, FaqList, MusicToggle } from "./Extras"
 import { ConfettiOnView, DAISY_BRANCH_BG, DaisyDivider, DaisyFrame, DaisyHero, DaisyIntro, DaisySeal, DaisySprig, ScrollHint } from "./Daisy"
 import { CurtainIntro, Divider, Frame, Garland, PaletteProvider, Reveal, Seal, THEMES, useIV } from "./Ornaments"
 import { Cartouche, EnvelopeIntro, GiltCrest, GiltDivider, GiltFrame, GiltSeal, PhotoStrip } from "./Gilded"
@@ -650,6 +651,8 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
   const [opened, setOpened] = useState(skipIntro)
   const [tableId, setTableId] = useState(guest.table_id ?? "")
   const [companions, setCompanions] = useState<number>(guest.companions ?? 0)
+  const [dietary, setDietary] = useState<string>(guest.dietary ?? "")
+  const [note, setNote] = useState<string>(guest.rsvp_note ?? "")
   const [status, setStatus] = useState<{ error?: string; message?: string; success?: boolean } | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -684,6 +687,8 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
   const openPhoto = (url: string) => setViewer(Math.max(0, gallery.indexOf(url)))
   const premium = event.plan === "premium"
   const timeline: any[] = premium ? (Array.isArray(event.timeline) ? event.timeline : []).filter((t: any) => t?.time || t?.title) : []
+  const faq: { q: string; a: string }[] = premium ? (Array.isArray(event.faq) ? event.faq : []).filter((x: any) => x?.q?.trim()) : []
+  const musicUrl: string = premium ? (event.music_url ?? "").trim() : ""
   const dressColors: string[] = Array.isArray(event.dress_colors) ? event.dress_colors.filter(Boolean) : []
   const start = eventStart(event.event_date, event.event_time)
   const initials = `${initialOf(event.bride_name)}&${initialOf(event.groom_name)}`
@@ -709,7 +714,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
       return
     }
     setLoading(true)
-    const result = await confirmSeat(guest.code, tableId, Number(companions))
+    const result = await confirmSeat(guest.code, tableId, Number(companions), dietary, note)
     setLoading(false)
     setStatus(result)
   }
@@ -917,6 +922,18 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
 
         {interlude2 && <PhotoInterlude src={interlude2} caption="Hẹn gặp bạn" title="trong ngày vui" onOpen={() => openPhoto(interlude2)} />}
 
+        {/* ---------- FAQ ---------- */}
+        {faq.length > 0 && (
+          <section className="px-6 py-14">
+            <Reveal>
+              <SectionTitle kicker="Hỏi đáp">Bạn có thể thắc mắc</SectionTitle>
+            </Reveal>
+            <Reveal>
+              <FaqList items={faq} />
+            </Reveal>
+          </section>
+        )}
+
         {/* ---------- RSVP ---------- */}
         <section className="px-6 py-14" style={{ background: deepRsvp ? IV.deep : IV.bg }}>
           <PaletteProvider value={deepRsvp ? onDeep(IV) : IV}>
@@ -960,6 +977,17 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
                       </option>
                     ))}
                   </select>
+
+                  <DietaryPicker value={dietary} onChange={setDietary} />
+                  <textarea
+                    className="rounded-2xl border bg-white px-4 py-2.5 text-sm"
+                    style={{ borderColor: IV.line }}
+                    rows={2}
+                    maxLength={500}
+                    placeholder="Lời nhắn cho cô dâu chú rể (không bắt buộc)"
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                  />
 
                   <button
                     className="rounded-full py-3 text-sm tracking-[0.15em] uppercase text-white transition-opacity disabled:opacity-60"
@@ -1061,6 +1089,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
           </Reveal>
         </footer>
         {daisy && <ScrollHint show={opened} />}
+        {musicUrl && <MusicToggle src={musicUrl} start={opened} />}
         {viewer !== null && gallery.length > 0 && <Lightbox photos={gallery} index={viewer} onIndex={setViewer} onClose={() => setViewer(null)} />}
       </main>
     </div>

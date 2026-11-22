@@ -38,6 +38,8 @@ export async function GET(request: Request, { params }: { params: { id: string }
     XacNhan: g.confirmed ? "Da xac nhan" : "Chua phan hoi",
     Vang: g.no_show ? "Co" : "Khong",
     DaCheckIn: g.checked_in ? "Co" : "Khong",
+    AnUong: g.dietary ?? "",
+    LoiNhan: g.rsvp_note ?? "",
   }))
 
   const worksheet = XLSX.utils.json_to_sheet(rows)

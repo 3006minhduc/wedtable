@@ -30,6 +30,8 @@ const TEXT_FIELDS = [
   "timeline",
   "video_url",
   "venue_address",
+  "music_url",
+  "faq",
 ] as const
 
 const field =
@@ -209,6 +211,46 @@ function TimelineEditor({ items, onChange }: { items: any[]; onChange: (next: an
   )
 }
 
+function FaqEditor({ items, onChange }: { items: { q: string; a: string }[]; onChange: (next: { q: string; a: string }[]) => void }) {
+  const update = (i: number, patch: any) => onChange(items.map((it, idx) => (idx === i ? { ...it, ...patch } : it)))
+  return (
+    <div className="flex flex-col gap-2">
+      {items.length === 0 && (
+        <button
+          onClick={() => onChange(FAQ_SAMPLES.map((x) => ({ ...x })))}
+          className="text-left text-sm text-muted bg-surface-alt rounded-lg p-3 hover:text-text"
+        >
+          Chưa có câu nào. <span className="underline">Dùng {FAQ_SAMPLES.length} câu mẫu</span> (giờ đón khách, gửi xe, trẻ em, quà mừng) rồi sửa lại.
+        </button>
+      )}
+      {items.map((it, i) => (
+        <div key={i} className="flex gap-2 items-start bg-surface-alt rounded-lg p-2">
+          <div className="flex-1 flex flex-col gap-2">
+            <input className={field} placeholder="Câu hỏi" value={it.q ?? ""} onChange={(e) => update(i, { q: e.target.value })} />
+            <textarea className={field} rows={2} placeholder="Trả lời" value={it.a ?? ""} onChange={(e) => update(i, { a: e.target.value })} />
+          </div>
+          <button onClick={() => onChange(items.filter((_, idx) => idx !== i))} className="w-9 h-9 rounded-lg text-muted hover:text-error hover:bg-surface" aria-label="Xóa câu hỏi">
+            <Icon name="close" size={14} className="mx-auto" />
+          </button>
+        </div>
+      ))}
+      <button
+        onClick={() => onChange([...items, { q: "", a: "" }])}
+        className="inline-flex items-center gap-1.5 border border-border bg-surface hover:bg-surface-hover hover:border-border-hover rounded-lg h-9 px-3 text-sm w-fit"
+      >
+        <Icon name="plus" size={14} /> Thêm câu hỏi
+      </button>
+    </div>
+  )
+}
+
+const FAQ_SAMPLES = [
+  { q: "Mấy giờ mình nên có mặt?", a: "Bạn đến trước giờ khai tiệc khoảng 30 phút để chụp ảnh cùng cô dâu chú rể nhé." },
+  { q: "Có chỗ gửi xe không?", a: "Nhà hàng có bãi gửi xe máy và ô tô miễn phí ngay cạnh sảnh." },
+  { q: "Mình có thể đưa bé đi cùng không?", a: "Rất hoan nghênh các bé! Bạn nhớ tính bé vào số người đi cùng khi xác nhận nhé." },
+  { q: "Nếu không đến được thì gửi quà thế nào?", a: "Bạn có thể dùng mã QR ở mục Hộp mừng cưới. Lời chúc của bạn là món quà quý nhất." },
+]
+
 export default function InvitationPage() {
   const { eventId, loading } = useEvents()
   const [form, setForm] = useState<any>(null)
@@ -254,6 +296,8 @@ export default function InvitationPage() {
           timeline: Array.isArray(e.timeline) ? e.timeline : [],
           video_url: e.video_url ?? "",
           venue_address: e.venue_address ?? "",
+          music_url: e.music_url ?? "",
+          faq: Array.isArray(e.faq) ? e.faq : [],
         })
       })
   }, [eventId])
@@ -366,6 +410,30 @@ export default function InvitationPage() {
       setNotice({ ok: false, text: err.message ?? "Lỗi tải QR" })
     }
     setUploadingQr(false)
+  }
+
+  const [uploadingMusic, setUploadingMusic] = useState(false)
+  async function uploadMusic(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = ""
+    if (!file) return
+    if (file.size > 15 * 1024 * 1024) return setNotice({ ok: false, text: "File nhạc tối đa 15 MB" })
+    setUploadingMusic(true)
+    setNotice(null)
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error("Chưa đăng nhập")
+      const ext = (file.name.split(".").pop() || "mp3").toLowerCase().replace(/[^a-z0-9]/g, "")
+      const path = `${user.id}/${eventId}/music-${Date.now()}.${ext}`
+      const { error } = await supabase.storage.from(BUCKET).upload(path, file, { contentType: file.type || "audio/mpeg" })
+      if (error) throw new Error(error.message)
+      set("music_url", supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl)
+      setNotice({ ok: true, text: "Đã tải nhạc lên" })
+    } catch (err: any) {
+      setNotice({ ok: false, text: err.message ?? "Lỗi tải nhạc" })
+    }
+    setUploadingMusic(false)
   }
 
   if (loading || (eventId && !form)) return <p className="text-muted">Đang tải...</p>
@@ -587,9 +655,35 @@ export default function InvitationPage() {
                   <input type="file" accept="image/*" className="hidden" disabled={uploadingQr} onChange={uploadGiftQr} />
                 </label>
               </Section>
+
+              <Section id="nhac-nen" title="Nhạc nền" desc="Nhạc bắt đầu phát khi khách mở thiệp, có nút bật/tắt ở góc dưới. Tải file MP3 (tối đa 15 MB) hoặc dán link file nhạc.">
+                <input className={field} placeholder="https://…/bai-hat.mp3" value={form.music_url} onChange={(e) => set("music_url", e.target.value)} />
+                <div className="flex items-center gap-3 flex-wrap">
+                  <label className="inline-flex items-center gap-1.5 border border-border bg-surface hover:bg-surface-hover hover:border-border-hover rounded-lg h-9 px-3 text-sm w-fit cursor-pointer">
+                    <Icon name="plus" size={14} />
+                    {uploadingMusic ? "Đang tải lên…" : form.music_url ? "Đổi file nhạc" : "Tải file nhạc"}
+                    <input type="file" accept="audio/*" className="hidden" disabled={uploadingMusic} onChange={uploadMusic} />
+                  </label>
+                  {form.music_url && (
+                    <>
+                      <audio src={form.music_url} controls preload="none" className="h-9 max-w-full" />
+                      <button onClick={() => set("music_url", "")} className="text-sm text-error hover:underline underline-offset-4">
+                        Bỏ nhạc
+                      </button>
+                    </>
+                  )}
+                </div>
+                {/youtu.?be|spotify|zingmp3|nhaccuatui/i.test(form.music_url) && (
+                  <p className="text-xs text-error">Link YouTube, Spotify, Zing MP3 không phát nền được. Hãy tải file MP3 lên.</p>
+                )}
+              </Section>
+
+              <Section id="hoi-dap" title="Câu hỏi thường gặp" desc="Khách bấm vào từng câu để xem trả lời. Hiện ngay trước mục Xác nhận tham dự.">
+                <FaqEditor items={form.faq} onChange={(next) => set("faq", next)} />
+              </Section>
             </>
           ) : (
-            <PremiumNote title="Lịch trình, dress code, câu chuyện, hộp mừng cưới">Các phần này có trong gói Premium.</PremiumNote>
+            <PremiumNote title="Lịch trình, dress code, câu chuyện, hộp mừng cưới, nhạc nền, câu hỏi thường gặp">Các phần này có trong gói Premium.</PremiumNote>
           )}
 
           <Section id="video" title="Video cưới" desc="Dán link YouTube, Vimeo hoặc Google Drive. Khách xem video ngay trong thiệp.">

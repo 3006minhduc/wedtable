@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react"
 
 type Guest = {
+  dietary?: string
+  rsvp_note?: string
   id: string
   name: string
   phone: string
@@ -88,6 +90,13 @@ export default function GuestTable({
                   <div className="text-muted text-xs">
                     {g.phone} · {g.code}
                   </div>
+                  {(g.dietary || g.rsvp_note) && (
+                    <div className="text-xs text-pr-d mt-0.5 max-w-[260px]" title={[g.dietary, g.rsvp_note].filter(Boolean).join(" · ")}>
+                      {g.dietary && <span>Ăn uống: {g.dietary}</span>}
+                      {g.dietary && g.rsvp_note && " · "}
+                      {g.rsvp_note && <span className="italic text-muted">“{g.rsvp_note}”</span>}
+                    </div>
+                  )}
                 </div>
               </div>
               {badge(g)}
@@ -159,6 +168,13 @@ export default function GuestTable({
                     <div className="text-muted text-xs">
                       {g.phone} · {g.code}
                     </div>
+                    {(g.dietary || g.rsvp_note) && (
+                      <div className="text-xs text-pr-d mt-0.5 max-w-[260px]" title={[g.dietary, g.rsvp_note].filter(Boolean).join(" · ")}>
+                        {g.dietary && <span>Ăn uống: {g.dietary}</span>}
+                        {g.dietary && g.rsvp_note && " · "}
+                        {g.rsvp_note && <span className="italic text-muted">“{g.rsvp_note}”</span>}
+                      </div>
+                    )}
                   </div>
                 </div>
               </td>
