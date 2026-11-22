@@ -9,13 +9,14 @@ export type Palette = {
 
 /** Invite template = intro effect + decorations + layout (events.invite_template).
  *  Colors are chosen separately (events.invite_theme), every palette works with every template. */
-export type InviteStyle = "floral" | "gilded" | "glass" | "emboss"
+export type InviteStyle = "floral" | "gilded" | "glass" | "emboss" | "daisy"
 
 export const TEMPLATES: Record<InviteStyle, { label: string; desc: string; palette: string; free?: boolean }> = {
   floral: { label: "Cổ điển hoa lá", desc: "Rèm vải kéo mở, vòng hoa lá, ảnh bìa khung vòm.", palette: "classic", free: true },
   gilded: { label: "Khung vàng photobooth", desc: "Phong bì dấu sáp, khung vàng chạm trên nền đậm, dải ảnh photobooth trượt ra.", palette: "bordeaux" },
   glass: { label: "Kính màu", desc: "Hai cánh cửa kính màu mở ra, hoa hồng viền chì, ảnh trong khung bầu dục.", palette: "glass" },
   emboss: { label: "Hoa văn nổi", desc: "Giấy hoa văn nổi, phong bì dấu sáp, nơ lụa tháo ra, đếm ngược trên nền đậm.", palette: "mauve" },
+  daisy: { label: "Hoa cúc phong bì", desc: "Bông cúc thêu trên phong bì, dòng sáng vàng chạy dọc chỉ thêu, nắp lật mở ra khung hoa nền xanh, chữ viết tay.", palette: "daisy" },
 }
 
 export const templateOf = (id?: string | null): InviteStyle => (id && id in TEMPLATES ? (id as InviteStyle) : "floral")
@@ -34,6 +35,11 @@ export const THEMES: Record<string, { label: string; p: Palette }> = {
   blush: {
     label: "Hồng tro và rose gold",
     p: { bg: "#EFE3E1", paper: "#FBF6F4", blush: "#EDD5D5", rose: "#9C6474", wine: "#6F4352", sage: "#C9A9B2", leaf: "#7E6A60", ink: "#3E3034", muted: "#8A767B", line: "#E6D3D3", soft: "#F4E8E7", okBg: "#EDEEE6", deep: "#4E2C38", gold: ["#F3D9CB", "#C8967A", "#8E5F4A"] },
+  },
+  daisy: {
+    label: "Be giấy và xanh pastel",
+    // sage = pastel blue of the cover background, deep = wine (light template: RSVP stays on paper)
+    p: { bg: "#ECE2D6", paper: "#F7EFE5", blush: "#F2D3CF", rose: "#A0606A", wine: "#8E1F2F", sage: "#A9BCD9", leaf: "#5F6B4C", ink: "#3A2A2A", muted: "#8A7A72", line: "#E4D5C6", soft: "#F3E9DD", okBg: "#EEF0E2", deep: "#8E1F2F", gold: ["#F6E2B0", "#C9A46A", "#8A6A32"] },
   },
   mauve: {
     label: "Hồng tro và navy",
@@ -70,6 +76,7 @@ export const THEME_INFO: Record<string, { desc: string; free?: boolean }> = {
   classic: { desc: "Giấy ngà, mực đỏ đô, ép kim vàng. Trang trọng kiểu Việt.", free: true },
   ivory: { desc: "Giấy ngà ấm, mực nâu mocha, champagne. Xu hướng 2026." },
   blush: { desc: "Hồng tro dịu, ép kim vàng hồng." },
+  daisy: { desc: "Giấy be, đỏ rượu, vàng đồng, nền bìa xanh pastel." },
   mauve: { desc: "Hồng tro, điểm xanh navy, viền vàng hồng." },
   sage: { desc: "Xanh sage, giấy ngà, ép kim champagne." },
   glass: { desc: "Hồng kính, xanh ô liu, nẹp đồng." },

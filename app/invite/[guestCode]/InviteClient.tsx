@@ -8,7 +8,8 @@ import { hallOf } from "@/lib/hall"
 import { Collage, FilmStrip, Lightbox, PhotoInterlude } from "./Album"
 import { Foil, LETTERPRESS, LINEN, PAPER_GRAIN, PrintPhoto, Tilt } from "./Paper"
 import FloorLayers from "@/components/seating/FloorLayers"
-import { serif, sans } from "./fonts"
+import { caps, script, serif, sans } from "./fonts"
+import { ConfettiOnView, DAISY_BRANCH_BG, DaisyDivider, DaisyFrame, DaisyHero, DaisyIntro, DaisySeal, DaisySprig, ScrollHint } from "./Daisy"
 import { CurtainIntro, Divider, Frame, Garland, PaletteProvider, Reveal, Seal, THEMES, useIV } from "./Ornaments"
 import { Cartouche, EnvelopeIntro, GiltCrest, GiltDivider, GiltFrame, GiltSeal, PhotoStrip } from "./Gilded"
 import { DoorsIntro, GlassArch, GlassDivider, GlassFrame, GlassSeal, LeadArch, OvalWindow, RoseCorner } from "./Glass"
@@ -633,6 +634,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
   const gilded = look === "gilded"
   const glass = look === "glass"
   const emboss = look === "emboss"
+  const daisy = look === "daisy"
   // Decoration set for this theme; non-floral looks put RSVP on the dark "deep" color
   const O =
     look === "gilded"
@@ -641,8 +643,10 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
       ? { Garland: GlassArch, Divider: GlassDivider, Frame: GlassFrame }
       : look === "emboss"
       ? { Garland: EmbossVine, Divider: EmbossDivider, Frame: EmbossFrame }
+      : look === "daisy"
+      ? { Garland: DaisySprig, Divider: DaisyDivider, Frame: DaisyFrame }
       : { Garland, Divider, Frame }
-  const deepRsvp = look !== "floral"
+  const deepRsvp = look !== "floral" && look !== "daisy"
   const [opened, setOpened] = useState(skipIntro)
   const [tableId, setTableId] = useState(guest.table_id ?? "")
   const [companions, setCompanions] = useState<number>(guest.companions ?? 0)
@@ -711,10 +715,15 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
   }
 
   return (
-    <div className={`${serif.variable} ${sans.variable} min-h-screen wt-paper`} style={{ backgroundColor: IV.bg, backgroundImage: LINEN, color: IV.ink, fontFamily: "var(--iv-sans)" }}>
-      <style>{`.wt-paper main section{position:relative}.wt-paper main section::after{content:"";position:absolute;inset:0;pointer-events:none;background-image:${PAPER_GRAIN};mix-blend-mode:multiply}`}</style>
+    <div
+      className={`${serif.variable} ${sans.variable} ${script.variable} ${caps.variable} min-h-screen wt-paper ${daisy ? "wt-daisy" : ""}`}
+      style={{ backgroundColor: IV.bg, backgroundImage: LINEN, color: IV.ink, fontFamily: "var(--iv-sans)", ...(daisy ? ({ "--iv-serif": "var(--iv-script)" } as React.CSSProperties) : {}) }}
+    >
+      <style>{`.wt-paper main section{position:relative}.wt-paper main section::after{content:"";position:absolute;inset:0;pointer-events:none;background-image:${PAPER_GRAIN};mix-blend-mode:multiply}.wt-daisy .italic{font-style:normal}`}</style>
       {!opened &&
-        (gilded ? (
+        (daisy ? (
+          <DaisyIntro onOpened={() => setOpened(true)} />
+        ) : gilded ? (
           <EnvelopeIntro initials={initials} photo={cover} title={coupleTitle} date={shortDate} onOpened={() => setOpened(true)} />
         ) : glass ? (
           <DoorsIntro initials={initials} onOpened={() => setOpened(true)} />
@@ -728,12 +737,26 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
         className="relative max-w-md mx-auto sm:my-10 sm:rounded-[4px] overflow-hidden"
         style={{
           backgroundColor: IV.paper,
-          backgroundImage: PAPER_GRAIN,
+          backgroundImage: daisy ? `${DAISY_BRANCH_BG}, ${PAPER_GRAIN}` : PAPER_GRAIN,
+          backgroundRepeat: daisy ? "repeat-y, repeat" : undefined,
+          backgroundPosition: daisy ? "left top, 0 0" : undefined,
           boxShadow: `0 1px 2px rgba(0,0,0,0.08), 0 40px 70px -40px rgba(40,25,20,0.45), 7px 9px 0 -3px ${IV.soft}, 7px 9px 0 -2px ${IV.line}, 14px 18px 0 -6px ${IV.soft}, 14px 18px 0 -5px ${IV.line}`,
         }}
       >
         {/* ---------- Hero ---------- */}
-        {gilded ? (
+        {daisy ? (
+          <>
+            <DaisyHero event={event} shortDate={shortDate} opened={opened} />
+            {start && (
+              <section className="px-6 py-14 text-center">
+                <Reveal>
+                  <SectionTitle kicker="Đếm ngược">Chỉ còn ít ngày nữa</SectionTitle>
+                  <Countdown start={start} />
+                </Reveal>
+              </section>
+            )}
+          </>
+        ) : gilded ? (
           <GildedHero event={event} shortDate={shortDate} start={start} photos={gallery.slice(0, 3)} opened={opened} />
         ) : glass ? (
           <GlassHero event={event} shortDate={shortDate} start={start} cover={cover} />
@@ -837,7 +860,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
             <Reveal>
               <SectionTitle kicker="Lịch trình">Ngày vui của chúng mình</SectionTitle>
             </Reveal>
-            {look === "floral" ? <Timeline items={timeline} /> : <WindingTimeline items={timeline} />}
+            {look === "floral" || daisy ? <Timeline items={timeline} /> : <WindingTimeline items={timeline} />}
           </section>
         )}
 
@@ -967,6 +990,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
           <section className="px-8 py-14 text-center">
             <Reveal>
               <SectionTitle kicker="Gửi yêu thương">Hộp mừng cưới</SectionTitle>
+              <ConfettiOnView>
               <O.Frame className="mx-auto max-w-[280px]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={event.gift_qr_url} alt="Mã QR mừng cưới" className="mx-auto w-48 h-48 object-contain bg-white rounded-lg" />
@@ -974,6 +998,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
                   Quét mã để gửi lời chúc và quà mừng
                 </p>
               </O.Frame>
+              </ConfettiOnView>
             </Reveal>
           </section>
         )}
@@ -1025,7 +1050,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
           <O.Garland className="opacity-80 mb-4 rotate-180" />
           <Reveal>
             <div className="flex justify-center">
-              {gilded ? <GiltSeal text={initials} size={84} /> : glass ? <GlassSeal text={initials} size={84} /> : emboss ? <EmbossSeal text={initials} size={84} /> : <Seal text={initials} size={84} />}
+              {daisy ? <DaisySeal size={84} /> : gilded ? <GiltSeal text={initials} size={84} /> : glass ? <GlassSeal text={initials} size={84} /> : emboss ? <EmbossSeal text={initials} size={84} /> : <Seal text={initials} size={84} />}
             </div>
             <p className="text-xl italic mt-4" style={{ ...SERIF, color: IV.wine }}>
               Sự hiện diện của bạn là niềm vinh hạnh của chúng tôi
@@ -1035,6 +1060,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
             </p>
           </Reveal>
         </footer>
+        {daisy && <ScrollHint show={opened} />}
         {viewer !== null && gallery.length > 0 && <Lightbox photos={gallery} index={viewer} onIndex={setViewer} onClose={() => setViewer(null)} />}
       </main>
     </div>

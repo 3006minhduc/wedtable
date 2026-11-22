@@ -88,6 +88,17 @@ function TemplateMock({ id, p }: { id: InviteStyle; p: Palette }) {
         </div>
       </div>
     )
+  if (id === "daisy")
+    return (
+      <div className="relative h-32 flex items-center justify-center overflow-hidden" style={{ background: p.sage }}>
+        {[8, 92].map((x) => (
+          <span key={x} className="absolute top-0 bottom-0 w-5" style={{ left: `calc(${x}% - 10px)`, background: `radial-gradient(circle at 50% 20%, ${p.blush} 0 4px, transparent 5px), radial-gradient(circle at 40% 55%, ${p.blush} 0 5px, transparent 6px), radial-gradient(circle at 60% 85%, ${p.blush} 0 4px, transparent 5px), linear-gradient(90deg, transparent 45%, ${p.leaf} 45% 55%, transparent 55%)` }} />
+        ))}
+        <div className={box + " rounded-t-[40px] rounded-b-[40px]"} style={{ background: p.paper, boxShadow: `0 0 0 1.5px ${p.gold[1]}, 0 4px 10px rgba(40,50,80,0.25)` }}>
+          {names}
+        </div>
+      </div>
+    )
   if (id === "emboss")
     return (
       <div className="relative h-32 flex items-center justify-center overflow-hidden" style={{ background: p.paper }}>
