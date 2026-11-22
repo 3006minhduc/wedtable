@@ -70,7 +70,7 @@ export function FaqList({ items }: { items: { q: string; a: string }[] }) {
       {items.map((it, i) => {
         const isOpen = open === i
         return (
-          <div key={i} className="rounded-2xl border overflow-hidden" style={{ background: "rgba(255,255,255,.7)", borderColor: IV.line }}>
+          <div key={i} className="rounded-2xl border overflow-hidden" style={{ background: IV.soft, borderColor: IV.line }}>
             <button type="button" onClick={() => setOpen(isOpen ? null : i)} className="w-full flex items-center justify-between gap-3 px-4 py-3.5 text-left" aria-expanded={isOpen}>
               <span className="text-[15px] font-medium" style={{ color: IV.ink }}>
                 {it.q}

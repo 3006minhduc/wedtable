@@ -6,16 +6,15 @@ import { formatInviteDate } from "@/lib/formatDate"
 import { videoEmbed } from "@/lib/videoEmbed"
 import { hallOf } from "@/lib/hall"
 import { Collage, FilmStrip, Lightbox, PhotoInterlude } from "./Album"
-import { Foil, LETTERPRESS, LINEN, PAPER_GRAIN, PrintPhoto, Tilt } from "./Paper"
+import { LINEN, PAPER_GRAIN } from "./Paper"
 import FloorLayers from "@/components/seating/FloorLayers"
-import { caps, script, serif, sans } from "./fonts"
+import { caps, display, script, serif, sans } from "./fonts"
+import { DateStrip, EventDate, dotDate, FilmHero, FilmIntro, FilmTitle, HyHero, HyIntro, HyTitle, LetterHero, LetterIntro, LetterTitle, MagHero, MagIntro, MagTitle, WaxSeal } from "./Looks"
+import type { HeroProps, IntroProps } from "./Looks"
 import { DietaryPicker, FaqList, MusicToggle } from "./Extras"
-import { ConfettiOnView, DAISY_BRANCH_BG, DaisyDivider, DaisyFrame, DaisyHero, DaisyIntro, DaisySeal, DaisySprig, ScrollHint } from "./Daisy"
-import { CurtainIntro, Divider, Frame, Garland, PaletteProvider, Reveal, Seal, THEMES, useIV } from "./Ornaments"
-import { Cartouche, EnvelopeIntro, GiltCrest, GiltDivider, GiltFrame, GiltSeal, PhotoStrip } from "./Gilded"
-import { DoorsIntro, GlassArch, GlassDivider, GlassFrame, GlassSeal, LeadArch, OvalWindow, RoseCorner } from "./Glass"
-import { ERoseCorner, EmbossDivider, EmbossFrame, EmbossSeal, EmbossVine, Ribbon, useRaised } from "./Emboss"
-import { glassTexture, templateOf } from "@/lib/inviteThemes"
+import { ConfettiOnView, DAISY_BRANCH_BG, DaisyDivider, DaisyFrame, DaisyHero, DaisyIntro, DaisySeal, ScrollHint } from "./Daisy"
+import { PaletteProvider, Reveal, THEMES, useIV } from "./Ornaments"
+import { TEMPLATES, templateOf } from "@/lib/inviteThemes"
 import type { InviteStyle, Palette } from "@/lib/inviteThemes"
 
 const DEFAULT_MESSAGE =
@@ -108,8 +107,13 @@ function onDeep(IV: Palette): Palette {
   return { ...IV, wine: gold[0], rose: gold[1], muted: IV.line, ink: IV.paper, blush: "rgba(255,255,255,0.06)", paper: IV.deep ?? IV.wine }
 }
 
+/** Whole-page dark palette (film template body; red bands of the traditional template) */
+function darkPalette(p: Palette, ground?: string): Palette {
+  return { ...p, bg: ground ?? p.deep, paper: ground ?? p.deep, ink: "#F4EFE7", muted: "rgba(244,239,231,0.68)", line: "rgba(255,255,255,0.16)", soft: "rgba(255,255,255,0.07)", blush: "rgba(255,255,255,0.08)", okBg: "rgba(255,255,255,0.1)", wine: p.gold[0], rose: p.gold[1], leaf: p.gold[0], sage: p.gold[1] }
+}
+
 // ---------- countdown ----------
-function Countdown({ start }: { start: Date }) {
+function Countdown({ start, variant = "circle" }: { start: Date; variant?: "circle" | "square" | "plain" }) {
   const IV = useIV()
   const [now, setNow] = useState<number | null>(null)
   useEffect(() => {
@@ -133,6 +137,36 @@ function Countdown({ start }: { start: Date }) {
     { v: String(Math.floor((diff % 3600000) / 60000)).padStart(2, "0"), l: "phút" },
     { v: String(Math.floor((diff % 60000) / 1000)).padStart(2, "0"), l: "giây" },
   ]
+  if (variant === "plain")
+    return (
+      <div className="grid grid-cols-4" role="timer">
+        {items.map((it, i) => (
+          <div key={it.l} className={"flex flex-col items-center " + (i ? "border-l" : "")} style={{ borderColor: IV.line }}>
+            <span className="text-[44px] leading-none tabular-nums" style={{ fontFamily: "var(--iv-display), serif", color: IV.ink }}>
+              {it.v}
+            </span>
+            <span className="text-[13px] mt-2" style={{ color: IV.muted }}>
+              {it.l}
+            </span>
+          </div>
+        ))}
+      </div>
+    )
+  if (variant === "square")
+    return (
+      <div className="flex justify-center gap-2.5" role="timer">
+        {items.map((it) => (
+          <div key={it.l} className="w-[70px] py-3 flex flex-col items-center" style={{ boxShadow: `inset 0 0 0 1px ${IV.gold[1]}, inset 0 0 0 5px ${IV.gold[1]}33` }}>
+            <span className="text-[30px] leading-none tabular-nums" style={{ fontFamily: "var(--iv-display), serif", color: IV.wine }}>
+              {it.v}
+            </span>
+            <span className="text-[13px] mt-1.5" style={{ color: IV.muted }}>
+              {it.l}
+            </span>
+          </div>
+        ))}
+      </div>
+    )
   return (
     <div className="flex justify-center gap-2.5 sm:gap-4" role="timer">
       {items.map((it) => (
@@ -148,29 +182,11 @@ function Countdown({ start }: { start: Date }) {
               {it.v}
             </span>
           </div>
-          <span className="text-xs" style={{ color: IV.muted }}>
+          <span className="text-[13px]" style={{ color: IV.muted }}>
             {it.l}
           </span>
         </div>
       ))}
-    </div>
-  )
-}
-
-function SectionTitle({ children, kicker }: { children: React.ReactNode; kicker?: string }) {
-  const IV = useIV()
-  // onDeep() makes paper the deep stock color
-  const onDark = IV.paper === IV.deep
-  return (
-    <div className="text-center mb-6">
-      {kicker && (
-        <p className="text-[11px] tracking-[0.3em] uppercase mb-2" style={{ color: IV.rose }}>
-          {kicker}
-        </p>
-      )}
-      <h2 className="text-[32px] leading-tight italic" style={{ ...SERIF, color: IV.wine, ...(onDark ? {} : LETTERPRESS) }}>
-        {onDark ? <Foil>{children}</Foil> : children}
-      </h2>
     </div>
   )
 }
@@ -180,23 +196,17 @@ function Timeline({ items }: { items: any[] }) {
   const IV = useIV()
   return (
     <div className="relative pl-2">
-      <div className="absolute left-[27px] top-2 bottom-2 border-l-2 border-dotted" style={{ borderColor: IV.rose }} />
+      <div className="absolute left-[13px] top-3 bottom-3 border-l" style={{ borderColor: IV.line }} />
       <div className="flex flex-col gap-7">
         {items.map((it, i) => (
           <Reveal key={i} delay={i * 90}>
             <div className="flex items-start gap-4">
-              <div
-                className="relative z-10 w-10 h-10 shrink-0 rounded-full flex items-center justify-center text-lg"
-                style={{ background: IV.blush, boxShadow: `0 0 0 4px ${IV.paper}` }}
-                aria-hidden
-              >
-                {it.icon || "✦"}
-              </div>
+              <span className="relative z-10 mt-2.5 ml-px w-2.5 h-2.5 shrink-0 rounded-full" style={{ background: IV.rose, boxShadow: `0 0 0 4px ${IV.paper}` }} aria-hidden />
               <div className="pt-0.5 text-left">
-                <p className="text-xl" style={{ ...SERIF, color: IV.wine }}>
+                <p className="text-[22px] tabular-nums" style={{ fontFamily: "var(--iv-caps), serif", fontWeight: 600, color: IV.wine }}>
                   {it.time}
                 </p>
-                <p className="text-[12px] tracking-[0.18em] uppercase" style={{ color: IV.ink }}>
+                <p className="text-[15px] font-medium" style={{ color: IV.ink }}>
                   {it.title}
                 </p>
                 {it.note && (
@@ -213,407 +223,70 @@ function Timeline({ items }: { items: any[] }) {
   )
 }
 
-// ---------- winding timeline (non-floral templates): stops alternate around a curving dashed path ----------
-function WindingTimeline({ items }: { items: any[] }) {
-  const IV = useIV()
-  const lead = IV.gold[1]
-  const ROW = 104
-  const W = 72
-  const pts = items.map((_, i) => ({ x: i % 2 === 0 ? 20 : W - 20, y: ROW / 2 + i * ROW }))
-  let d = `M${W / 2} 0 C ${W / 2} ${ROW / 4}, ${pts[0].x} ${ROW / 4}, ${pts[0].x} ${pts[0].y}`
-  for (let i = 1; i < pts.length; i++) {
-    const a = pts[i - 1]
-    const b = pts[i]
-    d += ` C ${a.x} ${a.y + ROW / 2}, ${b.x} ${b.y - ROW / 2}, ${b.x} ${b.y}`
-  }
-  const last = pts[pts.length - 1]
-  d += ` C ${last.x} ${last.y + ROW / 4}, ${W / 2} ${last.y + ROW / 4}, ${W / 2} ${last.y + ROW / 2}`
-  return (
-    <div className="relative grid grid-cols-[1fr_72px_1fr]" style={{ gridTemplateRows: `repeat(${items.length}, ${ROW}px)` }}>
-      <svg className="col-start-2 w-[72px] overflow-visible" style={{ gridRow: `1 / span ${items.length}`, height: items.length * ROW }} viewBox={`0 0 ${W} ${items.length * ROW}`} aria-hidden>
-        <path d={d} fill="none" stroke={lead} strokeWidth="1.6" strokeDasharray="5 5" />
-        {pts.map((pt, i) => (
-          <g key={i}>
-            <circle cx={pt.x} cy={pt.y} r="17" fill={IV.blush} stroke={lead} strokeWidth="1.2" />
-            <text x={pt.x} y={pt.y + 6} textAnchor="middle" fontSize="17">
-              {items[i].icon || "✦"}
-            </text>
-          </g>
-        ))}
-      </svg>
-      {items.map((it, i) => (
-        <div key={i} style={{ gridRow: i + 1 }} className={(i % 2 === 0 ? "col-start-3 text-left pl-1" : "col-start-1 text-right pr-1") + " flex flex-col justify-center"}>
-          <Reveal delay={i * 90}>
-            <p className="text-xl" style={{ ...SERIF, color: IV.wine }}>
-              {it.time}
-            </p>
-            <p className="text-[12px] tracking-[0.16em] uppercase leading-snug" style={{ color: IV.ink }}>
-              {it.title}
-            </p>
-            {it.note && (
-              <p className="text-xs mt-0.5" style={{ color: IV.muted }}>
-                {it.note}
-              </p>
-            )}
-          </Reveal>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-// ---------- emboss hero: raised-paper arch with roses, satin ribbon that unties, dark countdown band ----------
-function EmbossHero({ event, shortDate, start, cover, second, opened }: { event: any; shortDate: string; start: Date | null; cover?: string; second?: string; opened: boolean }) {
-  const IV = useIV()
-  const d = (n: number) => ({ "data-depth": "", style: { ["--d" as any]: n } as React.CSSProperties })
-  const dark = onDeep(IV)
-  const raised = useRaised(1.2)
-  const v = { vectorEffect: "non-scaling-stroke" as const }
-  return (
-    <section className="relative min-h-[100svh] flex flex-col items-center justify-center text-center px-10 pt-24 pb-10 overflow-hidden" style={{ background: `radial-gradient(ellipse at 50% 20%, ${IV.soft} 0%, ${IV.paper} 70%)` }}>
-      <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full pointer-events-none" style={raised} aria-hidden>
-        <path d="M6 97 V30 Q6 9 50 4 Q94 9 94 30 V97 Z" fill="none" stroke={IV.paper} strokeWidth="5" style={v} />
-        <path d="M9 94 V31 Q9 12 50 7.5 Q91 12 91 31 V94 Z" fill="none" stroke={IV.paper} strokeWidth="2" style={v} />
-      </svg>
-      <ERoseCorner className="absolute -top-2 -left-2 w-[42%] max-w-[190px]" />
-      <ERoseCorner className="absolute -top-2 -right-2 w-[42%] max-w-[190px]" style={{ transform: "scaleX(-1)" }} />
-      <ERoseCorner className="absolute bottom-0 -left-2 w-[30%] max-w-[140px]" style={{ transform: "scaleY(-1)" }} />
-      <ERoseCorner className="absolute bottom-0 -right-2 w-[30%] max-w-[140px]" style={{ transform: "scale(-1)" }} />
-      <Ribbon start={opened} />
-      <Reveal className="relative w-full">
-        <Tilt max={8} className="mx-auto w-[min(74vw,300px)]">
-          <div className="relative" style={{ transformStyle: "preserve-3d" }}>
-            {cover && (
-              <div className="absolute -right-[18%] top-[22%] w-[52%]" {...d(8)}>
-                <PrintPhoto src={cover} rotate={7} tall />
-              </div>
-            )}
-            {second && (
-              <div className="absolute -left-[17%] top-[52%] w-[44%]" {...d(14)}>
-                <PrintPhoto src={second} rotate={-6} />
-              </div>
-            )}
-            {/* pressed paper card: debossed panel with a raised border */}
-            <div className="relative rounded-[18px] px-7 pt-12 pb-12 flex flex-col items-center" {...d(30)}>
-              <div
-                className="absolute inset-0 rounded-[18px]"
-                style={{
-                  backgroundColor: IV.paper,
-                  backgroundImage: PAPER_GRAIN,
-                  boxShadow: `inset 0 0 0 1px rgba(255,255,255,0.7), 0 2px 3px rgba(0,0,0,0.12), 0 30px 50px -22px rgba(40,30,40,0.5)`,
-                }}
-              />
-              <div className="absolute inset-[10px] rounded-[12px] pointer-events-none" style={{ boxShadow: `1.5px 2px 2px ${IV.muted}66, -1px -1px 1px rgba(255,255,255,0.9), inset 1.5px 2px 2px ${IV.muted}55, inset -1px -1px 1px rgba(255,255,255,0.9)` }} />
-              <div className="relative flex flex-col items-center w-full">
-                <p className="text-[10px] tracking-[0.28em] uppercase mb-4" style={{ color: IV.rose }}>
-                  Báo tin lễ thành hôn
-                </p>
-                <h1 className="italic leading-[1.02] break-words max-w-full" style={{ ...SERIF, color: IV.wine, ...LETTERPRESS }}>
-                  <span className="block text-[42px]">{event.bride_name}</span>
-                  <span className="block text-3xl my-0.5" style={{ color: IV.rose }}>
-                    &amp;
-                  </span>
-                  <span className="block text-[42px]">{event.groom_name}</span>
-                </h1>
-                <EmbossDivider className="my-5 !w-28" />
-                <p className="text-lg tracking-[0.15em]" style={{ ...SERIF, color: IV.ink, ...LETTERPRESS }}>
-                  {shortDate}
-                </p>
-                {event.venue_name && (
-                  <p className="text-xs mt-1" style={{ color: IV.muted }}>
-                    {event.venue_name}
-                  </p>
-                )}
-              </div>
-            </div>
-            <div className="absolute -top-7 -left-8 w-24" {...d(50)}>
-              <ERoseCorner className="w-full" />
-            </div>
-            <div className="absolute -bottom-7 -right-8 w-24" {...d(50)}>
-              <ERoseCorner className="w-full" style={{ transform: "scale(-1)" }} />
-            </div>
-          </div>
-        </Tilt>
-      </Reveal>
-      {start && (
-        <PaletteProvider value={dark}>
-          <Reveal delay={450} className="relative w-full mt-10">
-            <div className="rounded-2xl px-3 py-5" style={{ background: IV.deep }}>
-              <p className="text-[11px] tracking-[0.25em] uppercase mb-3" style={{ color: dark.muted }}>
-                Đếm ngược
-              </p>
-              <Countdown start={start} />
-            </div>
-          </Reveal>
-        </PaletteProvider>
-      )}
-    </section>
-  )
-}
-
-// ---------- floral hero as a layered stationery suite: deep stock, arched ivory card, photo print, wax seal ----------
-function SuiteHero({ event, shortDate, start, cover, second, initials }: { event: any; shortDate: string; start: Date | null; cover?: string; second?: string; initials: string }) {
-  const IV = useIV()
-  const dark = onDeep(IV)
-  const g = IV.gold
-  const d = (n: number) => ({ "data-depth": "", style: { ["--d" as any]: n } as React.CSSProperties })
-  return (
-    <section
-      className="relative min-h-[100svh] flex flex-col items-center justify-center text-center px-6 pt-14 pb-24 overflow-hidden"
-      style={{ background: `radial-gradient(ellipse at 50% 28%, ${IV.wine} 0%, ${IV.deep} 78%)` }}
-    >
-      <Reveal>
-        <p className="text-[11px] tracking-[0.35em] uppercase mb-8">
-          <Foil>Trân trọng kính mời</Foil>
-        </p>
-      </Reveal>
-      <Reveal delay={120} className="w-full">
-        <Tilt max={8} className="mx-auto w-[min(76vw,310px)]">
-          <div className="relative" style={{ transformStyle: "preserve-3d" }}>
-            {/* photo print tucked behind the card */}
-            {cover && (
-              <div className="absolute -left-[16%] top-[30%] w-[52%]" {...d(8)}>
-                <PrintPhoto src={cover} rotate={-8} tall />
-              </div>
-            )}
-            {second && (
-              <div className="absolute -right-[15%] top-[12%] w-[44%]" {...d(14)}>
-                <PrintPhoto src={second} rotate={7} />
-              </div>
-            )}
-            {/* the arched ivory card */}
-            <div
-              className="relative rounded-t-[999px] rounded-b-[6px] px-7 pt-16 pb-12 flex flex-col items-center"
-              {...d(30)}
-            >
-              <div
-                className="absolute inset-0 rounded-t-[999px] rounded-b-[6px]"
-                style={{
-                  backgroundColor: IV.paper,
-                  backgroundImage: PAPER_GRAIN,
-                  boxShadow: `inset 0 0 0 7px ${IV.paper}, inset 0 0 0 8px ${g[1]}, inset 0 0 0 11px ${IV.paper}, inset 0 0 0 11.5px ${g[1]}, 0 2px 3px rgba(0,0,0,0.2), 0 30px 50px -18px rgba(0,0,0,0.6)`,
-                }}
-              />
-              <div className="relative flex flex-col items-center w-full">
-                <O_Garland />
-                <p className="text-[10px] tracking-[0.28em] uppercase mt-1 mb-4" style={{ color: IV.rose }}>
-                  Lễ thành hôn
-                </p>
-                <h1 className="italic leading-[1.02] break-words max-w-full" style={{ ...SERIF, color: IV.wine, ...LETTERPRESS }}>
-                  <span className="block text-[44px]">{event.bride_name}</span>
-                  <span className="block text-3xl my-0.5" style={{ color: g[2] }}>
-                    &amp;
-                  </span>
-                  <span className="block text-[44px]">{event.groom_name}</span>
-                </h1>
-                <Divider className="my-5 !w-28" />
-                <p className="text-lg tracking-[0.18em]" style={{ ...SERIF, color: IV.ink, ...LETTERPRESS }}>
-                  {shortDate}
-                </p>
-                {event.venue_name && (
-                  <p className="text-xs mt-1" style={{ color: IV.muted }}>
-                    {event.venue_name}
-                  </p>
-                )}
-              </div>
-            </div>
-            {/* wax seal pressed on the bottom edge */}
-            <div className="absolute inset-x-0 -bottom-9 flex justify-center" style={{ transformStyle: "preserve-3d" }}>
-              <div {...d(55)}>
-                <div style={{ filter: "drop-shadow(0 6px 8px rgba(0,0,0,0.35))" }}>
-                  <GiltSeal text={initials} size={78} />
-                </div>
-              </div>
-            </div>
-          </div>
-        </Tilt>
-      </Reveal>
-      {start && (
-        <PaletteProvider value={dark}>
-          <Reveal delay={350} className="mt-16">
-            <p className="text-xs mb-3" style={{ color: dark.muted }}>
-              Còn lại đến ngày chung đôi
-            </p>
-            <Countdown start={start} />
-          </Reveal>
-        </PaletteProvider>
-      )}
-      <div className="absolute bottom-6 flex flex-col items-center gap-1 text-[10px] tracking-[0.3em] uppercase animate-bounce" style={{ color: g[1] }}>
-        <span>Cuộn xuống</span>
-        <span aria-hidden>⌄</span>
-      </div>
-    </section>
-  )
-}
-
-/** Small garland sized for the card top */
-function O_Garland() {
-  return (
-    <div className="absolute -top-14 inset-x-0 opacity-90 pointer-events-none">
-      <Garland />
-    </div>
-  )
-}
-
 type InviteProps = { guest: any; event: any; floors: any[]; locked: boolean; preview?: boolean; skipIntro?: boolean }
 
-// ---------- glass hero: frosted pink window with leaded roses, then an olive section with the oval photo ----------
-function GlassHero({ event, shortDate, start, cover }: { event: any; shortDate: string; start: Date | null; cover?: string }) {
+// ---------- looks ----------
+function RuleDivider({ className = "" }: { className?: string }) {
   const IV = useIV()
-  const d = (n: number) => ({ "data-depth": "", style: { ["--d" as any]: n } as React.CSSProperties })
-  const dark = onDeep(IV)
   return (
-    <>
-      <section className="relative min-h-[100svh] flex flex-col items-center justify-center text-center px-10 pt-24 pb-24 overflow-hidden" style={{ background: glassTexture(IV) }}>
-        <LeadArch />
-        <RoseCorner className="absolute -top-3 -left-3 w-[46%] max-w-[210px]" />
-        <RoseCorner className="absolute -top-3 -right-3 w-[46%] max-w-[210px]" style={{ transform: "scaleX(-1)" }} />
-        <RoseCorner className="absolute -bottom-3 -left-3 w-[34%] max-w-[160px]" style={{ transform: "scaleY(-1)" }} />
-        <RoseCorner className="absolute -bottom-3 -right-3 w-[34%] max-w-[160px]" style={{ transform: "scale(-1)" }} />
-        <Reveal className="relative w-full">
-          <Tilt max={8} className="mx-auto w-[min(74vw,300px)]">
-            <div className="relative" style={{ transformStyle: "preserve-3d" }}>
-              {/* leaded ivory card in the window */}
-              <div className="relative rounded-t-[999px] rounded-b-[6px] px-7 pt-16 pb-12 flex flex-col items-center" {...d(30)}>
-                <div
-                  className="absolute inset-0 rounded-t-[999px] rounded-b-[6px]"
-                  style={{
-                    backgroundColor: IV.paper,
-                    backgroundImage: PAPER_GRAIN,
-                    boxShadow: `inset 0 0 0 2px ${IV.gold[2]}, inset 0 0 0 7px ${IV.blush}, inset 0 0 0 9px ${IV.gold[2]}, inset 0 0 0 10px ${IV.gold[1]}, 0 2px 3px rgba(0,0,0,0.15), 0 30px 50px -20px rgba(60,30,30,0.5)`,
-                  }}
-                />
-                <div className="relative flex flex-col items-center w-full">
-                  <p className="text-[10px] tracking-[0.28em] uppercase mb-1" style={{ color: IV.rose }}>
-                    Cùng gia đình hai bên
-                  </p>
-                  <p className="text-xs tracking-[0.3em] mb-5" style={{ ...SERIF, color: IV.muted }}>
-                    {shortDate}
-                  </p>
-                  <h1 className="italic leading-[1.02] break-words max-w-full" style={{ ...SERIF, color: IV.wine, ...LETTERPRESS }}>
-                    <span className="block text-[42px]">{event.bride_name}</span>
-                    <span className="block text-3xl my-0.5" style={{ color: IV.rose }}>
-                      &amp;
-                    </span>
-                    <span className="block text-[42px]">{event.groom_name}</span>
-                  </h1>
-                  <GlassDivider className="my-5 !w-28" />
-                  {event.venue_name && (
-                    <p className="text-xs" style={{ color: IV.muted }}>
-                      {event.venue_name}
-                    </p>
-                  )}
-                </div>
-              </div>
-              {/* roses popping out of the card */}
-              <div className="absolute -top-8 -left-9 w-28" {...d(60)}>
-                <RoseCorner className="w-full" style={{ filter: "drop-shadow(0 8px 8px rgba(60,30,30,0.3))" }} />
-              </div>
-              <div className="absolute -bottom-8 -right-9 w-28" {...d(60)}>
-                <RoseCorner className="w-full" style={{ transform: "scale(-1)", filter: "drop-shadow(0 -6px 8px rgba(60,30,30,0.25))" }} />
-              </div>
-            </div>
-          </Tilt>
-        </Reveal>
-        {start && (
-          <Reveal delay={350} className="relative mt-14">
-            <p className="text-xs mb-3" style={{ color: IV.muted }}>
-              Còn lại đến ngày chung đôi
-            </p>
-            <Countdown start={start} />
-          </Reveal>
-        )}
-        <div className="absolute bottom-8 flex flex-col items-center gap-1 text-[10px] tracking-[0.3em] uppercase animate-bounce" style={{ color: IV.rose }}>
-          <span>Cuộn xuống</span>
-          <span aria-hidden>⌄</span>
-        </div>
-      </section>
-      <section className="px-8 py-16 text-center" style={{ background: IV.deep ?? IV.wine }}>
-        <Reveal>
-          <p className="text-[28px] italic leading-snug mb-8" style={{ ...SERIF, color: IV.soft }}>
-            Chúng mình rất vui được cùng bạn chung vui ngày này
-          </p>
-        </Reveal>
-        <Reveal delay={150}>
-          <OvalWindow photo={cover}>
-            <GlassSeal text={`${initialOf(event.bride_name)}&${initialOf(event.groom_name)}`} size={110} />
-          </OvalWindow>
-        </Reveal>
-        <PaletteProvider value={dark}>
-          <Reveal delay={250}>
-            <p className="text-xs tracking-[0.25em] uppercase mt-10" style={{ color: dark.muted }}>
-              {shortDate}
-            </p>
-          </Reveal>
-        </PaletteProvider>
-      </section>
-    </>
+    <div className={"flex items-center justify-center gap-3 " + className} aria-hidden>
+      <span className="h-px w-14" style={{ background: IV.gold[1], opacity: 0.7 }} />
+      <span className="w-1.5 h-1.5 rotate-45" style={{ background: IV.gold[1] }} />
+      <span className="h-px w-14" style={{ background: IV.gold[1], opacity: 0.7 }} />
+    </div>
   )
 }
 
-// ---------- gilded hero: gold cartouche on bordeaux + photobooth strip ----------
-function GildedHero({ event, shortDate, start, photos, opened }: { event: any; shortDate: string; start: Date | null; photos: string[]; opened: boolean }) {
+function CardFrame({ children, className = "", square = false, gilt = false }: { children: React.ReactNode; className?: string; square?: boolean; gilt?: boolean }) {
   const IV = useIV()
-  const d = (n: number) => ({ "data-depth": "", style: { ["--d" as any]: n } as React.CSSProperties })
-  const dark = onDeep(IV)
   return (
-    <section
-      className="relative min-h-[100svh] flex flex-col items-center justify-center px-6 pt-14 pb-24 overflow-hidden"
-      style={{ background: `radial-gradient(ellipse at 50% 30%, ${IV.wine} 0%, ${IV.deep ?? IV.wine} 72%)` }}
+    <div
+      className={(square ? "rounded-none" : "rounded-2xl") + " px-6 py-8 text-center " + className}
+      style={{ background: IV.paper, boxShadow: gilt ? `inset 0 0 0 1px ${IV.gold[1]}, inset 0 0 0 5px ${IV.paper}, inset 0 0 0 6px ${IV.gold[1]}` : `inset 0 0 0 1px ${IV.line}` }}
     >
-      <div className="w-[min(84vw,330px)]">
-        <Reveal>
-          <Tilt max={7}>
-          <div className="relative" style={{ transformStyle: "preserve-3d" }}>
-          {/* champagne backer card peeking out behind the frame */}
-          <div className="absolute inset-x-[4%] top-[5%] bottom-[8%] rounded-[6px]" {...d(0)}>
-            <div className="w-full h-full rounded-[6px]" style={{ backgroundColor: IV.paper, backgroundImage: PAPER_GRAIN, transform: "rotate(-5deg)", boxShadow: `inset 0 0 0 4px ${IV.paper}, inset 0 0 0 5px ${IV.gold[1]}, 0 20px 40px -18px rgba(0,0,0,0.6)` }} />
-          </div>
-          <div {...d(28)}>
-          <Cartouche slot={photos.length > 0}>
-            <p className="text-[10px] tracking-[0.32em] uppercase mt-1 mb-4" style={{ color: IV.rose }}>
-              Trân trọng kính mời
-            </p>
-            <h1 className="italic leading-[1.05] break-words max-w-full" style={{ ...SERIF, color: IV.wine, ...LETTERPRESS }}>
-              <span className="block text-[38px]">{event.bride_name}</span>
-              <span className="block text-2xl my-0.5" style={{ color: IV.rose }}>
-                &amp;
-              </span>
-              <span className="block text-[38px]">{event.groom_name}</span>
-            </h1>
-            <GiltDivider className="my-4 !w-28" />
-            <p className="text-lg tracking-[0.15em]" style={{ ...SERIF, color: IV.ink }}>
-              {shortDate}
-            </p>
-            {event.venue_name && (
-              <p className="text-xs mt-1" style={{ color: IV.muted }}>
-                {event.venue_name}
-              </p>
-            )}
-          </Cartouche>
-          </div>
-          <div className="relative" {...d(45)}>
-            <PhotoStrip photos={photos} start={opened} />
-          </div>
-          </div>
-          </Tilt>
-        </Reveal>
+      {children}
+    </div>
+  )
+}
+
+type Look = {
+  Intro: (p: IntroProps) => JSX.Element
+  Hero: (p: HeroProps) => JSX.Element
+  Title: (p: { children: React.ReactNode; kicker?: string }) => JSX.Element
+  Divider: (p: { className?: string }) => JSX.Element
+  Frame: (p: { children: React.ReactNode; className?: string }) => JSX.Element
+}
+
+const LOOKS: Record<InviteStyle, Look> = {
+  floral: { Intro: LetterIntro, Hero: LetterHero, Title: LetterTitle, Divider: RuleDivider, Frame: (p) => <CardFrame {...p} /> },
+  gilded: { Intro: HyIntro, Hero: HyHero, Title: HyTitle, Divider: RuleDivider, Frame: (p) => <CardFrame {...p} gilt /> },
+  glass: { Intro: FilmIntro, Hero: FilmHero, Title: FilmTitle, Divider: RuleDivider, Frame: (p) => <CardFrame {...p} square /> },
+  emboss: { Intro: MagIntro, Hero: MagHero, Title: MagTitle, Divider: RuleDivider, Frame: (p) => <CardFrame {...p} square /> },
+  daisy: {
+    Intro: (p) => <DaisyIntro onOpened={p.onOpened} onReveal={p.onReveal} />,
+    Hero: (p) => <DaisyHero event={p.event} shortDate={p.date} opened={p.opened} />,
+    Title: LetterTitle,
+    Divider: DaisyDivider,
+    Frame: DaisyFrame,
+  },
+}
+
+/** A template's cover with real event data, for the template gallery on /invitation (static, already opened) */
+export function TemplateCover({ id, palette, event, cover, second }: { id: InviteStyle; palette: string; event: any; cover?: string; second?: string }) {
+  const L = LOOKS[id]
+  const p = (THEMES[palette] ?? THEMES[TEMPLATES[id].palette] ?? THEMES.classic).p
+  const start = eventStart(event.event_date, event.event_time)
+  const shortDate = start ? `${String(start.getDate()).padStart(2, "0")} · ${String(start.getMonth() + 1).padStart(2, "0")} · ${start.getFullYear()}` : ""
+  const initials = `${initialOf(event.bride_name)}&${initialOf(event.groom_name)}`
+  return (
+    <PaletteProvider value={p}>
+      <div
+        className={`${serif.variable} ${sans.variable} ${script.variable} ${caps.variable} ${display.variable}`}
+        style={{ color: p.ink, fontFamily: "var(--iv-sans)" }}
+      >
+        <L.Hero event={event} cover={cover} second={second} start={start} date={shortDate} opened initials={initials} />
       </div>
-      {start && (
-        <PaletteProvider value={dark}>
-          <Reveal delay={300} className="mt-10 text-center">
-            <p className="text-xs mb-3" style={{ color: dark.muted }}>
-              Còn lại đến ngày chung đôi
-            </p>
-            <Countdown start={start} />
-          </Reveal>
-        </PaletteProvider>
-      )}
-      <div className="absolute bottom-6 flex flex-col items-center gap-1 text-[10px] tracking-[0.3em] uppercase animate-bounce" style={{ color: dark.rose }}>
-        <span>Cuộn xuống</span>
-        <span aria-hidden>⌄</span>
-      </div>
-    </section>
+    </PaletteProvider>
   )
 }
 
@@ -621,8 +294,8 @@ export default function InviteClient(props: InviteProps) {
   // Free plan: only the classic color set (DESIGN.md / lib/plan.ts)
   // Free plan: classic colors + floral template only (lib/plan.ts)
   const premium = props.event.plan === "premium"
-  const theme = premium ? THEMES[props.event.invite_theme] ?? THEMES.blush : THEMES.classic
   const look = premium ? templateOf(props.event.invite_template) : "floral"
+  const theme = premium ? THEMES[props.event.invite_theme] ?? THEMES[TEMPLATES[look].palette] ?? THEMES.classic : THEMES.classic
   return (
     <PaletteProvider value={theme.p}>
       <Invite {...props} look={look} />
@@ -631,24 +304,19 @@ export default function InviteClient(props: InviteProps) {
 }
 
 function Invite({ guest, event, floors, locked, preview = false, skipIntro = false, look = "floral" }: InviteProps & { look?: InviteStyle }) {
-  const IV = useIV()
-  const gilded = look === "gilded"
-  const glass = look === "glass"
-  const emboss = look === "emboss"
+  const base = useIV()
+  // film: the whole body is dark; traditional: red bands for the countdown and the invitation block
+  const IV = look === "glass" ? darkPalette(base) : base
+  const S = look === "gilded" ? darkPalette(base) : IV
   const daisy = look === "daisy"
-  // Decoration set for this theme; non-floral looks put RSVP on the dark "deep" color
-  const O =
-    look === "gilded"
-      ? { Garland: GiltCrest, Divider: GiltDivider, Frame: GiltFrame }
-      : look === "glass"
-      ? { Garland: GlassArch, Divider: GlassDivider, Frame: GlassFrame }
-      : look === "emboss"
-      ? { Garland: EmbossVine, Divider: EmbossDivider, Frame: EmbossFrame }
-      : look === "daisy"
-      ? { Garland: DaisySprig, Divider: DaisyDivider, Frame: DaisyFrame }
-      : { Garland, Divider, Frame }
-  const deepRsvp = look !== "floral" && look !== "daisy"
+  // Each template: its opening, cover, section title, divider, card frame and closing seal
+  const L = LOOKS[look]
+  const O = { Divider: L.Divider, Frame: L.Frame }
+  const SectionTitle = L.Title
+  const deepRsvp = look === "gilded" || look === "glass"
   const [opened, setOpened] = useState(skipIntro)
+  // cover entrance starts while the opening is still finishing (doors / page turn show the cover underneath)
+  const [revealed, setRevealed] = useState(skipIntro)
   const [tableId, setTableId] = useState(guest.table_id ?? "")
   const [companions, setCompanions] = useState<number>(guest.companions ?? 0)
   const [dietary, setDietary] = useState<string>(guest.dietary ?? "")
@@ -677,12 +345,15 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
   const rest = gallery.slice(storyPhoto && event.plan === "premium" && event.love_story ? 2 : 1)
   const interlude1 = rest.length >= 3 ? rest[0] : undefined
   const interlude2 = rest.length >= 8 ? rest[rest.length - 1] : undefined
-  const albumPhotos = rest.filter((u) => u !== interlude1 && u !== interlude2)
+  const albumAll = rest.filter((u) => u !== interlude1 && u !== interlude2)
+  // three photos printed with the date (only when the album still has photos left after them)
+  const datePhotos = albumAll.length >= 4 ? albumAll.slice(0, 3) : []
+  const albumPhotos = albumAll.slice(datePhotos.length)
   // collage up to 10; a swipe strip for the rest when there are at least 3 more
   const collagePhotos = albumPhotos.length >= 13 ? albumPhotos.slice(0, 10) : albumPhotos
   const stripPhotos = albumPhotos.length >= 13 ? albumPhotos.slice(10) : []
   // the small second print on the cover reuses an album photo
-  const heroSecond = gallery[1]
+  const heroSecond: string | undefined = undefined
   const [viewer, setViewer] = useState<number | null>(null)
   const openPhoto = (url: string) => setViewer(Math.max(0, gallery.indexOf(url)))
   const premium = event.plan === "premium"
@@ -720,23 +391,13 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
   }
 
   return (
+    <PaletteProvider value={IV}>
     <div
-      className={`${serif.variable} ${sans.variable} ${script.variable} ${caps.variable} min-h-screen wt-paper ${daisy ? "wt-daisy" : ""}`}
-      style={{ backgroundColor: IV.bg, backgroundImage: LINEN, color: IV.ink, fontFamily: "var(--iv-sans)", ...(daisy ? ({ "--iv-serif": "var(--iv-script)" } as React.CSSProperties) : {}) }}
+      className={`${serif.variable} ${sans.variable} ${script.variable} ${caps.variable} ${display.variable} min-h-screen wt-paper ${daisy ? "wt-daisy" : ""}`}
+      style={{ backgroundColor: IV.bg, backgroundImage: LINEN, color: IV.ink, fontFamily: "var(--iv-sans)" }}
     >
-      <style>{`.wt-paper main section{position:relative}.wt-paper main section::after{content:"";position:absolute;inset:0;pointer-events:none;background-image:${PAPER_GRAIN};mix-blend-mode:multiply}.wt-daisy .italic{font-style:normal}`}</style>
-      {!opened &&
-        (daisy ? (
-          <DaisyIntro onOpened={() => setOpened(true)} />
-        ) : gilded ? (
-          <EnvelopeIntro initials={initials} photo={cover} title={coupleTitle} date={shortDate} onOpened={() => setOpened(true)} />
-        ) : glass ? (
-          <DoorsIntro initials={initials} onOpened={() => setOpened(true)} />
-        ) : emboss ? (
-          <EnvelopeIntro initials={initials} title={coupleTitle} date={shortDate} dark={false} onOpened={() => setOpened(true)} seal={<EmbossSeal text={initials} size={110} />} />
-        ) : (
-          <CurtainIntro initials={initials} onOpened={() => setOpened(true)} />
-        ))}
+      <style>{`.wt-paper main section{position:relative}.wt-paper main section::after{content:"";position:absolute;inset:0;pointer-events:none;background-image:${PAPER_GRAIN};mix-blend-mode:multiply}.wt-paper main section.wt-bare::after{display:none}.wt-paper h1,.wt-paper h2{text-wrap:balance}.wt-paper p{text-wrap:pretty}`}</style>
+      {!opened && <L.Intro event={event} cover={cover} initials={initials} date={dotDate(start)} onReveal={() => setRevealed(true)} onOpened={() => { setRevealed(true); setOpened(true) }} />}
 
       <main
         className="relative max-w-md mx-auto sm:my-10 sm:rounded-[4px] overflow-hidden"
@@ -749,35 +410,28 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
         }}
       >
         {/* ---------- Hero ---------- */}
-        {daisy ? (
-          <>
-            <DaisyHero event={event} shortDate={shortDate} opened={opened} />
-            {start && (
-              <section className="px-6 py-14 text-center">
-                <Reveal>
-                  <SectionTitle kicker="Đếm ngược">Chỉ còn ít ngày nữa</SectionTitle>
-                  <Countdown start={start} />
-                </Reveal>
-              </section>
-            )}
-          </>
-        ) : gilded ? (
-          <GildedHero event={event} shortDate={shortDate} start={start} photos={gallery.slice(0, 3)} opened={opened} />
-        ) : glass ? (
-          <GlassHero event={event} shortDate={shortDate} start={start} cover={cover} />
-        ) : emboss ? (
-          <EmbossHero event={event} shortDate={shortDate} start={start} cover={cover} second={heroSecond} opened={opened} />
-        ) : (
-          <SuiteHero event={event} shortDate={shortDate} start={start} cover={cover} second={heroSecond} initials={initials} />
+        <L.Hero event={event} cover={cover} second={heroSecond} start={start} date={shortDate} opened={revealed} initials={initials} />
+
+        {/* ---------- Countdown ---------- */}
+        {start && (
+          <PaletteProvider value={S}>
+            <section className="px-6 py-14 text-center" style={{ background: S.paper }}>
+              <Reveal>
+                <SectionTitle>Hôn lễ sẽ diễn ra sau</SectionTitle>
+                <Countdown start={start} variant={look === "gilded" ? "square" : look === "glass" || look === "emboss" ? "plain" : "circle"} />
+              </Reveal>
+            </section>
+          </PaletteProvider>
         )}
 
         {/* ---------- Invitation ---------- */}
-        <section className="px-8 py-14 text-center" style={{ background: IV.bg }}>
+        <PaletteProvider value={S}>
+        <section className="px-8 py-14 text-center" style={{ background: S.bg, color: S.ink }}>
           <Reveal>
-            <p className="text-[11px] tracking-[0.3em] uppercase mb-3" style={{ color: IV.rose }}>
-              Kính gửi
+            <p className="text-[17px] italic mb-2" style={{ color: S.muted, fontFamily: "var(--iv-caps), serif" }}>
+              Trân trọng kính mời
             </p>
-            <p className="text-[34px] italic leading-tight mb-6" style={{ ...SERIF, color: IV.wine }}>
+            <p className="text-[34px] italic leading-tight mb-6" style={{ ...SERIF, color: S.wine }}>
               {guest.name}
             </p>
             <p className="text-[15px] leading-relaxed">{event.invite_message || DEFAULT_MESSAGE}</p>
@@ -792,10 +446,10 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
                   { k: "Nhà trai", v: event.groom_family },
                 ].map((f) => (
                   <div key={f.k}>
-                    <p className="text-[11px] tracking-[0.25em] uppercase mb-2" style={{ color: IV.rose }}>
+                    <p className="text-[17px] mb-1.5" style={{ color: S.wine, fontFamily: "var(--iv-caps), serif", fontWeight: 600 }}>
                       {f.k}
                     </p>
-                    <p className="whitespace-pre-line leading-relaxed" style={{ color: IV.ink }}>
+                    <p className="whitespace-pre-line leading-relaxed" style={{ color: S.ink }}>
                       {f.v}
                     </p>
                   </div>
@@ -806,16 +460,16 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
 
           {hasFullNames && (
             <Reveal>
-              <p className="text-[11px] tracking-[0.3em] uppercase mb-3" style={{ color: IV.rose }}>
+              <p className="text-[17px] italic mb-2" style={{ color: S.muted, fontFamily: "var(--iv-caps), serif" }}>
                 Trân trọng báo tin lễ thành hôn của
               </p>
-              <p className="text-[30px] italic leading-snug" style={{ ...SERIF, color: IV.wine }}>
+              <p className="text-[30px] italic leading-snug" style={{ ...SERIF, color: S.wine }}>
                 {event.bride_full_name || event.bride_name}
               </p>
-              <p className="text-xl italic my-1" style={{ ...SERIF, color: IV.rose }}>
+              <p className="text-xl italic my-1" style={{ ...SERIF, color: S.rose }}>
                 cùng
               </p>
-              <p className="text-[30px] italic leading-snug mb-8" style={{ ...SERIF, color: IV.wine }}>
+              <p className="text-[30px] italic leading-snug mb-8" style={{ ...SERIF, color: S.wine }}>
                 {event.groom_full_name || event.groom_name}
               </p>
             </Reveal>
@@ -824,20 +478,35 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
           <Reveal>
             <div style={{ filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.08)) drop-shadow(0 14px 18px rgba(40,25,20,0.14))" }}>
             <O.Frame>
-              <p className="text-[11px] tracking-[0.3em] uppercase mb-2" style={{ color: IV.rose }}>
-                Lễ thành hôn &amp; tiệc cưới
+              <p className="text-[22px] mb-5" style={{ fontFamily: "var(--iv-caps), serif", fontWeight: 600, color: S.wine }}>
+                Lễ thành hôn và tiệc cưới
               </p>
-              <p className="text-2xl italic mb-3" style={{ ...SERIF, color: IV.wine }}>
+              {start ? <EventDate start={start} /> : <p className="text-sm font-medium">{formatInviteDate(event.event_date, event.event_time)}</p>}
+              {timeline.length > 0 && (
+                <div className="mt-5 mx-auto w-fit text-left text-[15px] grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
+                  {timeline.slice(0, 3).map((t: any, i: number) => (
+                    <div key={i} className="contents">
+                      <span className="tabular-nums font-medium" style={{ color: S.wine }}>
+                        {t.time}
+                      </span>
+                      <span style={{ color: S.ink }}>{t.title}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <p className="mt-6 text-[13px]" style={{ color: S.muted }}>
+                Tại
+              </p>
+              <p className="text-[22px] mb-1" style={{ fontFamily: "var(--iv-caps), serif", fontWeight: 600, color: S.ink }}>
                 {event.venue_name || "Đang cập nhật địa điểm"}
               </p>
-              <p className="text-sm font-medium">{formatInviteDate(event.event_date, event.event_time)}</p>
               {event.venue_address && (
-                <p className="text-sm mt-2 whitespace-pre-line" style={{ color: IV.muted }}>
+                <p className="text-sm mt-2 whitespace-pre-line" style={{ color: S.muted }}>
                   {event.venue_address}
                 </p>
               )}
               {mapEmbed && (
-                <div className="mt-5 -mx-1 overflow-hidden rounded-xl border" style={{ borderColor: IV.line }}>
+                <div className="mt-5 -mx-1 overflow-hidden rounded-xl border" style={{ borderColor: S.line }}>
                   <iframe src={mapEmbed} title="Bản đồ địa điểm" loading="lazy" referrerPolicy="no-referrer-when-downgrade" className="block w-full h-56 border-0" />
                 </div>
               )}
@@ -846,8 +515,8 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
                   href={mapUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-block mt-5 rounded-full px-5 py-2 text-xs tracking-[0.15em] uppercase border transition-colors hover:bg-white"
-                  style={{ borderColor: IV.rose, color: IV.wine }}
+                  className="inline-flex items-center justify-center mt-5 h-10 rounded-lg px-5 text-[15px] font-medium border transition-opacity hover:opacity-80"
+                  style={{ borderColor: S.rose, color: S.wine }}
                 >
                   {mapEmbed ? "Chỉ đường" : "Xem bản đồ"}
                 </a>
@@ -856,8 +525,17 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
             </div>
           </Reveal>
         </section>
+        </PaletteProvider>
 
-        {interlude1 && <PhotoInterlude src={interlude1} caption={shortDate} title={coupleTitle} onOpen={() => openPhoto(interlude1)} />}
+        {datePhotos.length === 3 && start && (
+          <section className="px-6 py-10 wt-bare" style={{ background: IV.paper }}>
+            <Reveal>
+              <DateStrip start={start} photos={datePhotos} onOpen={openPhoto} />
+            </Reveal>
+          </section>
+        )}
+
+        {interlude1 && <PhotoInterlude src={interlude1} caption={dotDate(start)} title={coupleTitle} onOpen={() => openPhoto(interlude1)} />}
 
         {/* ---------- Timeline ---------- */}
         {timeline.length > 0 && (
@@ -865,7 +543,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
             <Reveal>
               <SectionTitle kicker="Lịch trình">Ngày vui của chúng mình</SectionTitle>
             </Reveal>
-            {look === "floral" || daisy ? <Timeline items={timeline} /> : <WindingTimeline items={timeline} />}
+            <Timeline items={timeline} />
           </section>
         )}
 
@@ -935,33 +613,34 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
         )}
 
         {/* ---------- RSVP ---------- */}
-        <section className="px-6 py-14" style={{ background: deepRsvp ? IV.deep : IV.bg }}>
-          <PaletteProvider value={deepRsvp ? onDeep(IV) : IV}>
+        <section className="px-6 py-14" style={{ background: deepRsvp ? base.deep : IV.bg }}>
+          <PaletteProvider value={deepRsvp ? darkPalette(base) : IV}>
             <Reveal>
               <SectionTitle kicker="Hồi âm">Xác nhận tham dự</SectionTitle>
             </Reveal>
           </PaletteProvider>
+          <PaletteProvider value={base}>
           <Reveal>
-            <div className="rounded-3xl p-5 sm:p-6 border" style={{ backgroundColor: IV.paper, backgroundImage: PAPER_GRAIN, borderColor: IV.line, boxShadow: `inset 0 1px 0 rgba(255,255,255,0.7), 0 2px 3px rgba(0,0,0,0.08), 0 24px 40px -20px rgba(0,0,0,0.45)` }}>
+            <div className="rounded-3xl p-5 sm:p-6 border" style={{ backgroundColor: base.paper, backgroundImage: PAPER_GRAIN, borderColor: base.line, boxShadow: `inset 0 1px 0 rgba(255,255,255,0.7), 0 2px 3px rgba(0,0,0,0.08), 0 24px 40px -20px rgba(0,0,0,0.45)` }}>
               {guest.confirmed && !status?.success && (
-                <p className="text-xs text-center mb-4 rounded-full py-1.5 px-3" style={{ background: IV.okBg, color: IV.leaf }}>
+                <p className="text-xs text-center mb-4 rounded-full py-1.5 px-3" style={{ background: base.okBg, color: base.leaf }}>
                   {locked ? "Bạn đã xác nhận tham dự." : "Bạn đã xác nhận tham dự. Bạn vẫn có thể đổi bàn bên dưới."}
                 </p>
               )}
               {locked ? (
-                <p className="text-sm text-center" style={{ color: IV.wine }}>
+                <p className="text-sm text-center" style={{ color: base.wine }}>
                   Danh sách khách đã chốt, không thể thay đổi lựa chọn. Cảm ơn bạn!
                 </p>
               ) : (
                 <div className="flex flex-col gap-5">
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Số người đi cùng bạn</span>
-                    <div className="flex items-center rounded-full border bg-white" style={{ borderColor: IV.line }}>
-                      <button type="button" className="w-9 h-9 rounded-full text-lg" style={{ color: IV.wine }} onClick={() => setCompanions((c) => Math.max(0, c - 1))} aria-label="Bớt một người">
+                    <div className="flex items-center rounded-full border bg-white" style={{ borderColor: base.line }}>
+                      <button type="button" className="w-9 h-9 rounded-full text-lg" style={{ color: base.wine }} onClick={() => setCompanions((c) => Math.max(0, c - 1))} aria-label="Bớt một người">
                         −
                       </button>
                       <span className="w-6 text-center text-sm font-medium">{companions}</span>
-                      <button type="button" className="w-9 h-9 rounded-full text-lg" style={{ color: IV.wine }} onClick={() => setCompanions((c) => Math.min(20, c + 1))} aria-label="Thêm một người">
+                      <button type="button" className="w-9 h-9 rounded-full text-lg" style={{ color: base.wine }} onClick={() => setCompanions((c) => Math.min(20, c + 1))} aria-label="Thêm một người">
                         +
                       </button>
                     </div>
@@ -969,7 +648,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
 
                   <TableMap floors={floors} value={tableId} companions={companions} onChange={setTableId} />
 
-                  <select className="rounded-full border bg-white px-4 py-2.5 text-sm" style={{ borderColor: IV.line }} value={tableId} onChange={(e) => setTableId(e.target.value)}>
+                  <select className="rounded-full border bg-white px-4 py-2.5 text-sm" style={{ borderColor: base.line }} value={tableId} onChange={(e) => setTableId(e.target.value)}>
                     <option value="">Hoặc chọn bàn từ danh sách…</option>
                     {allTables.map((t: any) => (
                       <option key={t.id} value={t.id} disabled={t.seats - (t.used ?? 0) < 1}>
@@ -981,7 +660,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
                   <DietaryPicker value={dietary} onChange={setDietary} />
                   <textarea
                     className="rounded-2xl border bg-white px-4 py-2.5 text-sm"
-                    style={{ borderColor: IV.line }}
+                    style={{ borderColor: base.line }}
                     rows={2}
                     maxLength={500}
                     placeholder="Lời nhắn cho cô dâu chú rể (không bắt buộc)"
@@ -990,20 +669,20 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
                   />
 
                   <button
-                    className="rounded-full py-3 text-sm tracking-[0.15em] uppercase text-white transition-opacity disabled:opacity-60"
-                    style={{ background: IV.wine }}
+                    className="rounded-lg h-12 text-[15px] font-medium text-white transition-opacity disabled:opacity-60"
+                    style={{ background: base.wine }}
                     disabled={loading}
                     onClick={handleConfirm}
                   >
                     {loading ? "Đang gửi…" : "Xác nhận tham dự"}
                   </button>
                   {status?.error && (
-                    <p className="text-sm text-center" style={{ color: IV.wine }}>
+                    <p className="text-sm text-center" style={{ color: base.wine }}>
                       {status.message}
                     </p>
                   )}
                   {status?.success && (
-                    <p className="text-lg italic text-center" style={{ ...SERIF, color: IV.leaf }}>
+                    <p className="text-lg italic text-center" style={{ ...SERIF, color: base.leaf }}>
                       Cảm ơn bạn! Hẹn gặp bạn tại tiệc cưới.
                     </p>
                   )}
@@ -1011,6 +690,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
               )}
             </div>
           </Reveal>
+          </PaletteProvider>
         </section>
 
         {/* ---------- Gift ---------- */}
@@ -1043,10 +723,10 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
                   href={video.src}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-block rounded-full px-6 py-2.5 text-xs tracking-[0.15em] uppercase border"
+                  className="inline-flex items-center h-11 rounded-lg px-5 text-[15px] font-medium border"
                   style={{ borderColor: IV.rose, color: IV.wine }}
                 >
-                  ▶ Xem video cưới
+                  Xem video cưới
                 </a>
               ) : (
                 <div
@@ -1075,16 +755,15 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
 
         {/* ---------- Footer ---------- */}
         <footer className="px-8 pt-6 pb-14 text-center">
-          <O.Garland className="opacity-80 mb-4 rotate-180" />
           <Reveal>
             <div className="flex justify-center">
-              {daisy ? <DaisySeal size={84} /> : gilded ? <GiltSeal text={initials} size={84} /> : glass ? <GlassSeal text={initials} size={84} /> : emboss ? <EmbossSeal text={initials} size={84} /> : <Seal text={initials} size={84} />}
+              {daisy ? <DaisySeal size={84} /> : <WaxSeal text={initials} size={84} color={look === "gilded" ? IV.gold[1] : undefined} />}
             </div>
             <p className="text-xl italic mt-4" style={{ ...SERIF, color: IV.wine }}>
               Sự hiện diện của bạn là niềm vinh hạnh của chúng tôi
             </p>
-            <p className="text-[10px] tracking-[0.3em] uppercase mt-8" style={{ color: IV.muted }}>
-              WedTable
+            <p className="text-xs mt-8" style={{ color: IV.muted }}>
+              Thiệp làm bằng WedTable
             </p>
           </Reveal>
         </footer>
@@ -1093,5 +772,6 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
         {viewer !== null && gallery.length > 0 && <Lightbox photos={gallery} index={viewer} onIndex={setViewer} onClose={() => setViewer(null)} />}
       </main>
     </div>
+    </PaletteProvider>
   )
 }

@@ -29,6 +29,9 @@ export default function InvitePreviewPage({ params }: { params: { eventId: strin
             .map((f: any) => ({ ...f, tables: (f.tables ?? []).map((t: any) => ({ ...t, used: seatsUsed(guests, t.id) })) }))
         )
         const { floors: _f, guests: _g, ...rest } = e
+        const q = new URLSearchParams(window.location.search)
+        if (q.get("t")) rest.invite_template = q.get("t")
+        if (q.get("p")) rest.invite_theme = q.get("p")
         setEvent(rest)
       })
       .catch((err) => setError(err.message))
@@ -38,7 +41,12 @@ export default function InvitePreviewPage({ params }: { params: { eventId: strin
   useEffect(() => {
     function onMessage(m: MessageEvent) {
       if (m.origin !== window.location.origin || m.data?.type !== "wt-invite-preview") return
-      setEvent((prev: any) => (prev ? { ...prev, ...m.data.patch } : prev))
+      // a try-on frame keeps its own template and colors
+      const q = new URLSearchParams(window.location.search)
+      const patch = { ...m.data.patch }
+      if (q.get("t")) delete patch.invite_template
+      if (q.get("p")) delete patch.invite_theme
+      setEvent((prev: any) => (prev ? { ...prev, ...patch } : prev))
     }
     window.addEventListener("message", onMessage)
     window.parent?.postMessage({ type: "wt-invite-preview-ready" }, window.location.origin)

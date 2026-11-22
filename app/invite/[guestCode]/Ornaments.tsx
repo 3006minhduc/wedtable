@@ -134,7 +134,7 @@ export function Reveal({ children, className = "", delay = 0 }: { children: Reac
   return (
     <div
       ref={ref}
-      className={"transition-all duration-1000 ease-out motion-reduce:transition-none " + (shown ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6") + " " + className}
+      className={"transition-opacity duration-700 ease-out motion-reduce:transition-none " + (shown ? "opacity-100" : "opacity-0") + " " + className}
       style={{ transitionDelay: `${delay}ms` }}
     >
       {children}

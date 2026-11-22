@@ -14,14 +14,14 @@ export function PhotoInterlude({ src, title, caption, onOpen }: { src: string; t
     <section className="relative h-[78svh] max-h-[620px] min-h-[380px] overflow-hidden">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={src} alt="" loading="lazy" onClick={onOpen} className="absolute inset-0 w-full h-full object-cover cursor-zoom-in wt-kenburns" />
-      <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0) 45%, rgba(0,0,0,0.55) 100%)" }} />
+      <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0) 35%, rgba(0,0,0,0.65) 100%)" }} />
       {(title || caption) && (
         <div className="absolute inset-x-0 bottom-10 text-center px-8 pointer-events-none">
           <Reveal>
-            {caption && <p className="text-[10px] tracking-[0.35em] uppercase text-white/80 mb-2">{caption}</p>}
+            {caption && <p className="text-[15px] text-white/90 mb-1">{caption}</p>}
             {title && (
-              <p className="text-[34px] italic leading-tight" style={{ ...SERIF, textShadow: "0 2px 12px rgba(0,0,0,0.35)" }}>
-                <Foil>{title}</Foil>
+              <p className="text-[34px] leading-tight text-white" style={{ ...SERIF, textShadow: "0 2px 12px rgba(0,0,0,0.45)" }}>
+                {title}
               </p>
             )}
           </Reveal>
@@ -43,7 +43,7 @@ export function FilmStrip({ photos, onOpen, offset = 0 }: { photos: string[]; on
           </button>
         ))}
       </div>
-      <p className="text-center text-[10px] tracking-[0.3em] uppercase opacity-60">Vuốt để xem thêm</p>
+      <p className="text-center text-[13px] opacity-70">Vuốt để xem thêm</p>
     </div>
   )
 }

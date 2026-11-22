@@ -142,26 +142,35 @@ export function DaisySeal({ size = 64, glow = false }: { size?: number; glow?: b
  * brightens, light leaks from the flap edges, the flap flips open (seal goes with it), the warm gold
  * inside shows an embossed daisy, then everything fades to the cover. Timings follow the reference video.
  */
-export function DaisyIntro({ onOpened }: { onOpened: () => void }) {
+export function DaisyIntro({ onOpened, onReveal }: { onOpened: () => void; onReveal?: () => void }) {
   const [phase, setPhase] = useState<"idle" | "run" | "out">("idle")
   const timers = useRef<number[]>([])
   const reduce = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
 
+  const startRef = useRef<() => void>(() => {})
   useEffect(() => () => timers.current.forEach((t) => clearTimeout(t)), [])
+  // nobody tapped: start on its own after a few seconds
+  useEffect(() => {
+    if (phase !== "idle") return
+    const t = window.setTimeout(() => startRef.current(), 7000)
+    return () => clearTimeout(t)
+  }, [phase])
 
   function start() {
     if (phase === "out") return
-    if (phase === "run" || reduce) return finish(phase === "run" ? 600 : 400) // second tap skips
+    if (phase === "run" || reduce) return finish(700) // second tap skips
     setPhase("run")
-    timers.current.push(window.setTimeout(() => setPhase("out"), 5400))
+    timers.current.push(window.setTimeout(() => { setPhase("out"); onReveal?.() }, 5400))
     timers.current.push(window.setTimeout(onOpened, 6100))
   }
   function finish(ms: number) {
     timers.current.forEach((t) => clearTimeout(t))
     setPhase("out")
+    onReveal?.()
     timers.current = [window.setTimeout(onOpened, ms)]
   }
 
+  startRef.current = start
   const run = phase !== "idle"
   return (
     <div
@@ -176,9 +185,9 @@ export function DaisyIntro({ onOpened }: { onOpened: () => void }) {
         <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice" className="absolute inset-0 w-full h-full dz-inside">
           <defs>
             <radialGradient id="dz-inside" cx="50%" cy="32%" r="70%">
-              <stop offset="0" stopColor="#FBD28A" />
-              <stop offset="0.6" stopColor="#EFA44C" />
-              <stop offset="1" stopColor="#C97C30" />
+              <stop offset="0" stopColor="#FAEBCB" />
+              <stop offset="0.6" stopColor="#EFCF94" />
+              <stop offset="1" stopColor="#D2A867" />
             </radialGradient>
           </defs>
           <rect width={W} height={H} fill="url(#dz-inside)" />
@@ -249,14 +258,16 @@ export function DaisyIntro({ onOpened }: { onOpened: () => void }) {
           </svg>
           {/* back of the flap (seen after it flips past 90°) */}
           <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice" className="absolute inset-0 w-full h-full" style={{ backfaceVisibility: "hidden", transform: "rotateX(180deg)" }}>
-            <path d={`M0 0 H${W} V${SIDE} L${TIP.x} ${TIP.y} L0 ${SIDE}Z`} fill="#F2C887" transform={`scale(1 -1) translate(0 ${-H})`} />
+            <path d={`M0 0 H${W} V${SIDE} L${TIP.x} ${TIP.y} L0 ${SIDE}Z`} fill="#F4DDB0" transform={`scale(1 -1) translate(0 ${-H})`} />
           </svg>
         </div>
 
         {/* tap hint */}
-        <p className="dz-hint absolute inset-x-0 bottom-[7%] text-center text-[11px] tracking-[0.32em] uppercase" style={{ color: "#8A6A3A", fontFamily: "var(--iv-caps), serif" }}>
-          Chạm để mở thiệp
-        </p>
+        <div className="dz-hint absolute inset-x-0 bottom-[7%] flex justify-center pointer-events-none">
+          <span className="rounded-lg px-4 py-2 text-[14px] font-medium" style={{ background: "rgba(255,255,255,.92)", color: "#2A2220", boxShadow: "0 4px 14px rgba(0,0,0,.18)" }}>
+            Chạm để mở thiệp
+          </span>
+        </div>
       </div>
       <style>{`
         .dz-intro .dz-g-stem{stroke-dasharray:1;stroke-dashoffset:1}
@@ -270,7 +281,7 @@ export function DaisyIntro({ onOpened }: { onOpened: () => void }) {
         .dz-run .dz-seal{animation:dzSeal 1s 1.9s ease forwards}
         .dz-run .dz-inside{animation:dzIn .5s 3.7s ease forwards}
         .dz-run .dz-flap{animation:dzFlap .9s 3.9s cubic-bezier(.55,.05,.35,1) forwards}
-        .dz-run .dz-hint{opacity:0;transition:opacity .4s}
+        .dz-run .dz-hint{animation:none;opacity:0;transition:opacity .4s}
         .dz-hint{animation:dzPulse 2.2s ease-in-out infinite}
         .dz-intro{transition:opacity .7s ease}
         .dz-out{opacity:0;pointer-events:none}
@@ -389,7 +400,7 @@ export function DaisyHero({ event, shortDate, opened }: { event: any; shortDate:
   const line = (i: number): React.CSSProperties => ({
     opacity: opened ? 1 : 0,
     transform: opened ? "none" : "translateY(10px)",
-    transition: `opacity 900ms ease ${1.3 + i * 0.22}s, transform 900ms ease ${1.3 + i * 0.22}s`,
+    transition: `opacity 900ms ease ${0.35 + i * 0.18}s, transform 900ms ease ${0.35 + i * 0.18}s`,
   })
   const caps: React.CSSProperties = { fontFamily: "var(--iv-caps), serif", letterSpacing: "0.3em", textTransform: "uppercase" }
   const scriptF: React.CSSProperties = { fontFamily: "var(--iv-script), cursive", color: IV.wine }
@@ -401,12 +412,7 @@ export function DaisyHero({ event, shortDate, opened }: { event: any; shortDate:
         <path d={ARCH} fill="none" stroke={IV.gold[0]} strokeWidth={0.8} transform="translate(180 330) scale(0.955) translate(-180 -330)" />
       </svg>
       <div className="absolute inset-x-[22%] top-[18%] bottom-[16%] flex flex-col items-center justify-center text-center">
-        <p className="text-[11px] leading-[1.9]" style={{ ...caps, color: IV.muted, ...line(0) }}>
-          Hai trái tim
-          <br />
-          một tình yêu
-        </p>
-        <p className="text-[11px] mt-6" style={{ ...caps, color: IV.rose, letterSpacing: "0.18em", ...line(1) }}>
+        <p className="text-[17px] italic" style={{ fontFamily: "var(--iv-caps), serif", color: IV.rose, ...line(1) }}>
           Chúng mình sắp cưới
         </p>
         <h1 className="mt-5 leading-[1.05] break-words max-w-full" style={scriptF}>
@@ -473,7 +479,7 @@ export function ScrollHint({ show }: { show: boolean }) {
   const visible = show && !scrolled
   return (
     <div className="fixed bottom-5 inset-x-0 z-30 flex flex-col items-center gap-1.5 pointer-events-none transition-opacity duration-700" style={{ opacity: visible ? 1 : 0 }}>
-      <span className="text-[10px] tracking-[0.28em] uppercase font-medium" style={{ color: IV.wine }}>
+      <span className="text-[13px] font-medium" style={{ color: IV.wine }}>
         Cuộn để xem tiếp
       </span>
       <span className="w-[18px] h-[28px] rounded-full border-[1.5px] flex justify-center pt-1.5" style={{ borderColor: IV.wine }}>

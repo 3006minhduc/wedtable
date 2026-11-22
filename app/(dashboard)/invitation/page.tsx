@@ -3,13 +3,14 @@
 // Invitation designer: theme, wording, families, timeline, dress code, story, photos, gift QR, video.
 // Autosaves like Settings; the phone preview on the right updates instantly via postMessage.
 import { useEffect, useRef, useState } from "react"
+import TemplatePicker from "@/components/invitation/TemplatePicker"
 import Icon from "@/components/ui/Icon"
 import { inviteCompleteness } from "@/lib/eventHealth"
 import PremiumNote from "@/components/ui/PremiumNote"
 import { createClient } from "@/lib/supabase/client"
 import { resizeImage } from "@/lib/image"
-import { TEMPLATES, THEMES, THEME_INFO, TIMELINE_ICONS, glassTexture, templateOf } from "@/lib/inviteThemes"
-import type { InviteStyle, Palette } from "@/lib/inviteThemes"
+import { TIMELINE_ICONS, templateOf } from "@/lib/inviteThemes"
+import type { InviteStyle } from "@/lib/inviteThemes"
 import { isPremium } from "@/lib/plan"
 import { videoEmbed } from "@/lib/videoEmbed"
 import { useEvents } from "@/lib/useEvents"
@@ -55,125 +56,6 @@ function Section({ title, desc, children, id }: { title: string; desc?: string; 
       </div>
       {children}
     </section>
-  )
-}
-
-/** Mini mock of a template's cover, drawn in the currently chosen colors */
-function TemplateMock({ id, p }: { id: InviteStyle; p: Palette }) {
-  const names = (
-    <>
-      <span className="text-[8px] tracking-[0.25em] uppercase" style={{ color: p.rose }}>
-        Kính mời
-      </span>
-      <span className="text-[15px] italic leading-none text-center" style={{ color: p.wine, fontFamily: "var(--font-serif)" }}>
-        Ngọc Anh &amp; Minh Khoa
-      </span>
-      <span className="text-[9px] tracking-[0.2em]" style={{ color: p.muted }}>
-        20 · 12 · 2026
-      </span>
-    </>
-  )
-  const box = "w-[62%] h-[80%] flex flex-col items-center justify-center gap-0.5"
-  if (id === "gilded")
-    return (
-      <div className="h-32 flex items-center justify-center" style={{ background: `radial-gradient(ellipse at 50% 30%, ${p.wine}, ${p.deep})` }}>
-        <div className={box + " rounded-[3px]"} style={{ background: p.paper, boxShadow: `0 0 0 2px ${p.gold[1]}, 0 0 0 4px ${p.gold[2]}, 0 6px 14px rgba(0,0,0,0.4)` }}>
-          {names}
-        </div>
-      </div>
-    )
-  if (id === "glass")
-    return (
-      <div className="h-32 flex items-center justify-center" style={{ background: glassTexture(p) }}>
-        <div className={box + " rounded-t-[60px] rounded-b-[3px]"} style={{ background: p.paper, boxShadow: `0 0 0 2px ${p.gold[2]}, 0 0 0 5px ${p.blush}, 0 0 0 7px ${p.gold[2]}` }}>
-          {names}
-        </div>
-      </div>
-    )
-  if (id === "daisy")
-    return (
-      <div className="relative h-32 flex items-center justify-center overflow-hidden" style={{ background: p.sage }}>
-        {[8, 92].map((x) => (
-          <span key={x} className="absolute top-0 bottom-0 w-5" style={{ left: `calc(${x}% - 10px)`, background: `radial-gradient(circle at 50% 20%, ${p.blush} 0 4px, transparent 5px), radial-gradient(circle at 40% 55%, ${p.blush} 0 5px, transparent 6px), radial-gradient(circle at 60% 85%, ${p.blush} 0 4px, transparent 5px), linear-gradient(90deg, transparent 45%, ${p.leaf} 45% 55%, transparent 55%)` }} />
-        ))}
-        <div className={box + " rounded-t-[40px] rounded-b-[40px]"} style={{ background: p.paper, boxShadow: `0 0 0 1.5px ${p.gold[1]}, 0 4px 10px rgba(40,50,80,0.25)` }}>
-          {names}
-        </div>
-      </div>
-    )
-  if (id === "emboss")
-    return (
-      <div className="relative h-32 flex items-center justify-center overflow-hidden" style={{ background: p.paper }}>
-        <div className={box + " rounded-[14px]"} style={{ background: p.paper, boxShadow: `inset 2px 3px 4px ${p.muted}66, inset -2px -2px 3px rgba(255,255,255,0.9)` }}>
-          {names}
-        </div>
-        <div className="absolute inset-x-0 bottom-[12%] h-2.5" style={{ background: `linear-gradient(180deg, ${p.blush}, ${p.paper}, ${p.sage})` }} />
-        <span className="absolute left-1/2 bottom-[8%] -translate-x-1/2 w-6 h-4 rounded-full" style={{ background: `radial-gradient(circle, ${p.paper}, ${p.sage})` }} />
-      </div>
-    )
-  return (
-    <div className="relative h-32 flex flex-col items-center justify-center gap-1" style={{ background: p.paper }}>
-      <div className="absolute inset-x-0 top-0 h-12" style={{ background: `radial-gradient(ellipse at top, ${p.blush}, transparent 70%)` }} />
-      <span className="relative w-8 h-8 rounded-full flex items-center justify-center text-[11px] italic" style={{ background: p.blush, color: p.wine, boxShadow: `0 0 0 1px ${p.rose}`, fontFamily: "var(--font-serif)" }}>
-        A&amp;K
-      </span>
-      <span className="relative flex flex-col items-center gap-0.5">{names}</span>
-    </div>
-  )
-}
-
-function TemplateCard({ id, p, active, locked, onPick }: { id: InviteStyle; p: Palette; active: boolean; locked: boolean; onPick: () => void }) {
-  const t = TEMPLATES[id]
-  return (
-    <button
-      onClick={onPick}
-      disabled={locked}
-      aria-pressed={active}
-      className={
-        "relative text-left rounded-card border overflow-hidden transition-colors disabled:cursor-not-allowed " +
-        (active ? "border-brand ring-2 ring-brand/20" : "border-border hover:border-border-hover")
-      }
-    >
-      <TemplateMock id={id} p={p} />
-      {locked && (
-        <span className="absolute top-2 right-2 inline-flex items-center gap-1 h-5 px-1.5 rounded bg-surface/90 text-[10px] text-muted">
-          <Icon name="lock" size={10} /> Premium
-        </span>
-      )}
-      <div className="px-3 py-2.5 border-t border-border bg-surface">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-sm font-medium text-text">{t.label}</span>
-          {active && <Icon name="check" size={16} className="text-brand" />}
-        </div>
-        <p className="text-xs text-muted mt-0.5 leading-snug">{t.desc}</p>
-      </div>
-    </button>
-  )
-}
-
-function PaletteChip({ id, active, locked, onPick }: { id: string; active: boolean; locked: boolean; onPick: () => void }) {
-  const t = THEMES[id]
-  const p = t.p
-  return (
-    <button
-      onClick={onPick}
-      disabled={locked}
-      aria-pressed={active}
-      title={THEME_INFO[id]?.desc}
-      className={
-        "flex items-center gap-2.5 rounded-lg border px-3 h-12 text-left transition-colors disabled:opacity-50 disabled:cursor-not-allowed " +
-        (active ? "border-brand ring-2 ring-brand/20" : "border-border hover:border-border-hover")
-      }
-    >
-      <span className="flex -space-x-1.5 shrink-0" aria-hidden>
-        {[p.paper, p.blush, p.wine, p.deep].map((c, i) => (
-          <span key={i} className="w-5 h-5 rounded-full border border-white shadow-[0_0_0_1px_rgba(0,0,0,0.08)]" style={{ background: c }} />
-        ))}
-      </span>
-      <span className="text-sm text-text leading-tight">{t.label}</span>
-      {locked && <Icon name="lock" size={12} className="text-muted ml-auto" />}
-      {active && !locked && <Icon name="check" size={14} className="text-brand ml-auto" />}
-    </button>
   )
 }
 
@@ -260,6 +142,7 @@ export default function InvitationPage() {
   const [published, setPublished] = useState(false)
   const [venueName, setVenueName] = useState("")
   const [firstCode, setFirstCode] = useState<string | null>(null)
+  const [ev, setEv] = useState<any>(null)
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle")
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null)
   const [uploading, setUploading] = useState(false)
@@ -282,6 +165,8 @@ export default function InvitationPage() {
         setPublished(!!e.published)
         setVenueName(e.venue_name ?? "")
         setFirstCode(e.guests?.[0]?.code ?? null)
+        const { guests: _g, floors: _f, ...rest } = e
+        setEv(rest)
         setForm({
           invite_theme: e.invite_theme ?? "blush",
           invite_template: templateOf(e.invite_template),
@@ -440,11 +325,8 @@ export default function InvitationPage() {
   if (!eventId) return <p className="text-muted">Bạn chưa có sự kiện nào. Tạo ở trang Tổng quan.</p>
 
   const previewSrc = `/invite-preview/${eventId}${intro ? "?intro=1" : ""}`
-  const themeIds = Object.keys(THEMES)
-  const templateIds = Object.keys(TEMPLATES) as InviteStyle[]
   const activeTemplate: InviteStyle = premium ? templateOf(form.invite_template) : "floral"
   const activeTheme = premium ? form.invite_theme : "classic"
-  const shownPalette = (THEMES[activeTheme] ?? THEMES.blush).p
 
   return (
     <div className="flex flex-col gap-6">
@@ -473,8 +355,8 @@ export default function InvitationPage() {
 
       {!published && (
         <div className="text-sm rounded-lg px-4 py-3 bg-surface-alt text-text flex items-center justify-between gap-3 flex-wrap">
-          <span>Thiệp chưa publish nên khách chưa mở được. Bạn vẫn xem trước được ở khung bên cạnh.</span>
-          <a href="/settings" className="text-brand hover:underline underline-offset-4">Publish trong Cài đặt</a>
+          <span>Thiệp chưa công khai nên khách chưa mở được. Bạn vẫn xem trước được ở khung bên cạnh.</span>
+          <a href="/settings" className="text-brand hover:underline underline-offset-4">Công khai thiệp trong Cài đặt</a>
         </div>
       )}
 
@@ -489,36 +371,21 @@ export default function InvitationPage() {
 
       <div className="grid lg:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">
         <div className="flex flex-col gap-6 min-w-0">
+          {ev && (
+            <TemplatePicker
+              event={{ ...ev, ...form }}
+              cover={gallery[0]}
+              second={gallery[1]}
+              template={activeTemplate}
+              palette={activeTheme}
+              premium={premium}
+              onChange={(template, palette) => {
+                dirty.current = true
+                setForm((f: any) => ({ ...f, invite_template: template, invite_theme: palette }))
+              }}
+            />
+          )}
           <InviteMeter ev={{ ...form, gallery, gift_qr_url: giftQr }} premium={premium} />
-          <Section
-            title="Mẫu thiệp"
-            desc={premium ? "Hiệu ứng mở thiệp, trang trí và cách trình bày. Chọn mẫu sẽ gợi ý bộ màu đi kèm, bạn đổi màu ở mục dưới." : "Gói Miễn phí dùng mẫu Cổ điển hoa lá. Nâng cấp Premium để mở các mẫu khác."}
-          >
-            <div className="grid grid-cols-2 gap-3">
-              {templateIds.map((id) => (
-                <TemplateCard
-                  key={id}
-                  id={id}
-                  p={shownPalette}
-                  active={activeTemplate === id}
-                  locked={!premium && !TEMPLATES[id].free}
-                  onPick={() => {
-                    if (id === activeTemplate) return
-                    dirty.current = true
-                    setForm((f: any) => ({ ...f, invite_template: id, invite_theme: TEMPLATES[id].palette }))
-                  }}
-                />
-              ))}
-            </div>
-          </Section>
-
-          <Section title="Màu sắc" desc={premium ? "Bộ màu nào cũng dùng được với mọi mẫu thiệp." : "Gói Miễn phí dùng bộ màu Trắng đỏ đô."}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2">
-              {themeIds.map((id) => (
-                <PaletteChip key={id} id={id} active={activeTheme === id} locked={!premium && !THEME_INFO[id]?.free} onPick={() => set("invite_theme", id)} />
-              ))}
-            </div>
-          </Section>
 
           <Section id="loi-moi" title="Lời mời và hai bên gia đình" desc="Mục nào để trống sẽ không hiện trên thiệp.">
             <div>

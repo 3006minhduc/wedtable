@@ -1,4 +1,4 @@
-import { Be_Vietnam_Pro, Cormorant_Garamond, Great_Vibes, Newsreader } from "next/font/google"
+import { Be_Vietnam_Pro, Cormorant_Garamond, Great_Vibes, Newsreader, Playfair_Display } from "next/font/google"
 
 // Invite fonts = same families as the app (DESIGN.md §3), both cover Vietnamese diacritics
 export const serif = Newsreader({
@@ -29,5 +29,14 @@ export const caps = Cormorant_Garamond({
   subsets: ["latin", "vietnamese"],
   weight: ["500", "600"],
   variable: "--iv-caps",
+  display: "swap",
+})
+
+// High-contrast display serif for the editorial and film templates (has Vietnamese)
+export const display = Playfair_Display({
+  subsets: ["latin", "vietnamese"],
+  weight: ["400", "500", "600"],
+  style: ["normal", "italic"],
+  variable: "--iv-display",
   display: "swap",
 })

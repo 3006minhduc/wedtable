@@ -11,12 +11,17 @@ export type Palette = {
  *  Colors are chosen separately (events.invite_theme), every palette works with every template. */
 export type InviteStyle = "floral" | "gilded" | "glass" | "emboss" | "daisy"
 
-export const TEMPLATES: Record<InviteStyle, { label: string; desc: string; palette: string; free?: boolean }> = {
-  floral: { label: "Cổ điển hoa lá", desc: "Rèm vải kéo mở, vòng hoa lá, ảnh bìa khung vòm.", palette: "classic", free: true },
-  gilded: { label: "Khung vàng photobooth", desc: "Phong bì dấu sáp, khung vàng chạm trên nền đậm, dải ảnh photobooth trượt ra.", palette: "bordeaux" },
-  glass: { label: "Kính màu", desc: "Hai cánh cửa kính màu mở ra, hoa hồng viền chì, ảnh trong khung bầu dục.", palette: "glass" },
-  emboss: { label: "Hoa văn nổi", desc: "Giấy hoa văn nổi, phong bì dấu sáp, nơ lụa tháo ra, đếm ngược trên nền đậm.", palette: "mauve" },
-  daisy: { label: "Hoa cúc phong bì", desc: "Bông cúc thêu trên phong bì, dòng sáng vàng chạy dọc chỉ thêu, nắp lật mở ra khung hoa nền xanh, chữ viết tay.", palette: "daisy" },
+export type TemplateGroup = "classic" | "traditional" | "modern" | "photo"
+export const TEMPLATE_GROUPS: Record<TemplateGroup, string> = { classic: "Thanh lịch", traditional: "Truyền thống", modern: "Hiện đại", photo: "Ảnh cưới" }
+
+// Ids stay as stored in events.invite_template; the looks behind them were rebuilt on 2026-11-23.
+// `palettes`: suggested color sets for this template, first = default.
+export const TEMPLATES: Record<InviteStyle, { label: string; desc: string; palette: string; palettes: string[]; group: TemplateGroup; free?: boolean }> = {
+  floral: { label: "Thư ngà", desc: "Phong bì giấy dập nổi có dấu sáp. Chạm vào, nắp mở và tấm thiệp có ảnh cưới rút lên.", palette: "blush", palettes: ["blush", "classic", "sage", "ivory", "mauve"], group: "classic", free: true },
+  gilded: { label: "Song hỷ", desc: "Đỏ son, chữ Hỷ vàng kim. Hai cánh cửa son mở ra, bố mẹ ông bà nhìn là thấy quen.", palette: "son", palettes: ["son", "bordeaux", "noir"], group: "traditional" },
+  glass: { label: "Thước phim", desc: "Ảnh cưới phủ kín màn hình như mở đầu một bộ phim, nền tối sang trọng.", palette: "noir", palettes: ["noir", "navy", "forest", "ivory"], group: "photo" },
+  emboss: { label: "Tạp chí", desc: "Bìa tạp chí in tên hai bạn thật to trên ảnh, lật trang để mở. Trẻ trung, hiện đại.", palette: "ink", palettes: ["ink", "noir", "classic", "sage"], group: "modern" },
+  daisy: { label: "Hoa cúc phong bì", desc: "Bông cúc thêu trên phong bì, ánh vàng chạy dọc chỉ thêu rồi nắp mở ra khung hoa nền xanh.", palette: "daisy", palettes: ["daisy", "blush", "sage"], group: "classic" },
 }
 
 export const templateOf = (id?: string | null): InviteStyle => (id && id in TEMPLATES ? (id as InviteStyle) : "floral")
@@ -40,6 +45,14 @@ export const THEMES: Record<string, { label: string; p: Palette }> = {
     label: "Be giấy và xanh pastel",
     // sage = pastel blue of the cover background, deep = wine (light template: RSVP stays on paper)
     p: { bg: "#ECE2D6", paper: "#F7EFE5", blush: "#F2D3CF", rose: "#A0606A", wine: "#8E1F2F", sage: "#A9BCD9", leaf: "#5F6B4C", ink: "#3A2A2A", muted: "#8A7A72", line: "#E4D5C6", soft: "#F3E9DD", okBg: "#EEF0E2", deep: "#8E1F2F", gold: ["#F6E2B0", "#C9A46A", "#8A6A32"] },
+  },
+  son: {
+    label: "Đỏ son và vàng kim",
+    p: { bg: "#F4E9D8", paper: "#FBF5EA", blush: "#F3DCCB", rose: "#A8343A", wine: "#8E1418", sage: "#D9B77A", leaf: "#7A5A1E", ink: "#2B1712", muted: "#7D6556", line: "#E8D6BC", soft: "#F6ECDD", okBg: "#F1E8D2", deep: "#8E1418", gold: ["#FBE7A6", "#D9A93F", "#9C6F1C"] },
+  },
+  ink: {
+    label: "Mực đen và xanh coban",
+    p: { bg: "#ECEAE5", paper: "#FBFAF7", blush: "#ECEFF7", rose: "#2F4BA0", wine: "#1D1B19", sage: "#C9C2B6", leaf: "#4E5A48", ink: "#1D1B19", muted: "#706B64", line: "#E0DBD2", soft: "#F3F1EC", okBg: "#E8ECE3", deep: "#1D1B19", gold: ["#DCE3F5", "#2F4BA0", "#1E2F66"] },
   },
   mauve: {
     label: "Hồng tro và navy",
@@ -77,6 +90,8 @@ export const THEME_INFO: Record<string, { desc: string; free?: boolean }> = {
   ivory: { desc: "Giấy ngà ấm, mực nâu mocha, champagne. Xu hướng 2026." },
   blush: { desc: "Hồng tro dịu, ép kim vàng hồng." },
   daisy: { desc: "Giấy be, đỏ rượu, vàng đồng, nền bìa xanh pastel." },
+  son: { desc: "Đỏ son, giấy điều, ép kim vàng. Thiệp cưới truyền thống." },
+  ink: { desc: "Giấy trắng, mực đen, một điểm xanh coban. Kiểu tạp chí." },
   mauve: { desc: "Hồng tro, điểm xanh navy, viền vàng hồng." },
   sage: { desc: "Xanh sage, giấy ngà, ép kim champagne." },
   glass: { desc: "Hồng kính, xanh ô liu, nẹp đồng." },
