@@ -512,18 +512,6 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
                 </p>
               )}
               {start ? ivory ? <IvoryEventDate start={start} /> : <EventDate start={start} /> : <p className="text-sm font-medium">{formatInviteDate(event.event_date, event.event_time)}</p>}
-              {timeline.length > 0 && (
-                <div className="mt-5 mx-auto w-fit text-left text-[15px] grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
-                  {timeline.slice(0, 3).map((t: any, i: number) => (
-                    <div key={i} className="contents">
-                      <span className="tabular-nums font-medium" style={{ color: S.wine }}>
-                        {t.time}
-                      </span>
-                      <span style={{ color: S.ink }}>{t.title}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
               <p className="mt-6 text-[13px]" style={{ color: S.muted }}>
                 Tại
               </p>
