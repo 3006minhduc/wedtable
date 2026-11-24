@@ -8,7 +8,11 @@ import { hallOf } from "@/lib/hall"
 import { Collage, FilmStrip, Lightbox, PhotoInterlude } from "./Album"
 import { LINEN, PAPER_GRAIN } from "./Paper"
 import FloorLayers from "@/components/seating/FloorLayers"
-import { caps, display, script, serif, sans } from "./fonts"
+import { caps, display, pinyon, script, serif, sans, smallcaps } from "./fonts"
+import { HyHero2, HyIntro2 } from "./Hy"
+import { FilmHero2, FilmIntro2, FilmReel } from "./Film"
+import { LotusHero, LotusIntro, LotusTitle, silk } from "./Lotus"
+import { IvoryClosing, IvoryDivider, IvoryEventDate, IvoryHero, IvoryIntro, IvoryTimeline, IvoryTitle, useBorderPaper } from "./Ivory"
 import { DateStrip, EventDate, dotDate, FilmHero, FilmIntro, FilmTitle, HyHero, HyIntro, HyTitle, LetterHero, LetterIntro, LetterTitle, MagHero, MagIntro, MagTitle, WaxSeal } from "./Looks"
 import type { HeroProps, IntroProps } from "./Looks"
 import { DietaryPicker, FaqList, MusicToggle } from "./Extras"
@@ -113,7 +117,7 @@ function darkPalette(p: Palette, ground?: string): Palette {
 }
 
 // ---------- countdown ----------
-function Countdown({ start, variant = "circle" }: { start: Date; variant?: "circle" | "square" | "plain" }) {
+function Countdown({ start, variant = "circle" }: { start: Date; variant?: "circle" | "square" | "plain" | "cells" }) {
   const IV = useIV()
   const [now, setNow] = useState<number | null>(null)
   useEffect(() => {
@@ -137,6 +141,21 @@ function Countdown({ start, variant = "circle" }: { start: Date; variant?: "circ
     { v: String(Math.floor((diff % 3600000) / 60000)).padStart(2, "0"), l: "phút" },
     { v: String(Math.floor((diff % 60000) / 1000)).padStart(2, "0"), l: "giây" },
   ]
+  if (variant === "cells")
+    return (
+      <div className="grid grid-cols-3 max-w-[300px] mx-auto" role="timer">
+        {items.slice(0, 3).map((it, i) => (
+          <div key={it.l} className={"flex flex-col items-center py-1 " + (i ? "border-l" : "")} style={{ borderColor: IV.line }}>
+            <span className="text-[40px] leading-none tabular-nums" style={{ fontFamily: "var(--iv-caps), serif", fontWeight: 500, color: IV.ink }}>
+              {it.v.padStart(2, "0")}
+            </span>
+            <span className="text-[13px] mt-2 tracking-[0.12em]" style={{ fontFamily: "var(--iv-sc), serif", fontWeight: 600, color: IV.muted }}>
+              {it.l}
+            </span>
+          </div>
+        ))}
+      </div>
+    )
   if (variant === "plain")
     return (
       <div className="grid grid-cols-4" role="timer">
@@ -258,10 +277,10 @@ type Look = {
 }
 
 const LOOKS: Record<InviteStyle, Look> = {
-  floral: { Intro: LetterIntro, Hero: LetterHero, Title: LetterTitle, Divider: RuleDivider, Frame: (p) => <CardFrame {...p} /> },
-  gilded: { Intro: HyIntro, Hero: HyHero, Title: HyTitle, Divider: RuleDivider, Frame: (p) => <CardFrame {...p} gilt /> },
-  glass: { Intro: FilmIntro, Hero: FilmHero, Title: FilmTitle, Divider: RuleDivider, Frame: (p) => <CardFrame {...p} square /> },
-  emboss: { Intro: MagIntro, Hero: MagHero, Title: MagTitle, Divider: RuleDivider, Frame: (p) => <CardFrame {...p} square /> },
+  floral: { Intro: IvoryIntro, Hero: IvoryHero, Title: IvoryTitle, Divider: IvoryDivider, Frame: (p) => <div className={"text-center " + (p.className ?? "")}>{p.children}</div> },
+  gilded: { Intro: HyIntro2, Hero: HyHero2, Title: HyTitle, Divider: RuleDivider, Frame: (p) => <CardFrame {...p} gilt /> },
+  glass: { Intro: FilmIntro2, Hero: FilmHero2, Title: FilmTitle, Divider: RuleDivider, Frame: (p) => <CardFrame {...p} square /> },
+  emboss: { Intro: LotusIntro, Hero: LotusHero, Title: LotusTitle, Divider: RuleDivider, Frame: (p) => <div className={"text-center " + (p.className ?? "")}>{p.children}</div> },
   daisy: {
     Intro: (p) => <DaisyIntro onOpened={p.onOpened} onReveal={p.onReveal} />,
     Hero: (p) => <DaisyHero event={p.event} shortDate={p.date} opened={p.opened} />,
@@ -281,7 +300,7 @@ export function TemplateCover({ id, palette, event, cover, second }: { id: Invit
   return (
     <PaletteProvider value={p}>
       <div
-        className={`${serif.variable} ${sans.variable} ${script.variable} ${caps.variable} ${display.variable}`}
+        className={`${serif.variable} ${sans.variable} ${script.variable} ${caps.variable} ${display.variable} ${pinyon.variable} ${smallcaps.variable}`}
         style={{ color: p.ink, fontFamily: "var(--iv-sans)" }}
       >
         <L.Hero event={event} cover={cover} second={second} start={start} date={shortDate} opened initials={initials} />
@@ -308,6 +327,9 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
   // film: the whole body is dark; traditional: red bands for the countdown and the invitation block
   const IV = look === "glass" ? darkPalette(base) : base
   const S = look === "gilded" ? darkPalette(base) : IV
+  const ivory = look === "floral"
+  const silky = look === "emboss"
+  const border = useBorderPaper(base.paper)
   const daisy = look === "daisy"
   // Each template: its opening, cover, section title, divider, card frame and closing seal
   const L = LOOKS[look]
@@ -393,19 +415,25 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
   return (
     <PaletteProvider value={IV}>
     <div
-      className={`${serif.variable} ${sans.variable} ${script.variable} ${caps.variable} ${display.variable} min-h-screen wt-paper ${daisy ? "wt-daisy" : ""}`}
+      className={`${serif.variable} ${sans.variable} ${script.variable} ${caps.variable} ${display.variable} ${pinyon.variable} ${smallcaps.variable} min-h-screen wt-paper ${daisy ? "wt-daisy" : ""} ${ivory ? "wt-ivory" : ""} ${silky ? "wt-silk" : ""}`}
       style={{ backgroundColor: IV.bg, backgroundImage: LINEN, color: IV.ink, fontFamily: "var(--iv-sans)" }}
     >
-      <style>{`.wt-paper main section{position:relative}.wt-paper main section::after{content:"";position:absolute;inset:0;pointer-events:none;background-image:${PAPER_GRAIN};mix-blend-mode:multiply}.wt-paper main section.wt-bare::after{display:none}.wt-paper h1,.wt-paper h2{text-wrap:balance}.wt-paper p{text-wrap:pretty}`}</style>
-      {!opened && <L.Intro event={event} cover={cover} initials={initials} date={dotDate(start)} onReveal={() => setRevealed(true)} onOpened={() => { setRevealed(true); setOpened(true) }} />}
+      <style>{`.wt-paper main section{position:relative}.wt-paper main section::after{content:"";position:absolute;inset:0;pointer-events:none;background-image:${PAPER_GRAIN};mix-blend-mode:multiply}.wt-paper main section.wt-bare::after{display:none}.wt-paper h1,.wt-paper h2{text-wrap:balance}.wt-ivory main section:not(.wt-full){background:transparent!important}.wt-ivory main section:not(.wt-full):not(.wt-wide){padding-left:54px!important;padding-right:54px!important}.wt-ivory main section.wt-wide{padding-left:44px!important;padding-right:44px!important}.wt-ivory main section:not(.wt-full)::after{display:none}.wt-silk main section:not(.wt-bare){background:transparent!important}.wt-silk main section::after{display:none}.wt-paper p{text-wrap:pretty}`}</style>
+      {!opened && <L.Intro event={event} cover={cover} initials={initials} date={dotDate(start)} guest={guest.name} onReveal={() => setRevealed(true)} onOpened={() => { setRevealed(true); setOpened(true) }} />}
 
       <main
         className="relative max-w-md mx-auto sm:my-10 sm:rounded-[4px] overflow-hidden"
         style={{
           backgroundColor: IV.paper,
-          backgroundImage: daisy ? `${DAISY_BRANCH_BG}, ${PAPER_GRAIN}` : PAPER_GRAIN,
-          backgroundRepeat: daisy ? "repeat-y, repeat" : undefined,
-          backgroundPosition: daisy ? "left top, 0 0" : undefined,
+          backgroundImage: daisy
+            ? `${DAISY_BRANCH_BG}, ${PAPER_GRAIN}`
+            : ivory && border
+            ? `${border}, ${border}, ${PAPER_GRAIN}`
+            : silky
+            ? `${silk(IV.paper).backgroundImage}, ${PAPER_GRAIN}`
+            : PAPER_GRAIN,
+          backgroundRepeat: daisy ? "repeat-y, repeat" : ivory && border ? "repeat-y, repeat-y, repeat" : undefined,
+          backgroundPosition: daisy ? "left top, 0 0" : ivory && border ? "left top, right top, 0 0" : undefined,
           boxShadow: `0 1px 2px rgba(0,0,0,0.08), 0 40px 70px -40px rgba(40,25,20,0.45), 7px 9px 0 -3px ${IV.soft}, 7px 9px 0 -2px ${IV.line}, 14px 18px 0 -6px ${IV.soft}, 14px 18px 0 -5px ${IV.line}`,
         }}
       >
@@ -418,7 +446,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
             <section className="px-6 py-14 text-center" style={{ background: S.paper }}>
               <Reveal>
                 <SectionTitle>Hôn lễ sẽ diễn ra sau</SectionTitle>
-                <Countdown start={start} variant={look === "gilded" ? "square" : look === "glass" || look === "emboss" ? "plain" : "circle"} />
+                <Countdown start={start} variant={look === "gilded" ? "square" : look === "glass" ? "plain" : look === "floral" || look === "emboss" ? "cells" : "circle"} />
               </Reveal>
             </section>
           </PaletteProvider>
@@ -478,10 +506,12 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
           <Reveal>
             <div style={{ filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.08)) drop-shadow(0 14px 18px rgba(40,25,20,0.14))" }}>
             <O.Frame>
-              <p className="text-[22px] mb-5" style={{ fontFamily: "var(--iv-caps), serif", fontWeight: 600, color: S.wine }}>
-                Lễ thành hôn và tiệc cưới
-              </p>
-              {start ? <EventDate start={start} /> : <p className="text-sm font-medium">{formatInviteDate(event.event_date, event.event_time)}</p>}
+              {!ivory && (
+                <p className="text-[22px] mb-5" style={{ fontFamily: "var(--iv-caps), serif", fontWeight: 600, color: S.wine }}>
+                  Lễ thành hôn và tiệc cưới
+                </p>
+              )}
+              {start ? ivory ? <IvoryEventDate start={start} /> : <EventDate start={start} /> : <p className="text-sm font-medium">{formatInviteDate(event.event_date, event.event_time)}</p>}
               {timeline.length > 0 && (
                 <div className="mt-5 mx-auto w-fit text-left text-[15px] grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
                   {timeline.slice(0, 3).map((t: any, i: number) => (
@@ -528,7 +558,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
         </PaletteProvider>
 
         {datePhotos.length === 3 && start && (
-          <section className="px-6 py-10 wt-bare" style={{ background: IV.paper }}>
+          <section className="px-6 py-10 wt-bare wt-wide" style={{ background: IV.paper }}>
             <Reveal>
               <DateStrip start={start} photos={datePhotos} onOpen={openPhoto} />
             </Reveal>
@@ -543,7 +573,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
             <Reveal>
               <SectionTitle kicker="Lịch trình">Ngày vui của chúng mình</SectionTitle>
             </Reveal>
-            <Timeline items={timeline} />
+            {ivory ? <IvoryTimeline items={timeline} /> : <Timeline items={timeline} />}
           </section>
         )}
 
@@ -590,8 +620,14 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
             <Reveal>
               <SectionTitle kicker="Khoảnh khắc">Album của chúng tôi</SectionTitle>
             </Reveal>
-            <Collage photos={collagePhotos} onOpen={(i) => openPhoto(collagePhotos[i])} />
-            {stripPhotos.length > 0 && <FilmStrip photos={stripPhotos} onOpen={(i) => openPhoto(stripPhotos[i])} />}
+            {look === "glass" ? (
+              <FilmReel photos={albumPhotos} onOpen={openPhoto} />
+            ) : (
+              <>
+                <Collage photos={collagePhotos} onOpen={(i) => openPhoto(collagePhotos[i])} />
+                {stripPhotos.length > 0 && <FilmStrip photos={stripPhotos} onOpen={(i) => openPhoto(stripPhotos[i])} />}
+              </>
+            )}
             <p className="text-center text-xs mt-6" style={{ color: IV.muted }}>
               Chạm vào ảnh để xem lớn · {gallery.length} ảnh
             </p>
@@ -613,7 +649,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
         )}
 
         {/* ---------- RSVP ---------- */}
-        <section className="px-6 py-14" style={{ background: deepRsvp ? base.deep : IV.bg }}>
+        <section className="px-6 py-14 wt-wide" style={{ background: deepRsvp ? base.deep : IV.bg }}>
           <PaletteProvider value={deepRsvp ? darkPalette(base) : IV}>
             <Reveal>
               <SectionTitle kicker="Hồi âm">Xác nhận tham dự</SectionTitle>
@@ -621,7 +657,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
           </PaletteProvider>
           <PaletteProvider value={base}>
           <Reveal>
-            <div className="rounded-3xl p-5 sm:p-6 border" style={{ backgroundColor: base.paper, backgroundImage: PAPER_GRAIN, borderColor: base.line, boxShadow: `inset 0 1px 0 rgba(255,255,255,0.7), 0 2px 3px rgba(0,0,0,0.08), 0 24px 40px -20px rgba(0,0,0,0.45)` }}>
+            <div className="rounded-3xl p-5 sm:p-6 border" style={{ color: base.ink, backgroundColor: base.paper, backgroundImage: PAPER_GRAIN, borderColor: base.line, boxShadow: `inset 0 1px 0 rgba(255,255,255,0.7), 0 2px 3px rgba(0,0,0,0.08), 0 24px 40px -20px rgba(0,0,0,0.45)` }}>
               {guest.confirmed && !status?.success && (
                 <p className="text-xs text-center mb-4 rounded-full py-1.5 px-3" style={{ background: base.okBg, color: base.leaf }}>
                   {locked ? "Bạn đã xác nhận tham dự." : "Bạn đã xác nhận tham dự. Bạn vẫn có thể đổi bàn bên dưới."}
@@ -754,14 +790,21 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
         )}
 
         {/* ---------- Footer ---------- */}
-        <footer className="px-8 pt-6 pb-14 text-center">
+        <footer className={"pt-6 pb-14 text-center " + (ivory ? "px-14" : "px-8")}>
+          {ivory && (
+            <div className="mb-10">
+              <IvoryClosing event={event} guest={guest.name} />
+            </div>
+          )}
           <Reveal>
             <div className="flex justify-center">
-              {daisy ? <DaisySeal size={84} /> : <WaxSeal text={initials} size={84} color={look === "gilded" ? IV.gold[1] : undefined} />}
+              {ivory ? null : daisy ? <DaisySeal size={84} /> : <WaxSeal text={initials} size={84} color={look === "gilded" ? IV.gold[1] : undefined} />}
             </div>
-            <p className="text-xl italic mt-4" style={{ ...SERIF, color: IV.wine }}>
-              Sự hiện diện của bạn là niềm vinh hạnh của chúng tôi
-            </p>
+            {!ivory && (
+              <p className="text-xl italic mt-4" style={{ ...SERIF, color: IV.wine }}>
+                Sự hiện diện của bạn là niềm vinh hạnh của chúng tôi
+              </p>
+            )}
             <p className="text-xs mt-8" style={{ color: IV.muted }}>
               Thiệp làm bằng WedTable
             </p>

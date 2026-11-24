@@ -144,7 +144,7 @@ export default function TemplatePicker({ event, cover, second, template, palette
                 ))}
               </div>
             )}
-            {!premium && <p className="text-xs text-muted mt-2">Gói Miễn phí dùng mẫu Thư ngà, màu Ngà và đỏ đô.</p>}
+            {!premium && <p className="text-xs text-muted mt-2">Gói Miễn phí dùng mẫu Ngà dập nổi, màu Ngà và đỏ đô.</p>}
           </div>
 
           <div className="flex items-center gap-2 mt-5 flex-wrap">

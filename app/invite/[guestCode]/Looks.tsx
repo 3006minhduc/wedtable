@@ -11,7 +11,7 @@ import { useIV } from "./Ornaments"
 import { lunarLine } from "@/lib/lunar"
 import type { Palette } from "@/lib/inviteThemes"
 
-export type IntroProps = { event: any; cover?: string; initials: string; date: string; onOpened: () => void; onReveal?: () => void }
+export type IntroProps = { event: any; cover?: string; initials: string; date: string; onOpened: () => void; onReveal?: () => void; guest?: string }
 export type HeroProps = { event: any; cover?: string; second?: string; start: Date | null; date: string; opened: boolean; initials: string }
 
 const SCRIPT = "var(--iv-script), cursive"
