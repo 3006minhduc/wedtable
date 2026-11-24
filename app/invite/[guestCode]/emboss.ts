@@ -203,24 +203,14 @@ export function envelopeArt(w: number, h: number, seed = 5) {
   return s
 }
 
-/** Vertical border tile: paired acanthus C-scrolls around a stem, a bloom where tiles meet (seamless) */
-export function borderArt(w: number, h: number, seed = 9) {
-  const r = rng(seed)
-  const cx = w / 2
-  let s = `<path d="M${cx} 0 V${h}" stroke="${g(0.3)}" stroke-width="2.4"/>`
-  for (const y0 of [h * 0.25, h * 0.75]) {
-    for (const side of [-1, 1]) {
-      // C-scroll curling outwards and back in, with a small leaf
-      s += `<path d="M${cx} ${f(y0 - h * 0.12)} C${f(cx + side * w * 0.5)} ${f(y0 - h * 0.12)} ${f(cx + side * w * 0.5)} ${f(y0 + h * 0.05)} ${f(cx + side * w * 0.22)} ${f(y0 + h * 0.04)} C${f(cx + side * w * 0.08)} ${f(y0 + h * 0.03)} ${f(cx + side * w * 0.1)} ${f(y0 - h * 0.04)} ${f(cx + side * w * 0.2)} ${f(y0 - h * 0.03)}" fill="none" stroke="${g(0.5)}" stroke-width="2.6" stroke-linecap="round"/>`
-      s += `<path d="M${cx} ${f(y0 + h * 0.04)} C${f(cx + side * w * 0.3)} ${f(y0 + h * 0.08)} ${f(cx + side * w * 0.42)} ${f(y0 + h * 0.16)} ${f(cx + side * w * 0.2)} ${f(y0 + h * 0.2)}" fill="none" stroke="${g(0.42)}" stroke-width="1.8" stroke-linecap="round"/>`
-    }
-    s += `<path d="M${cx} ${f(y0 - h * 0.02)} C${f(cx - 7)} ${f(y0 - h * 0.06)} ${f(cx - 6)} ${f(y0 - h * 0.1)} ${cx} ${f(y0 - h * 0.13)} C${f(cx + 6)} ${f(y0 - h * 0.1)} ${f(cx + 7)} ${f(y0 - h * 0.06)} ${cx} ${f(y0 - h * 0.02)}Z" fill="${g(0.62)}" stroke="${g(0.45)}" stroke-width="1.2"/>`
-  }
-  const rot = r() * 90
-  s += bloom(cx, 0, w * 0.26, rot, rng(3))
-  s += bloom(cx, h, w * 0.26, rot, rng(3))
-  s += bloom(cx, h * 0.5, w * 0.2, rot + 20, rng(4))
-  return s
+/** Vertical border: a raised double moulding that runs straight down (no repeating motif, so the page
+ *  does not seem to slide when scrolled) */
+export function borderArt(w: number, h: number) {
+  return (
+    `<rect x="${w * 0.42}" y="-4" width="${w * 0.16}" height="${h + 8}" fill="${g(0.45)}"/>` +
+    `<rect x="${w * 0.26}" y="-4" width="2" height="${h + 8}" fill="${g(0.35)}"/>` +
+    `<rect x="${w * 0.7}" y="-4" width="2" height="${h + 8}" fill="${g(0.35)}"/>`
+  )
 }
 
 /** Lotus pad seen from above: round leaf with a notch and radiating veins */
@@ -268,5 +258,27 @@ export function pondArt(w: number, h: number) {
   s += lotusFlower(w * 0.8, h * 0.3, 0.75, 7)
   // bud
   s += `<g transform="translate(${f(w * 0.05)} ${f(h * 0.32)})"><path d="M0 0 C-2 60 2 120 0 300" fill="none" stroke="${g(0.3)}" stroke-width="2.6"/><path d="M0 0 C-11 -12 -9 -34 0 -46 C9 -34 11 -12 0 0Z" fill="${g(0.6)}" stroke="${g(0.45)}" stroke-width="1.4"/></g>`
+  return s
+}
+
+/** Wreath of small blooms and leaves around a circle (for a lid or a photo frame) */
+export function wreathArt(w: number, h: number, radius: number, seed = 51) {
+  const r = rng(seed)
+  const cx = w / 2
+  const cy = h / 2
+  let s = `<circle cx="${f(cx)}" cy="${f(cy)}" r="${f(radius)}" fill="none" stroke="${g(0.32)}" stroke-width="2.4"/>`
+  const n = 22
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2
+    const x = cx + Math.cos(a) * radius
+    const y = cy + Math.sin(a) * radius
+    const tangent = (a * 180) / Math.PI + 90
+    s += leaf(x, y, radius * 0.24, tangent + 50 + (r() - 0.5) * 20)
+    s += leaf(x, y, radius * 0.2, tangent - 130 + (r() - 0.5) * 20)
+  }
+  for (let i = 0; i < 9; i++) {
+    const a = (i / 9) * Math.PI * 2 + 0.2
+    s += bloom(cx + Math.cos(a) * radius, cy + Math.sin(a) * radius, radius * (i % 3 === 0 ? 0.2 : 0.14), r() * 90, r)
+  }
   return s
 }

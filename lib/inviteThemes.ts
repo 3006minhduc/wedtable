@@ -20,7 +20,7 @@ export const TEMPLATES: Record<InviteStyle, { label: string; desc: string; palet
   floral: { label: "Ngà dập nổi", desc: "Phong bì giấy ngà dập nổi hoa mẫu đơn, dấu sáp, tên khách in ngay trên phong bì. Chạm vào, bốn nắp lần lượt mở ra ảnh cưới.", palette: "ngaxam", palettes: ["ngaxam", "classic", "blush", "sage"], group: "classic", free: true },
   gilded: { label: "Hỷ sơn mài", desc: "Cửa gỗ sơn mài đỏ chạm hoa mẫu đơn, mây vàng; núm chữ Hỷ vàng. Chạm vào, hai cánh cửa mở ra ánh đèn ấm.", palette: "son", palettes: ["son", "bordeaux", "noir"], group: "traditional" },
   glass: { label: "Cuộn phim", desc: "Như chiếu phim nhựa cũ: đếm ngược 3-2-1, đèn chớp rồi ảnh cưới hiện trong khung phim có lỗ răng cưa. Album là một dải phim.", palette: "noir", palettes: ["noir", "navy", "forest", "ivory"], group: "photo" },
-  emboss: { label: "Sen lụa", desc: "Nền lụa với ao sen dập nổi. Chạm vào, nụ sen nở từng cánh, ánh sáng toả ra rồi hiện ảnh cưới trong khung tròn.", palette: "sen", palettes: ["sen", "blush", "sage", "classic"], group: "traditional" },
+  emboss: { label: "Hộp lụa nơ", desc: "Hộp thiệp bọc lụa hồng, vòng hoa hồng dập nổi, ruy băng satin thắt nơ và thẻ tên khách. Chạm vào, nơ tháo, nắp hộp nhấc lên.", palette: "sen", palettes: ["sen", "blush", "ivory", "classic"], group: "classic" },
   daisy: { label: "Hoa cúc phong bì", desc: "Bông cúc thêu trên phong bì, ánh vàng chạy dọc chỉ thêu rồi nắp mở ra khung hoa nền xanh.", palette: "daisy", palettes: ["daisy", "blush", "sage"], group: "classic" },
 }
 
@@ -47,8 +47,8 @@ export const THEMES: Record<string, { label: string; p: Palette }> = {
     p: { bg: "#ECE2D6", paper: "#F7EFE5", blush: "#F2D3CF", rose: "#A0606A", wine: "#8E1F2F", sage: "#A9BCD9", leaf: "#5F6B4C", ink: "#3A2A2A", muted: "#8A7A72", line: "#E4D5C6", soft: "#F3E9DD", okBg: "#EEF0E2", deep: "#8E1F2F", gold: ["#F6E2B0", "#C9A46A", "#8A6A32"] },
   },
   sen: {
-    label: "Hồng sen và ngọc bích",
-    p: { bg: "#EFE4DE", paper: "#F6EEE9", blush: "#F4C9CF", rose: "#D98597", wine: "#7A2E45", sage: "#A9BFAF", leaf: "#5E7C6A", ink: "#4A3A3C", muted: "#8C7A7C", line: "#E6D5D3", soft: "#FBF5F2", okBg: "#E8EFE6", deep: "#5E7C6A", gold: ["#F3E3C2", "#C9A66B", "#8E6E3C"] },
+    label: "Hồng lụa và mận",
+    p: { bg: "#EFE4DE", paper: "#F6EEE9", blush: "#EFD3D3", rose: "#C98892", wine: "#7A2E45", sage: "#C9B5B0", leaf: "#8C6A6E", ink: "#4A3A3C", muted: "#8C7A7C", line: "#E6D5D3", soft: "#FBF5F2", okBg: "#E8EFE6", deep: "#5E7C6A", gold: ["#F3E3C2", "#C9A66B", "#8E6E3C"] },
   },
   ngaxam: {
     label: "Ngà xám và nâu khói",
@@ -100,7 +100,7 @@ export const THEME_INFO: Record<string, { desc: string; free?: boolean }> = {
   blush: { desc: "Hồng tro dịu, ép kim vàng hồng." },
   daisy: { desc: "Giấy be, đỏ rượu, vàng đồng, nền bìa xanh pastel." },
   son: { desc: "Đỏ son, giấy điều, ép kim vàng. Thiệp cưới truyền thống." },
-  sen: { desc: "Lụa hồng phấn, hồng sen đậm, xanh ngọc lá sen." },
+  sen: { desc: "Lụa hồng phấn, ruy băng hồng ruốc, chữ màu mận." },
   ngaxam: { desc: "Giấy ngà xám dập nổi, mực nâu khói. Nhẹ nhàng, sang." },
   ink: { desc: "Giấy trắng, mực đen, một điểm xanh coban. Kiểu tạp chí." },
   mauve: { desc: "Hồng tro, điểm xanh navy, viền vàng hồng." },

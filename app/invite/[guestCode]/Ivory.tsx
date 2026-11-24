@@ -24,7 +24,7 @@ export function useEnvelopePaper(paper: string) {
 }
 /** Embossed vine for the left and right page borders */
 export function useBorderPaper(paper: string) {
-  return useEmbossUrl(() => embossSvg(48, 420, paper, borderArt(48, 420), { depth: 2.4 }), [paper])
+  return useEmbossUrl(() => embossSvg(28, 200, paper, borderArt(28, 200), { depth: 2.2, blur: 1.2 }), [paper])
 }
 
 /** Text revealed one character at a time (blur → sharp), once `on` turns true */

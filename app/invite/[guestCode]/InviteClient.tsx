@@ -11,7 +11,7 @@ import FloorLayers from "@/components/seating/FloorLayers"
 import { caps, display, pinyon, script, serif, sans, smallcaps } from "./fonts"
 import { HyHero2, HyIntro2 } from "./Hy"
 import { FilmHero2, FilmIntro2, FilmReel } from "./Film"
-import { LotusHero, LotusIntro, LotusTitle, silk } from "./Lotus"
+import { SilkHero, SilkIntro, SilkTitle, silk } from "./Silk"
 import { IvoryClosing, IvoryDivider, IvoryEventDate, IvoryHero, IvoryIntro, IvoryTimeline, IvoryTitle, useBorderPaper } from "./Ivory"
 import { DateStrip, EventDate, dotDate, FilmHero, FilmIntro, FilmTitle, HyHero, HyIntro, HyTitle, LetterHero, LetterIntro, LetterTitle, MagHero, MagIntro, MagTitle, WaxSeal } from "./Looks"
 import type { HeroProps, IntroProps } from "./Looks"
@@ -64,8 +64,18 @@ function TableMap({ floors, value, companions, onChange }: { floors: any[]; valu
         </div>
       )}
       {/* drawn to the hall's real proportions; a big hall scrolls sideways instead of squeezing the tables */}
-      <div className="w-full rounded-2xl overflow-auto border" style={{ background: IV.paper, borderColor: IV.line }}>
-      <div className="relative" style={{ width: `max(100%, ${hall.w * 20}px)`, aspectRatio: `${hall.w} / ${hall.h}` }}>
+      <div
+        ref={(el) => {
+          // open centred on the hall the first time (a wide hall scrolls sideways)
+          if (el && !el.dataset.centred) {
+            el.dataset.centred = "1"
+            el.scrollLeft = (el.scrollWidth - el.clientWidth) / 2
+          }
+        }}
+        className="w-full rounded-2xl overflow-auto border"
+        style={{ background: IV.paper, borderColor: IV.line }}
+      >
+      <div className="relative" style={{ width: `max(100%, ${hall.w * 15}px)`, aspectRatio: `${hall.w} / ${hall.h}` }}>
         <FloorLayers floor={floor} theme="light" />
         {(floor.tables ?? []).map((t: any) => {
           const left = t.seats - (t.used ?? 0)
@@ -87,11 +97,11 @@ function TableMap({ floors, value, companions, onChange }: { floors: any[]; valu
               style={{ left: `${t.x_pct}%`, top: `${t.y_pct}%`, transform: "translate(-50%, -50%)", ...style }}
               className={
                 "absolute border-[1.5px] flex flex-col items-center justify-center text-[10px] leading-tight transition-transform active:scale-95 shadow-sm " +
-                (t.shape === "rect" ? "w-24 h-11 rounded-xl " : "w-14 h-14 rounded-full ") +
+                (t.shape === "rect" ? "w-20 h-10 rounded-xl " : "w-[50px] h-[50px] rounded-full ") +
                 (selected ? "scale-110 font-medium" : "")
               }
             >
-              <span className="max-w-[52px] truncate">{t.name}</span>
+              <span className="max-w-[46px] truncate">{t.name}</span>
               <span className="opacity-80">{full && !selected ? "đầy" : `còn ${Math.max(0, left)}`}</span>
             </button>
           )
@@ -280,7 +290,7 @@ const LOOKS: Record<InviteStyle, Look> = {
   floral: { Intro: IvoryIntro, Hero: IvoryHero, Title: IvoryTitle, Divider: IvoryDivider, Frame: (p) => <div className={"text-center " + (p.className ?? "")}>{p.children}</div> },
   gilded: { Intro: HyIntro2, Hero: HyHero2, Title: HyTitle, Divider: RuleDivider, Frame: (p) => <CardFrame {...p} gilt /> },
   glass: { Intro: FilmIntro2, Hero: FilmHero2, Title: FilmTitle, Divider: RuleDivider, Frame: (p) => <CardFrame {...p} square /> },
-  emboss: { Intro: LotusIntro, Hero: LotusHero, Title: LotusTitle, Divider: RuleDivider, Frame: (p) => <div className={"text-center " + (p.className ?? "")}>{p.children}</div> },
+  emboss: { Intro: SilkIntro, Hero: SilkHero, Title: SilkTitle, Divider: RuleDivider, Frame: (p) => <div className={"text-center " + (p.className ?? "")}>{p.children}</div> },
   daisy: {
     Intro: (p) => <DaisyIntro onOpened={p.onOpened} onReveal={p.onReveal} />,
     Hero: (p) => <DaisyHero event={p.event} shortDate={p.date} opened={p.opened} />,
@@ -418,7 +428,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
       className={`${serif.variable} ${sans.variable} ${script.variable} ${caps.variable} ${display.variable} ${pinyon.variable} ${smallcaps.variable} min-h-screen wt-paper ${daisy ? "wt-daisy" : ""} ${ivory ? "wt-ivory" : ""} ${silky ? "wt-silk" : ""}`}
       style={{ backgroundColor: IV.bg, backgroundImage: LINEN, color: IV.ink, fontFamily: "var(--iv-sans)" }}
     >
-      <style>{`.wt-paper main section{position:relative}.wt-paper main section::after{content:"";position:absolute;inset:0;pointer-events:none;background-image:${PAPER_GRAIN};mix-blend-mode:multiply}.wt-paper main section.wt-bare::after{display:none}.wt-paper h1,.wt-paper h2{text-wrap:balance}.wt-ivory main section:not(.wt-full){background:transparent!important}.wt-ivory main section:not(.wt-full):not(.wt-wide){padding-left:54px!important;padding-right:54px!important}.wt-ivory main section.wt-wide{padding-left:44px!important;padding-right:44px!important}.wt-ivory main section:not(.wt-full)::after{display:none}.wt-silk main section:not(.wt-bare){background:transparent!important}.wt-silk main section::after{display:none}.wt-paper p{text-wrap:pretty}`}</style>
+      <style>{`.wt-paper main section{position:relative}.wt-paper main section::after{content:"";position:absolute;inset:0;pointer-events:none;background-image:${PAPER_GRAIN};mix-blend-mode:multiply}.wt-paper main section.wt-bare::after{display:none}.wt-paper h1,.wt-paper h2{text-wrap:balance}.wt-ivory main section:not(.wt-full){background:transparent!important}.wt-ivory main section:not(.wt-full):not(.wt-wide){padding-left:40px!important;padding-right:40px!important}.wt-ivory main section.wt-wide{padding-left:12px!important;padding-right:12px!important}.wt-ivory main section:not(.wt-full)::after{display:none}.wt-silk main section:not(.wt-bare){background:transparent!important}.wt-silk main section::after{display:none}.wt-paper p{text-wrap:pretty}`}</style>
       {!opened && <L.Intro event={event} cover={cover} initials={initials} date={dotDate(start)} guest={guest.name} onReveal={() => setRevealed(true)} onOpened={() => { setRevealed(true); setOpened(true) }} />}
 
       <main
