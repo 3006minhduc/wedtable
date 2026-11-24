@@ -8,7 +8,10 @@ import { hallOf } from "@/lib/hall"
 import { Collage, FilmStrip, Lightbox, PhotoInterlude } from "./Album"
 import { LINEN, PAPER_GRAIN } from "./Paper"
 import FloorLayers from "@/components/seating/FloorLayers"
-import { caps, display, pinyon, script, serif, sans, smallcaps } from "./fonts"
+import { caps, display, hand, pinyon, script, serif, sans, smallcaps } from "./fonts"
+import { VeilHero, VeilIntro, VeilTitle } from "./Veil"
+import { Tracklist, VinylHero, VinylIntro, VinylTitle } from "./Vinyl"
+import { ScrapHero, ScrapIntro, ScrapTitle } from "./Scrap"
 import { HyHero2, HyIntro2 } from "./Hy"
 import { FilmHero2, FilmIntro2, FilmReel } from "./Film"
 import { SilkHero, SilkIntro, SilkTitle, silk } from "./Silk"
@@ -220,6 +223,63 @@ function Countdown({ start, variant = "circle" }: { start: Date; variant?: "circ
   )
 }
 
+// ---------- save the date: month grid with the day marked ----------
+function MonthCalendar({ date }: { date: Date }) {
+  const IV = useIV()
+  const y = date.getFullYear()
+  const m = date.getMonth()
+  const first = (new Date(y, m, 1).getDay() + 6) % 7 // Monday first
+  const days = new Date(y, m + 1, 0).getDate()
+  const cells = [...Array.from({ length: first }, () => 0), ...Array.from({ length: days }, (_, i) => i + 1)]
+  return (
+    <div className="mx-auto max-w-[300px]">
+      <p className="text-[17px] mb-3" style={{ fontFamily: "var(--iv-caps), serif", fontWeight: 600, color: IV.wine }}>
+        Tháng {m + 1} năm {y}
+      </p>
+      <div className="grid grid-cols-7 gap-y-1.5 text-[14px]">
+        {["T2", "T3", "T4", "T5", "T6", "T7", "CN"].map((d) => (
+          <span key={d} className="text-[12px]" style={{ color: IV.muted }}>
+            {d}
+          </span>
+        ))}
+        {cells.map((d, i) => (
+          <span key={i} className="relative h-8 flex items-center justify-center tabular-nums" style={{ color: d === date.getDate() ? "#fff" : IV.ink }}>
+            {d === date.getDate() && (
+              <svg viewBox="0 0 30 28" className="absolute w-8 h-8" aria-hidden>
+                <path d="M15 26 C5 18 1 12 3 7 C5 2 12 2 15 8 C18 2 25 2 27 7 C29 12 25 18 15 26Z" fill={IV.wine} />
+              </svg>
+            )}
+            <span className="relative">{d || ""}</span>
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/** "Lưu ngày cưới": Google Calendar link + phone calendar file (served by /api/ics, real invites only) */
+function SaveToCalendar({ start, title, place, code }: { start: Date; title: string; place: string; code?: string }) {
+  const IV = useIV()
+  const end = new Date(start.getTime() + 4 * 3600 * 1000)
+  // wall-clock time in Vietnam (same result on the server and on the guest's phone)
+  const p2 = (n: number) => String(n).padStart(2, "0")
+  const fmt = (d: Date) => `${d.getFullYear()}${p2(d.getMonth() + 1)}${p2(d.getDate())}T${p2(d.getHours())}${p2(d.getMinutes())}00`
+  const g = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${fmt(start)}/${fmt(end)}&ctz=Asia/Ho_Chi_Minh&location=${encodeURIComponent(place)}`
+  const btn = "flex-1 inline-flex items-center justify-center h-10 rounded-lg px-3 text-[14px] font-medium border transition-opacity hover:opacity-80"
+  return (
+    <div className="mt-3 flex gap-2 max-w-[340px] mx-auto">
+      <a href={g} target="_blank" rel="noreferrer" className={btn} style={{ borderColor: IV.rose, color: IV.wine }}>
+        Google Lịch
+      </a>
+      {code && (
+        <a href={`/api/ics/${code}`} className={btn} style={{ borderColor: IV.rose, color: IV.wine }}>
+          Lịch điện thoại
+        </a>
+      )}
+    </div>
+  )
+}
+
 // ---------- timeline ----------
 function Timeline({ items }: { items: any[] }) {
   const IV = useIV()
@@ -291,6 +351,9 @@ const LOOKS: Record<InviteStyle, Look> = {
   gilded: { Intro: HyIntro2, Hero: HyHero2, Title: HyTitle, Divider: RuleDivider, Frame: (p) => <CardFrame {...p} gilt /> },
   glass: { Intro: FilmIntro2, Hero: FilmHero2, Title: FilmTitle, Divider: RuleDivider, Frame: (p) => <CardFrame {...p} square /> },
   emboss: { Intro: SilkIntro, Hero: SilkHero, Title: SilkTitle, Divider: RuleDivider, Frame: (p) => <div className={"text-center " + (p.className ?? "")}>{p.children}</div> },
+  veil: { Intro: VeilIntro, Hero: VeilHero, Title: VeilTitle, Divider: RuleDivider, Frame: (p) => <CardFrame {...p} /> },
+  vinyl: { Intro: VinylIntro, Hero: VinylHero, Title: VinylTitle, Divider: RuleDivider, Frame: (p) => <CardFrame {...p} square /> },
+  scrapbook: { Intro: ScrapIntro, Hero: ScrapHero, Title: ScrapTitle, Divider: RuleDivider, Frame: (p) => <CardFrame {...p} /> },
   daisy: {
     Intro: (p) => <DaisyIntro onOpened={p.onOpened} onReveal={p.onReveal} />,
     Hero: (p) => <DaisyHero event={p.event} shortDate={p.date} opened={p.opened} />,
@@ -310,7 +373,7 @@ export function TemplateCover({ id, palette, event, cover, second }: { id: Invit
   return (
     <PaletteProvider value={p}>
       <div
-        className={`${serif.variable} ${sans.variable} ${script.variable} ${caps.variable} ${display.variable} ${pinyon.variable} ${smallcaps.variable}`}
+        className={`${serif.variable} ${sans.variable} ${script.variable} ${caps.variable} ${display.variable} ${pinyon.variable} ${smallcaps.variable} ${hand.variable}`}
         style={{ color: p.ink, fontFamily: "var(--iv-sans)" }}
       >
         <L.Hero event={event} cover={cover} second={second} start={start} date={shortDate} opened initials={initials} />
@@ -385,7 +448,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
   const collagePhotos = albumPhotos.length >= 13 ? albumPhotos.slice(0, 10) : albumPhotos
   const stripPhotos = albumPhotos.length >= 13 ? albumPhotos.slice(10) : []
   // the small second print on the cover reuses an album photo
-  const heroSecond: string | undefined = undefined
+  const heroSecond: string | undefined = look === "scrapbook" ? gallery[2] : undefined
   const [viewer, setViewer] = useState<number | null>(null)
   const openPhoto = (url: string) => setViewer(Math.max(0, gallery.indexOf(url)))
   const premium = event.plan === "premium"
@@ -425,7 +488,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
   return (
     <PaletteProvider value={IV}>
     <div
-      className={`${serif.variable} ${sans.variable} ${script.variable} ${caps.variable} ${display.variable} ${pinyon.variable} ${smallcaps.variable} min-h-screen wt-paper ${daisy ? "wt-daisy" : ""} ${ivory ? "wt-ivory" : ""} ${silky ? "wt-silk" : ""}`}
+      className={`${serif.variable} ${sans.variable} ${script.variable} ${caps.variable} ${display.variable} ${pinyon.variable} ${smallcaps.variable} ${hand.variable} min-h-screen wt-paper ${daisy ? "wt-daisy" : ""} ${ivory ? "wt-ivory" : ""} ${silky ? "wt-silk" : ""}`}
       style={{ backgroundColor: IV.bg, backgroundImage: LINEN, color: IV.ink, fontFamily: "var(--iv-sans)" }}
     >
       <style>{`.wt-paper main section{position:relative}.wt-paper main section::after{content:"";position:absolute;inset:0;pointer-events:none;background-image:${PAPER_GRAIN};mix-blend-mode:multiply}.wt-paper main section.wt-bare::after{display:none}.wt-paper h1,.wt-paper h2{text-wrap:balance}.wt-ivory main section:not(.wt-full){background:transparent!important}.wt-ivory main section:not(.wt-full):not(.wt-wide){padding-left:40px!important;padding-right:40px!important}.wt-ivory main section.wt-wide{padding-left:12px!important;padding-right:12px!important}.wt-ivory main section:not(.wt-full)::after{display:none}.wt-silk main section:not(.wt-bare){background:transparent!important}.wt-silk main section::after{display:none}.wt-paper p{text-wrap:pretty}`}</style>
@@ -456,7 +519,10 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
             <section className="px-6 py-14 text-center" style={{ background: S.paper }}>
               <Reveal>
                 <SectionTitle>Hôn lễ sẽ diễn ra sau</SectionTitle>
-                <Countdown start={start} variant={look === "gilded" ? "square" : look === "glass" ? "plain" : look === "floral" || look === "emboss" ? "cells" : "circle"} />
+                <Countdown start={start} variant={look === "gilded" ? "square" : look === "glass" || look === "vinyl" ? "plain" : look === "floral" || look === "emboss" || look === "scrapbook" ? "cells" : "circle"} />
+                <div className="mt-10">
+                  <MonthCalendar date={start} />
+                </div>
               </Reveal>
             </section>
           </PaletteProvider>
@@ -478,10 +544,13 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
 
           {hasFamilies && (
             <Reveal>
+              <p className="text-[17px] italic mb-4" style={{ color: S.muted, fontFamily: "var(--iv-caps), serif" }}>
+                Trân trọng báo tin lễ thành hôn của con chúng tôi
+              </p>
               <div className="grid grid-cols-2 gap-4 mb-8 text-sm">
                 {[
-                  { k: "Nhà gái", v: event.bride_family },
-                  { k: "Nhà trai", v: event.groom_family },
+                  { k: "Nhà gái", v: event.bride_family, role: "Con gái", name: event.bride_full_name || event.bride_name },
+                  { k: "Nhà trai", v: event.groom_family, role: "Con trai", name: event.groom_full_name || event.groom_name },
                 ].map((f) => (
                   <div key={f.k}>
                     <p className="text-[17px] mb-1.5" style={{ color: S.wine, fontFamily: "var(--iv-caps), serif", fontWeight: 600 }}>
@@ -490,13 +559,23 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
                     <p className="whitespace-pre-line leading-relaxed" style={{ color: S.ink }}>
                       {f.v}
                     </p>
+                    {f.name && (
+                      <>
+                        <p className="mt-3 text-[13px]" style={{ color: S.muted }}>
+                          {f.role}
+                        </p>
+                        <p className="text-[20px] leading-snug" style={{ ...SERIF, color: S.wine, textWrap: "balance" as any }}>
+                          {f.name}
+                        </p>
+                      </>
+                    )}
                   </div>
                 ))}
               </div>
             </Reveal>
           )}
 
-          {hasFullNames && (
+          {!hasFamilies && hasFullNames && (
             <Reveal>
               <p className="text-[17px] italic mb-2" style={{ color: S.muted, fontFamily: "var(--iv-caps), serif" }}>
                 Trân trọng báo tin lễ thành hôn của
@@ -549,6 +628,14 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
                   {mapEmbed ? "Chỉ đường" : "Xem bản đồ"}
                 </a>
               )}
+              {start && (
+                <>
+                  <p className="mt-6 text-[13px]" style={{ color: S.muted }}>
+                    Lưu ngày cưới vào lịch
+                  </p>
+                  <SaveToCalendar start={start} title={`Đám cưới ${coupleTitle}`} place={[event.venue_name, event.venue_address].filter(Boolean).join(", ")} code={preview ? undefined : guest.code} />
+                </>
+              )}
             </O.Frame>
             </div>
           </Reveal>
@@ -571,7 +658,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
             <Reveal>
               <SectionTitle kicker="Lịch trình">Ngày vui của chúng mình</SectionTitle>
             </Reveal>
-            {ivory ? <IvoryTimeline items={timeline} /> : <Timeline items={timeline} />}
+            {ivory ? <IvoryTimeline items={timeline} /> : look === "vinyl" ? <Tracklist items={timeline} /> : <Timeline items={timeline} />}
           </section>
         )}
 

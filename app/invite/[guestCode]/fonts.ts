@@ -1,4 +1,4 @@
-import { Be_Vietnam_Pro, Cormorant_Garamond, Cormorant_SC, Great_Vibes, Newsreader, Pinyon_Script, Playfair_Display } from "next/font/google"
+import { Be_Vietnam_Pro, Cormorant_Garamond, Cormorant_SC, Dancing_Script, Great_Vibes, Newsreader, Pinyon_Script, Playfair_Display } from "next/font/google"
 
 // Invite fonts = same families as the app (DESIGN.md §3), both cover Vietnamese diacritics
 export const serif = Newsreader({
@@ -44,3 +44,6 @@ export const display = Playfair_Display({
 // "Ngà dập nổi" template: formal copperplate script for names and titles, small caps for set text (both have Vietnamese)
 export const pinyon = Pinyon_Script({ subsets: ["latin", "vietnamese"], weight: "400", variable: "--iv-pinyon", display: "swap" })
 export const smallcaps = Cormorant_SC({ subsets: ["latin", "vietnamese"], weight: ["500", "600", "700"], variable: "--iv-sc", display: "swap" })
+
+// "Sổ kỷ niệm": friendly handwriting (Vietnamese)
+export const hand = Dancing_Script({ subsets: ["latin", "vietnamese"], weight: ["500", "600"], variable: "--iv-hand", display: "swap" })

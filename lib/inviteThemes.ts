@@ -9,7 +9,7 @@ export type Palette = {
 
 /** Invite template = intro effect + decorations + layout (events.invite_template).
  *  Colors are chosen separately (events.invite_theme), every palette works with every template. */
-export type InviteStyle = "floral" | "gilded" | "glass" | "emboss" | "daisy"
+export type InviteStyle = "floral" | "gilded" | "glass" | "emboss" | "daisy" | "veil" | "vinyl" | "scrapbook"
 
 export type TemplateGroup = "classic" | "traditional" | "modern" | "photo"
 export const TEMPLATE_GROUPS: Record<TemplateGroup, string> = { classic: "Thanh lịch", traditional: "Truyền thống", modern: "Hiện đại", photo: "Ảnh cưới" }
@@ -21,6 +21,9 @@ export const TEMPLATES: Record<InviteStyle, { label: string; desc: string; palet
   gilded: { label: "Hỷ sơn mài", desc: "Cửa gỗ sơn mài đỏ chạm hoa mẫu đơn, mây vàng; núm chữ Hỷ vàng. Chạm vào, hai cánh cửa mở ra ánh đèn ấm.", palette: "son", palettes: ["son", "bordeaux", "noir"], group: "traditional" },
   glass: { label: "Cuộn phim", desc: "Như chiếu phim nhựa cũ: đếm ngược 3-2-1, đèn chớp rồi ảnh cưới hiện trong khung phim có lỗ răng cưa. Album là một dải phim.", palette: "noir", palettes: ["noir", "navy", "forest", "ivory"], group: "photo" },
   emboss: { label: "Hộp lụa nơ", desc: "Hộp thiệp bọc lụa hồng, vòng hoa hồng dập nổi, ruy băng satin thắt nơ và thẻ tên khách. Chạm vào, nơ tháo, nắp hộp nhấc lên.", palette: "sen", palettes: ["sen", "blush", "ivory", "classic"], group: "classic" },
+  veil: { label: "Vén voan", desc: "Tấm voan cưới trắng viền ren phủ lên ảnh cưới, chạm vào là voan được vén lên. Thẻ ảnh vòm viền ren, chuỗi ngọc trai.", palette: "voan", palettes: ["voan", "blush", "classic"], group: "classic" },
+  vinyl: { label: "Đĩa than", desc: "Vỏ đĩa in tên hai bạn; chạm vào, đĩa trượt ra quay với ảnh cưới làm nhãn, kim đĩa hạ xuống. Lịch trình là danh sách bài hát.", palette: "dia", palettes: ["dia", "noir", "navy"], group: "modern" },
+  scrapbook: { label: "Sổ kỷ niệm", desc: "Bìa sổ giấy kraft dán băng keo hoa; mở ra là trang sổ với ảnh polaroid, chữ viết tay và con dấu ngày cưới.", palette: "kraft", palettes: ["kraft", "blush", "sage"], group: "modern" },
   daisy: { label: "Hoa cúc phong bì", desc: "Bông cúc thêu trên phong bì, ánh vàng chạy dọc chỉ thêu rồi nắp mở ra khung hoa nền xanh.", palette: "daisy", palettes: ["daisy", "blush", "sage"], group: "classic" },
 }
 
@@ -49,6 +52,18 @@ export const THEMES: Record<string, { label: string; p: Palette }> = {
   sen: {
     label: "Hồng lụa và mận",
     p: { bg: "#EFE4DE", paper: "#F6EEE9", blush: "#EFD3D3", rose: "#C98892", wine: "#7A2E45", sage: "#C9B5B0", leaf: "#8C6A6E", ink: "#4A3A3C", muted: "#8C7A7C", line: "#E6D5D3", soft: "#FBF5F2", okBg: "#E8EFE6", deep: "#5E7C6A", gold: ["#F3E3C2", "#C9A66B", "#8E6E3C"] },
+  },
+  voan: {
+    label: "Trắng voan và vàng hồng",
+    p: { bg: "#F5EFEC", paper: "#FBF8F6", blush: "#F3E3E1", rose: "#C79A9E", wine: "#6E4A55", sage: "#D9CFC8", leaf: "#8E7B72", ink: "#4A3E40", muted: "#8E8183", line: "#E8DDDA", soft: "#FFFFFF", okBg: "#EEF0E8", deep: "#6E4A55", gold: ["#F4E6D2", "#C9A27A", "#8E6E4E"] },
+  },
+  dia: {
+    label: "Rượu vang và vàng đồng",
+    p: { bg: "#F1E9E1", paper: "#F8F2EB", blush: "#EAD5CF", rose: "#B45A5F", wine: "#5A1E2A", sage: "#C8B7A6", leaf: "#6E5A4E", ink: "#2E2224", muted: "#7E6E6A", line: "#E2D3C9", soft: "#F6EEE6", okBg: "#ECEBDF", deep: "#3A121B", gold: ["#F2DDB4", "#C79A5B", "#8A6534"] },
+  },
+  kraft: {
+    label: "Giấy kraft và hồng phấn",
+    p: { bg: "#E9DECD", paper: "#FBF7EF", blush: "#F4C6C3", rose: "#E0767A", wine: "#9A3540", sage: "#B9CDB0", leaf: "#6E8A62", ink: "#3B3330", muted: "#7E716A", line: "#E6DACB", soft: "#FFFDF8", okBg: "#E7EFE2", deep: "#9A3540", gold: ["#F6E3B4", "#D6A956", "#8E6A2E"] },
   },
   ngaxam: {
     label: "Ngà xám và nâu khói",
@@ -101,6 +116,9 @@ export const THEME_INFO: Record<string, { desc: string; free?: boolean }> = {
   daisy: { desc: "Giấy be, đỏ rượu, vàng đồng, nền bìa xanh pastel." },
   son: { desc: "Đỏ son, giấy điều, ép kim vàng. Thiệp cưới truyền thống." },
   sen: { desc: "Lụa hồng phấn, ruy băng hồng ruốc, chữ màu mận." },
+  voan: { desc: "Trắng voan, hồng phấn, ánh vàng hồng." },
+  dia: { desc: "Đỏ rượu đậm, kem, vàng đồng. Kiểu đĩa nhạc cổ điển." },
+  kraft: { desc: "Giấy kraft, hồng đào, xanh lá nhạt, chữ viết tay." },
   ngaxam: { desc: "Giấy ngà xám dập nổi, mực nâu khói. Nhẹ nhàng, sang." },
   ink: { desc: "Giấy trắng, mực đen, một điểm xanh coban. Kiểu tạp chí." },
   mauve: { desc: "Hồng tro, điểm xanh navy, viền vàng hồng." },
