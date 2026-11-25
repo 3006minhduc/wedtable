@@ -1,11 +1,9 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { createClient } from "@/lib/supabase/client"
 
 const KEY = "wt_event"
 const EVT = "wt-event-change"
-let claimed = false
 // Every component on a page (navbar, sidebar, shell, the page itself) calls useEvents.
 // Share one request and a short cache so a page load makes one /api/events call, not five.
 let inflight: Promise<any[] | null> | null = null
@@ -16,12 +14,7 @@ async function fetchEvents(force: boolean): Promise<any[] | null> {
   if (!force && cached && Date.now() - cached.at < FRESH_MS) return cached.list
   if (inflight) return inflight
   inflight = (async () => {
-    if (!claimed) {
-      claimed = true
-      try {
-        await createClient().rpc("claim_invites")
-      } catch {}
-    }
+    // /api/events also attaches pending collaborator invitations (claim_invites) on the server
     const res = await fetch("/api/events")
     if (res.status === 401) {
       window.location.href = "/login"

@@ -11,13 +11,17 @@ export async function GET() {
     return Response.json({ error: "UNAUTHORIZED", message: "Chưa đăng nhập." }, { status: 401 })
   }
 
-  const { data, error } = await supabase.from("events").select("*").order("created_at", { ascending: false })
+  // attach invitations sent to this email first, so newly shared weddings show up in the list
+  await supabase.rpc("claim_invites")
+  const [{ data, error }, { data: memberships }] = await Promise.all([
+    supabase.from("events").select("*").order("created_at", { ascending: false }),
+    supabase.from("event_members").select("event_id, role"),
+  ])
 
   if (error) {
     return Response.json({ error: "INTERNAL_ERROR", message: error.message }, { status: 500 })
   }
 
-  const { data: memberships } = await supabase.from("event_members").select("event_id, role")
   const roleMap = new Map((memberships ?? []).map((m) => [m.event_id, m.role]))
 
   const withRole = (data ?? []).map((e) => ({
