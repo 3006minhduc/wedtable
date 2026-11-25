@@ -38,6 +38,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
     XacNhan: g.confirmed ? "Da xac nhan" : "Chua phan hoi",
     Vang: g.no_show ? "Co" : "Khong",
     DaCheckIn: g.checked_in ? "Co" : "Khong",
+    Ben: g.side === "groom" ? "Nha trai" : g.side === "bride" ? "Nha gai" : "",
     AnUong: g.dietary ?? "",
     LoiNhan: g.rsvp_note ?? "",
   }))

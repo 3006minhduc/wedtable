@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 
 type Guest = {
   dietary?: string
+  side?: string
   rsvp_note?: string
   id: string
   name: string
@@ -89,6 +90,7 @@ export default function GuestTable({
                   <div className="text-text font-medium truncate">{g.name}</div>
                   <div className="text-muted text-xs">
                     {g.phone} · {g.code}
+                    {g.side === "groom" ? " · Khách nhà trai" : g.side === "bride" ? " · Khách nhà gái" : ""}
                   </div>
                   {(g.dietary || g.rsvp_note) && (
                     <div className="text-xs text-pr-d mt-0.5 max-w-[260px]" title={[g.dietary, g.rsvp_note].filter(Boolean).join(" · ")}>
@@ -167,6 +169,7 @@ export default function GuestTable({
                     <div className="text-text font-medium">{g.name}</div>
                     <div className="text-muted text-xs">
                       {g.phone} · {g.code}
+                    {g.side === "groom" ? " · Khách nhà trai" : g.side === "bride" ? " · Khách nhà gái" : ""}
                     </div>
                     {(g.dietary || g.rsvp_note) && (
                       <div className="text-xs text-pr-d mt-0.5 max-w-[260px]" title={[g.dietary, g.rsvp_note].filter(Boolean).join(" · ")}>

@@ -1,13 +1,13 @@
-import { Be_Vietnam_Pro, Cormorant_Garamond, Cormorant_SC, Dancing_Script, Great_Vibes, Newsreader, Pinyon_Script, Playfair_Display } from "next/font/google"
+import { Be_Vietnam_Pro, Cormorant_Garamond, Cormorant_SC, Dancing_Script, EB_Garamond, Great_Vibes, Pinyon_Script, Playfair_Display } from "next/font/google"
 
-// Invite fonts = same families as the app (DESIGN.md §3), both cover Vietnamese diacritics
-export const serif = Newsreader({
+// Invite text face (2026-11-25): EB Garamond, a book serif that reads like printed wedding stationery,
+// with lining figures switched on in InviteClient so times and dates sit level. Vietnamese supported.
+export const serif = EB_Garamond({
   subsets: ["latin", "vietnamese"],
-  weight: ["400", "500"],
+  weight: ["400", "500", "600"],
   style: ["normal", "italic"],
   variable: "--iv-serif",
   display: "swap",
-  adjustFontFallback: false,
 })
 
 export const sans = Be_Vietnam_Pro({

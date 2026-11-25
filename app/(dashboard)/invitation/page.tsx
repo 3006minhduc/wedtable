@@ -4,6 +4,7 @@
 // Autosaves like Settings; the phone preview on the right updates instantly via postMessage.
 import { useEffect, useRef, useState } from "react"
 import TemplatePicker from "@/components/invitation/TemplatePicker"
+import { CeremonyEditor, GiftEditor, MilestoneEditor, WishesManager } from "@/components/invitation/Editors"
 import Icon from "@/components/ui/Icon"
 import { inviteCompleteness } from "@/lib/eventHealth"
 import PremiumNote from "@/components/ui/PremiumNote"
@@ -33,6 +34,9 @@ const TEXT_FIELDS = [
   "venue_address",
   "music_url",
   "faq",
+  "ceremonies",
+  "gift_accounts",
+  "story_milestones",
 ] as const
 
 const field =
@@ -141,6 +145,7 @@ export default function InvitationPage() {
   const [premium, setPremium] = useState(true)
   const [published, setPublished] = useState(false)
   const [venueName, setVenueName] = useState("")
+  const [eventDate, setEventDate] = useState("")
   const [firstCode, setFirstCode] = useState<string | null>(null)
   const [ev, setEv] = useState<any>(null)
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle")
@@ -183,7 +188,11 @@ export default function InvitationPage() {
           venue_address: e.venue_address ?? "",
           music_url: e.music_url ?? "",
           faq: Array.isArray(e.faq) ? e.faq : [],
+          ceremonies: Array.isArray(e.ceremonies) ? e.ceremonies : [],
+          gift_accounts: Array.isArray(e.gift_accounts) ? e.gift_accounts : [],
+          story_milestones: Array.isArray(e.story_milestones) ? e.story_milestones : [],
         })
+        setEventDate(e.event_date ?? "")
       })
   }, [eventId])
 
@@ -412,6 +421,10 @@ export default function InvitationPage() {
             </div>
           </Section>
 
+          <Section id="cac-le" title="Các nghi lễ" desc="Lễ vu quy, lễ thành hôn… mỗi lễ một dòng có giờ, nơi tổ chức, nút chỉ đường và lưu vào lịch. Để trống nếu chỉ có tiệc.">
+            <CeremonyEditor items={form.ceremonies} onChange={(v) => set("ceremonies", v)} weddingDate={eventDate} />
+          </Section>
+
           <Section id="ban-do" title="Địa chỉ và bản đồ" desc="Thiệp sẽ hiện bản đồ Google ngay trong khung địa điểm, kèm nút Chỉ đường.">
             <div>
               <Label hint={venueName ? `Tên địa điểm: ${venueName} (đổi trong Cài đặt)` : "Tên địa điểm nhập trong Cài đặt"}>Địa chỉ tiệc</Label>
@@ -498,9 +511,15 @@ export default function InvitationPage() {
 
               <Section id="cau-chuyen" title="Câu chuyện của hai bạn" desc="Hiện kèm ảnh thứ hai trong mục Ảnh cưới.">
                 <textarea className={field} rows={5} placeholder="Chúng mình gặp nhau lần đầu vào một chiều mưa Hà Nội…" value={form.love_story} onChange={(e) => set("love_story", e.target.value)} />
+                <div>
+                  <Label hint="hiện thành dòng thời gian dưới đoạn kể">Các mốc đáng nhớ</Label>
+                  <MilestoneEditor items={form.story_milestones} onChange={(v) => set("story_milestones", v)} />
+                </div>
               </Section>
 
-              <Section id="mung-cuoi" title="Hộp mừng cưới" desc="Tải ảnh mã QR ngân hàng hoặc ví điện tử, khách quét để gửi quà mừng.">
+              <Section id="mung-cuoi" title="Hộp mừng cưới" desc="Mỗi bên một tài khoản: khách chọn Mừng chú rể hoặc Mừng cô dâu, quét QR hoặc bấm sao chép số tài khoản.">
+                <GiftEditor items={form.gift_accounts} onChange={(v) => set("gift_accounts", v)} upload={(f, name) => upload(f, 800, name)} />
+                <p className="text-sm text-muted">Hoặc chỉ dùng một mã QR chung:</p>
                 {giftQr && (
                   <div className="flex items-end gap-3">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -552,6 +571,10 @@ export default function InvitationPage() {
           ) : (
             <PremiumNote title="Lịch trình, dress code, câu chuyện, hộp mừng cưới, nhạc nền, câu hỏi thường gặp">Các phần này có trong gói Premium.</PremiumNote>
           )}
+
+          <Section id="loi-chuc" title="Sổ lời chúc" desc="Khách gửi lời chúc ở cuối thiệp. Ẩn lời chúc không phù hợp, ghim lời chúc hay lên đầu.">
+            <WishesManager eventId={eventId} />
+          </Section>
 
           <Section id="video" title="Video cưới" desc="Dán link YouTube, Vimeo hoặc Google Drive. Khách xem video ngay trong thiệp.">
             <input className={field} placeholder="https://youtube.com/watch?v=…" value={form.video_url} onChange={(e) => set("video_url", e.target.value)} />

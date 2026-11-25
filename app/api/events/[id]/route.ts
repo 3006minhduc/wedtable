@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 
-const PREMIUM_FIELDS = ["timeline", "dress_code", "dress_colors", "love_story", "gift_qr_url", "music_url", "faq"]
+const PREMIUM_FIELDS = ["timeline", "dress_code", "dress_colors", "love_story", "gift_qr_url", "music_url", "faq", "gift_accounts", "story_milestones"]
 
 async function getRole(supabase: any, eventId: string, event: any, userId: string) {
   if (event.user_id === userId) return "owner"
@@ -57,7 +57,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     "bride_name", "groom_name", "event_date", "event_time", "venue_name", "venue_type", "menu", "invite_message",
     "published", "lock_at", "template", "gallery", "video_url", "show_guest_names_on_map", "gift_qr_url",
     "bride_full_name", "groom_full_name", "bride_family", "groom_family", "love_story", "dress_code", "dress_colors",
-    "timeline", "invite_theme", "invite_template", "venue_address", "guide_state", "music_url", "faq",
+    "timeline", "invite_theme", "invite_template", "venue_address", "guide_state", "music_url", "faq", "ceremonies", "gift_accounts", "story_milestones",
   ]
   const body: Record<string, any> = {}
   for (const k of ALLOWED) if (k in raw) body[k] = raw[k]

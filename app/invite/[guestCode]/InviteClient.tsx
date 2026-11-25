@@ -19,6 +19,8 @@ import { IvoryClosing, IvoryDivider, IvoryEventDate, IvoryHero, IvoryIntro, Ivor
 import { DateStrip, EventDate, dotDate, FilmHero, FilmIntro, FilmTitle, HyHero, HyIntro, HyTitle, LetterHero, LetterIntro, LetterTitle, MagHero, MagIntro, MagTitle, WaxSeal } from "./Looks"
 import type { HeroProps, IntroProps } from "./Looks"
 import { DietaryPicker, FaqList, MusicToggle } from "./Extras"
+import { Ceremonies, GiftAccounts, Guestbook, Milestones, SidePicker } from "./Sections"
+import type { Ceremony, GiftAccount, Milestone } from "./Sections"
 import { ConfettiOnView, DAISY_BRANCH_BG, DaisyDivider, DaisyFrame, DaisyHero, DaisyIntro, DaisySeal, ScrollHint } from "./Daisy"
 import { PaletteProvider, Reveal, THEMES, useIV } from "./Ornaments"
 import { TEMPLATES, templateOf } from "@/lib/inviteThemes"
@@ -374,7 +376,7 @@ export function TemplateCover({ id, palette, event, cover, second }: { id: Invit
     <PaletteProvider value={p}>
       <div
         className={`${serif.variable} ${sans.variable} ${script.variable} ${caps.variable} ${display.variable} ${pinyon.variable} ${smallcaps.variable} ${hand.variable}`}
-        style={{ color: p.ink, fontFamily: "var(--iv-sans)" }}
+        style={{ color: p.ink, fontFamily: "var(--iv-serif), serif" }}
       >
         <L.Hero event={event} cover={cover} second={second} start={start} date={shortDate} opened initials={initials} />
       </div>
@@ -416,6 +418,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
   const [companions, setCompanions] = useState<number>(guest.companions ?? 0)
   const [dietary, setDietary] = useState<string>(guest.dietary ?? "")
   const [note, setNote] = useState<string>(guest.rsvp_note ?? "")
+  const [side, setSide] = useState<string>(guest.side ?? "")
   const [status, setStatus] = useState<{ error?: string; message?: string; success?: boolean } | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -455,6 +458,9 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
   const timeline: any[] = premium ? (Array.isArray(event.timeline) ? event.timeline : []).filter((t: any) => t?.time || t?.title) : []
   const faq: { q: string; a: string }[] = premium ? (Array.isArray(event.faq) ? event.faq : []).filter((x: any) => x?.q?.trim()) : []
   const musicUrl: string = premium ? (event.music_url ?? "").trim() : ""
+  const ceremonies: Ceremony[] = (Array.isArray(event.ceremonies) ? event.ceremonies : []).filter((c: any) => c?.name?.trim())
+  const giftAccounts: GiftAccount[] = premium ? (Array.isArray(event.gift_accounts) ? event.gift_accounts : []).filter((a: any) => a?.number || a?.qr) : []
+  const milestones: Milestone[] = premium ? (Array.isArray(event.story_milestones) ? event.story_milestones : []).filter((m: any) => m?.title?.trim() || m?.year?.trim()) : []
   const dressColors: string[] = Array.isArray(event.dress_colors) ? event.dress_colors.filter(Boolean) : []
   const start = eventStart(event.event_date, event.event_time)
   const initials = `${initialOf(event.bride_name)}&${initialOf(event.groom_name)}`
@@ -480,7 +486,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
       return
     }
     setLoading(true)
-    const result = await confirmSeat(guest.code, tableId, Number(companions), dietary, note)
+    const result = await confirmSeat(guest.code, tableId, Number(companions), dietary, note, side)
     setLoading(false)
     setStatus(result)
   }
@@ -489,9 +495,9 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
     <PaletteProvider value={IV}>
     <div
       className={`${serif.variable} ${sans.variable} ${script.variable} ${caps.variable} ${display.variable} ${pinyon.variable} ${smallcaps.variable} ${hand.variable} min-h-screen wt-paper ${daisy ? "wt-daisy" : ""} ${ivory ? "wt-ivory" : ""} ${silky ? "wt-silk" : ""}`}
-      style={{ backgroundColor: IV.bg, backgroundImage: LINEN, color: IV.ink, fontFamily: "var(--iv-sans)" }}
+      style={{ backgroundColor: IV.bg, backgroundImage: LINEN, color: IV.ink, fontFamily: "var(--iv-serif), serif" }}
     >
-      <style>{`.wt-paper main section{position:relative}.wt-paper main section::after{content:"";position:absolute;inset:0;pointer-events:none;background-image:${PAPER_GRAIN};mix-blend-mode:multiply}.wt-paper main section.wt-bare::after{display:none}.wt-paper h1,.wt-paper h2{text-wrap:balance}.wt-ivory main section:not(.wt-full){background:transparent!important}.wt-ivory main section:not(.wt-full):not(.wt-wide){padding-left:40px!important;padding-right:40px!important}.wt-ivory main section.wt-wide{padding-left:12px!important;padding-right:12px!important}.wt-ivory main section:not(.wt-full)::after{display:none}.wt-silk main section:not(.wt-bare){background:transparent!important}.wt-silk main section::after{display:none}.wt-paper p{text-wrap:pretty}`}</style>
+      <style>{`.wt-paper main section{position:relative}.wt-paper main section::after{content:"";position:absolute;inset:0;pointer-events:none;background-image:${PAPER_GRAIN};mix-blend-mode:multiply}.wt-paper main section.wt-bare::after{display:none}.wt-paper h1,.wt-paper h2{text-wrap:balance}.wt-ivory main section:not(.wt-full){background:transparent!important}.wt-ivory main section:not(.wt-full):not(.wt-wide){padding-left:40px!important;padding-right:40px!important}.wt-ivory main section.wt-wide{padding-left:12px!important;padding-right:12px!important}.wt-ivory main section:not(.wt-full)::after{display:none}.wt-silk main section:not(.wt-bare){background:transparent!important}.wt-silk main section::after{display:none}.wt-paper p{text-wrap:pretty}.wt-paper{font-variant-numeric:lining-nums}.wt-paper main .text-[15px]{font-size:17px}.wt-paper main .text-sm{font-size:15.5px}.wt-paper input,.wt-paper select,.wt-paper textarea,.wt-paper button,.wt-paper .wt-sans{font-family:var(--iv-sans)}`}</style>
       {!opened && <L.Intro event={event} cover={cover} initials={initials} date={dotDate(start)} guest={guest.name} onReveal={() => setRevealed(true)} onOpened={() => { setRevealed(true); setOpened(true) }} />}
 
       <main
@@ -650,6 +656,18 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
           </section>
         )}
 
+        {/* ---------- Ceremonies ---------- */}
+        {ceremonies.length > 0 && (
+          <section className="px-6 py-14 text-center">
+            <Reveal>
+              <SectionTitle kicker="Lịch cưới">Các nghi lễ</SectionTitle>
+            </Reveal>
+            <Reveal>
+              <Ceremonies items={ceremonies} />
+            </Reveal>
+          </section>
+        )}
+
         {interlude1 && <PhotoInterlude src={interlude1} caption={dotDate(start)} title={coupleTitle} onOpen={() => openPhoto(interlude1)} />}
 
         {/* ---------- Timeline ---------- */}
@@ -680,7 +698,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
         )}
 
         {/* ---------- Love story ---------- */}
-        {premium && event.love_story && (
+        {premium && (event.love_story || milestones.length > 0) && (
           <section className="px-8 py-14 text-center">
             <Reveal>
               <SectionTitle kicker="Câu chuyện">Chuyện của chúng mình</SectionTitle>
@@ -693,9 +711,18 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
                 </div>
               </Reveal>
             )}
-            <Reveal>
-              <p className="text-[15px] leading-relaxed whitespace-pre-line text-left sm:text-center">{event.love_story}</p>
-            </Reveal>
+            {event.love_story && (
+              <Reveal>
+                <p className="text-[15px] leading-relaxed whitespace-pre-line text-left sm:text-center">{event.love_story}</p>
+              </Reveal>
+            )}
+            {milestones.length > 0 && (
+              <Reveal>
+                <div className={event.love_story ? "mt-8" : ""}>
+                  <Milestones items={milestones} />
+                </div>
+              </Reveal>
+            )}
           </section>
         )}
 
@@ -778,6 +805,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
                     ))}
                   </select>
 
+                  <SidePicker value={side} onChange={setSide} />
                   <DietaryPicker value={dietary} onChange={setDietary} />
                   <textarea
                     className="rounded-2xl border bg-white px-4 py-2.5 text-sm"
@@ -815,22 +843,29 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
         </section>
 
         {/* ---------- Gift ---------- */}
-        {premium && event.gift_qr_url && (
-          <section className="px-8 py-14 text-center">
+        {premium && (event.gift_qr_url || giftAccounts.length > 0) && (
+          <section className="px-6 py-14 text-center">
             <Reveal>
               <SectionTitle kicker="Gửi yêu thương">Hộp mừng cưới</SectionTitle>
+              <p className="text-[15px] mb-5" style={{ color: IV.muted }}>
+                Dành cho người thân ở xa chưa thể đến chung vui
+              </p>
               <ConfettiOnView>
-              <O.Frame className="mx-auto max-w-[280px]">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={event.gift_qr_url} alt="Mã QR mừng cưới" className="mx-auto w-48 h-48 object-contain bg-white rounded-lg" />
-                <p className="text-xs mt-3" style={{ color: IV.muted }}>
-                  Quét mã để gửi lời chúc và quà mừng
-                </p>
-              </O.Frame>
+                <GiftAccounts accounts={giftAccounts} fallbackQr={event.gift_qr_url} />
               </ConfettiOnView>
             </Reveal>
           </section>
         )}
+
+        {/* ---------- Guestbook ---------- */}
+        <section className="px-6 py-14 text-center">
+          <Reveal>
+            <SectionTitle kicker="Sổ lưu bút">Gửi lời chúc</SectionTitle>
+          </Reveal>
+          <Reveal>
+            <Guestbook code={guest.code} guestName={guest.name} preview={preview} />
+          </Reveal>
+        </section>
 
         {/* ---------- Video ---------- */}
         {video && (
@@ -871,6 +906,26 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
                 </div>
               )}
             </Reveal>
+          </section>
+        )}
+
+        {/* ---------- Thank-you photo ---------- */}
+        {gallery.length >= 2 && gallery[gallery.length - 1] !== interlude2 && (
+          <section className="wt-bare wt-full relative h-[78svh] max-h-[640px] min-h-[420px] overflow-hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={gallery[gallery.length - 1]} alt="" loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
+            <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,.6) 100%)" }} />
+            <div className="absolute inset-x-0 bottom-0 px-8 pb-12 text-white text-center">
+              <Reveal>
+                <p className="text-[54px] leading-none" style={{ fontFamily: "var(--iv-pinyon), var(--iv-script), cursive" }}>
+                  Cảm ơn
+                </p>
+                <p className="mt-3 text-[18px] italic opacity-90">vì đã cùng chúng mình đi tới ngày hôm nay</p>
+                <p className="mt-5 text-[14px] tracking-[0.2em]" style={{ fontFamily: "var(--iv-sc), serif", fontWeight: 700 }}>
+                  {coupleTitle}
+                </p>
+              </Reveal>
+            </div>
           </section>
         )}
 
