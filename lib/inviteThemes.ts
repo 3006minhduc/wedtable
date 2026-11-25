@@ -9,25 +9,32 @@ export type Palette = {
 
 /** Invite template = intro effect + decorations + layout (events.invite_template).
  *  Colors are chosen separately (events.invite_theme), every palette works with every template. */
-export type InviteStyle = "floral" | "gilded" | "glass" | "emboss" | "daisy" | "veil" | "vinyl" | "scrapbook"
+export type InviteStyle = "stained" | "satin" | "floral" | "gilded" | "glass" | "emboss" | "daisy" | "veil" | "vinyl" | "scrapbook"
 
 export type TemplateGroup = "classic" | "traditional" | "modern" | "photo"
 export const TEMPLATE_GROUPS: Record<TemplateGroup, string> = { classic: "Thanh lịch", traditional: "Truyền thống", modern: "Hiện đại", photo: "Ảnh cưới" }
 
 // Ids stay as stored in events.invite_template; the looks behind them were rebuilt on 2026-11-23.
 // `palettes`: suggested color sets for this template, first = default.
-export const TEMPLATES: Record<InviteStyle, { label: string; desc: string; palette: string; palettes: string[]; group: TemplateGroup; free?: boolean }> = {
-  floral: { label: "Ngà dập nổi", desc: "Phong bì giấy ngà dập nổi hoa mẫu đơn, dấu sáp, tên khách in ngay trên phong bì. Chạm vào, bốn nắp lần lượt mở ra ảnh cưới.", palette: "ngaxam", palettes: ["ngaxam", "classic", "blush", "sage"], group: "classic", free: true },
-  gilded: { label: "Hỷ sơn mài", desc: "Cửa gỗ sơn mài đỏ chạm hoa mẫu đơn, mây vàng; núm chữ Hỷ vàng. Chạm vào, hai cánh cửa mở ra ánh đèn ấm.", palette: "son", palettes: ["son", "bordeaux", "noir"], group: "traditional" },
-  glass: { label: "Cuộn phim", desc: "Như chiếu phim nhựa cũ: đếm ngược 3-2-1, đèn chớp rồi ảnh cưới hiện trong khung phim có lỗ răng cưa. Album là một dải phim.", palette: "noir", palettes: ["noir", "navy", "forest", "ivory"], group: "photo" },
-  emboss: { label: "Hộp lụa nơ", desc: "Hộp thiệp bọc lụa hồng, vòng hoa hồng dập nổi, ruy băng satin thắt nơ và thẻ tên khách. Chạm vào, nơ tháo, nắp hộp nhấc lên.", palette: "sen", palettes: ["sen", "blush", "ivory", "classic"], group: "classic" },
-  veil: { label: "Vén voan", desc: "Tấm voan cưới trắng viền ren phủ lên ảnh cưới, chạm vào là voan được vén lên. Thẻ ảnh vòm viền ren, chuỗi ngọc trai.", palette: "voan", palettes: ["voan", "blush", "classic"], group: "classic" },
-  vinyl: { label: "Đĩa than", desc: "Vỏ đĩa in tên hai bạn; chạm vào, đĩa trượt ra quay với ảnh cưới làm nhãn, kim đĩa hạ xuống. Lịch trình là danh sách bài hát.", palette: "dia", palettes: ["dia", "noir", "navy"], group: "modern" },
-  scrapbook: { label: "Sổ kỷ niệm", desc: "Bìa sổ giấy kraft dán băng keo hoa; mở ra là trang sổ với ảnh polaroid, chữ viết tay và con dấu ngày cưới.", palette: "kraft", palettes: ["kraft", "blush", "sage"], group: "modern" },
-  daisy: { label: "Hoa cúc phong bì", desc: "Bông cúc thêu trên phong bì, ánh vàng chạy dọc chỉ thêu rồi nắp mở ra khung hoa nền xanh.", palette: "daisy", palettes: ["daisy", "blush", "sage"], group: "classic" },
+// 2026-11-26: the old eight are retired (hidden from the picker, existing invitations move to the
+// default); the new set draws its own art and colours (fixed: no colour choice).
+export const TEMPLATES: Record<InviteStyle, { label: string; desc: string; palette: string; palettes: string[]; group: TemplateGroup; free?: boolean; retired?: boolean; fixed?: boolean }> = {
+  stained: { label: "Kính màu", desc: "Hai cánh cửa kính màu hoa hồng, chạm huy chương để mở. Bên trong: cửa vòm kính, tấm gương phủ kính mờ lau tay để lộ ảnh, chương trình là dòng sâm panh chảy theo khi cuộn.", palette: "classic", palettes: [], group: "classic", free: true, fixed: true },
+  satin: { label: "Lụa dập nổi", desc: "Phong bì lụa dập nổi cánh hoa, dấu sáp màu mận. Chạm vào: nắp lật lên, nơ tuột ra, lớp lót lụa trượt xuống để lộ tấm thiệp khung baroque nổi. Đếm ngược trên dải giấy xé, ảnh trong huy chương rõ dần khi cuộn.", palette: "classic", palettes: [], group: "classic", fixed: true },
+  floral: { label: "Ngà dập nổi", desc: "Phong bì giấy ngà dập nổi hoa mẫu đơn, dấu sáp, tên khách in ngay trên phong bì. Chạm vào, bốn nắp lần lượt mở ra ảnh cưới.", palette: "ngaxam", palettes: ["ngaxam", "classic", "blush", "sage"], group: "classic", retired: true },
+  gilded: { label: "Hỷ sơn mài", desc: "Cửa gỗ sơn mài đỏ chạm hoa mẫu đơn, mây vàng; núm chữ Hỷ vàng. Chạm vào, hai cánh cửa mở ra ánh đèn ấm.", palette: "son", palettes: ["son", "bordeaux", "noir"], group: "traditional", retired: true },
+  glass: { label: "Cuộn phim", desc: "Như chiếu phim nhựa cũ: đếm ngược 3-2-1, đèn chớp rồi ảnh cưới hiện trong khung phim có lỗ răng cưa. Album là một dải phim.", palette: "noir", palettes: ["noir", "navy", "forest", "ivory"], group: "photo", retired: true },
+  emboss: { label: "Hộp lụa nơ", desc: "Hộp thiệp bọc lụa hồng, vòng hoa hồng dập nổi, ruy băng satin thắt nơ và thẻ tên khách. Chạm vào, nơ tháo, nắp hộp nhấc lên.", palette: "sen", palettes: ["sen", "blush", "ivory", "classic"], group: "classic", retired: true },
+  veil: { label: "Vén voan", desc: "Tấm voan cưới trắng viền ren phủ lên ảnh cưới, chạm vào là voan được vén lên. Thẻ ảnh vòm viền ren, chuỗi ngọc trai.", palette: "voan", palettes: ["voan", "blush", "classic"], group: "classic", retired: true },
+  vinyl: { label: "Đĩa than", desc: "Vỏ đĩa in tên hai bạn; chạm vào, đĩa trượt ra quay với ảnh cưới làm nhãn, kim đĩa hạ xuống. Lịch trình là danh sách bài hát.", palette: "dia", palettes: ["dia", "noir", "navy"], group: "modern", retired: true },
+  scrapbook: { label: "Sổ kỷ niệm", desc: "Bìa sổ giấy kraft dán băng keo hoa; mở ra là trang sổ với ảnh polaroid, chữ viết tay và con dấu ngày cưới.", palette: "kraft", palettes: ["kraft", "blush", "sage"], group: "modern", retired: true },
+  daisy: { label: "Hoa cúc phong bì", desc: "Bông cúc thêu trên phong bì, ánh vàng chạy dọc chỉ thêu rồi nắp mở ra khung hoa nền xanh.", palette: "daisy", palettes: ["daisy", "blush", "sage"], group: "classic", retired: true },
 }
 
-export const templateOf = (id?: string | null): InviteStyle => (id && id in TEMPLATES ? (id as InviteStyle) : "floral")
+export const DEFAULT_TEMPLATE: InviteStyle = "stained"
+/** Template the free plan gets */
+export const FREE_TEMPLATE: InviteStyle = "stained"
+export const templateOf = (id?: string | null): InviteStyle => (id && id in TEMPLATES && !TEMPLATES[id as InviteStyle].retired ? (id as InviteStyle) : DEFAULT_TEMPLATE)
 
 // Color sets for the guest invite page (events.invite_theme). Built from 2026–2027 stationery palettes:
 // paper + one ink + one metal foil, plus a deep stock color for dark sections.

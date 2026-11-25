@@ -23,7 +23,10 @@ import type { Ceremony, GiftAccount, Milestone } from "./Sections"
 import { ConfettiOnView, DAISY_BRANCH_BG, DaisyDivider, DaisyFrame, DaisyHero, DaisyIntro, DaisySeal, ScrollHint } from "./Daisy"
 import { Drift, PaletteProvider, Reveal, REVEAL_CSS, RevealProvider, THEMES, useIV } from "./Ornaments"
 import type { RevealStyle } from "./Ornaments"
-import { TEMPLATES, templateOf } from "@/lib/inviteThemes"
+import { FREE_TEMPLATE, TEMPLATES, templateOf } from "@/lib/inviteThemes"
+import NewInvite, { NEW_LOOKS } from "./NewInvite"
+import { StainedThumb } from "./Stained"
+import { SatinThumb } from "./Satin"
 import type { InviteStyle, Palette } from "@/lib/inviteThemes"
 
 const DEFAULT_MESSAGE =
@@ -339,11 +342,11 @@ const COPY_BY_LOOK: Partial<Record<string, Partial<Record<CopyKey, [string | und
   },
 }
 
-const shortTable = (n?: string) => (n ? String(n).replace(/^bàns+/i, "") : "")
+const shortTable = (n?: string) => (n ? String(n).replace(/^bàn\s+/i, "") : "")
 
 const REVEAL_BY_LOOK: Record<string, RevealStyle> = { floral: "press", gilded: "gold", glass: "flicker", emboss: "unfurl", veil: "lift", vinyl: "swing", scrapbook: "stick", daisy: "bloom" }
 
-const LOOKS: Record<InviteStyle, Look> = {
+const LOOKS: Partial<Record<InviteStyle, Look>> = {
   floral: { Intro: IvoryIntro, Hero: IvoryHero, Title: IvoryTitle, Divider: IvoryDivider, Frame: (p) => <div className={"text-center " + (p.className ?? "")}>{p.children}</div> },
   gilded: { Intro: HyIntro2, Hero: HyHero2, Title: HyTitle, Divider: RuleDivider, Frame: (p) => <CardFrame {...p} gilt /> },
   glass: { Intro: FilmIntro2, Hero: FilmHero2, Title: FilmTitle, Divider: RuleDivider, Frame: (p) => <CardFrame {...p} square /> },
@@ -362,7 +365,9 @@ const LOOKS: Record<InviteStyle, Look> = {
 
 /** A template's cover with real event data, for the template gallery on /invitation (static, already opened) */
 export function TemplateCover({ id, palette, event, cover, second }: { id: InviteStyle; palette: string; event: any; cover?: string; second?: string }) {
-  const L = LOOKS[id]
+  if (id === "stained") return <StainedThumb event={event} />
+  if (id === "satin") return <SatinThumb event={event} />
+  const L = (LOOKS[id] ?? LOOKS.floral)!
   const p = (THEMES[palette] ?? THEMES[TEMPLATES[id].palette] ?? THEMES.classic).p
   const start = eventStart(event.event_date, event.event_time)
   const shortDate = start ? `${String(start.getDate()).padStart(2, "0")} · ${String(start.getMonth() + 1).padStart(2, "0")} · ${start.getFullYear()}` : ""
@@ -383,7 +388,8 @@ export default function InviteClient(props: InviteProps) {
   // Free plan: only the classic color set (DESIGN.md / lib/plan.ts)
   // Free plan: classic colors + floral template only (lib/plan.ts)
   const premium = props.event.plan === "premium"
-  const look = premium ? templateOf(props.event.invite_template) : "floral"
+  const look = premium ? templateOf(props.event.invite_template) : FREE_TEMPLATE
+  if ((NEW_LOOKS as readonly string[]).includes(look)) return <NewInvite {...props} look={look} />
   const theme = premium ? THEMES[props.event.invite_theme] ?? THEMES[TEMPLATES[look].palette] ?? THEMES.classic : THEMES.classic
   return (
     <PaletteProvider value={theme.p}>
@@ -404,7 +410,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
   const border = useBorderPaper(base.paper)
   const daisy = look === "daisy"
   // Each template: its opening, cover, section title, divider, card frame and closing seal
-  const L = LOOKS[look]
+  const L = (LOOKS[look] ?? LOOKS.floral)!
   const T = (k: CopyKey): [string | undefined, string] => COPY_BY_LOOK[look]?.[k] ?? COPY_DEFAULT[k]
   // a few pieces drifting down while reading, chosen to match each template's material
   const drift: { kind: "daisy" | "petal" | "fleck"; colors: string[]; count?: number } | null =

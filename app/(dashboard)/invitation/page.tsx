@@ -11,7 +11,7 @@ import { inviteCompleteness } from "@/lib/eventHealth"
 import PremiumNote from "@/components/ui/PremiumNote"
 import { createClient } from "@/lib/supabase/client"
 import { resizeImage } from "@/lib/image"
-import { TIMELINE_ICONS, templateOf } from "@/lib/inviteThemes"
+import { FREE_TEMPLATE, TIMELINE_ICONS, templateOf } from "@/lib/inviteThemes"
 import type { InviteStyle } from "@/lib/inviteThemes"
 import { isPremium } from "@/lib/plan"
 import { videoEmbed } from "@/lib/videoEmbed"
@@ -335,7 +335,7 @@ export default function InvitationPage() {
   if (!eventId) return <p className="text-muted">Bạn chưa có sự kiện nào. Tạo ở trang Tổng quan.</p>
 
   const previewSrc = `/invite-preview/${eventId}${intro ? "?intro=1" : ""}`
-  const activeTemplate: InviteStyle = premium ? templateOf(form.invite_template) : "floral"
+  const activeTemplate: InviteStyle = premium ? templateOf(form.invite_template) : FREE_TEMPLATE
   const activeTheme = premium ? form.invite_theme : "classic"
 
   return (

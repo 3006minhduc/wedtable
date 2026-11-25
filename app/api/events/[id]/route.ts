@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { FREE_TEMPLATE } from "@/lib/inviteThemes"
 
 const PREMIUM_FIELDS = ["timeline", "dress_code", "dress_colors", "love_story", "gift_qr_url", "music_url", "faq", "gift_accounts", "story_milestones"]
 
@@ -68,7 +69,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     if (ev && ev.plan !== "premium") {
       for (const k of PREMIUM_FIELDS) delete body[k]
       if ("invite_theme" in body && body.invite_theme !== "classic") body.invite_theme = "classic"
-      if ("invite_template" in body && body.invite_template !== "floral") body.invite_template = "floral"
+      if ("invite_template" in body && body.invite_template !== FREE_TEMPLATE) body.invite_template = FREE_TEMPLATE
     }
   }
 

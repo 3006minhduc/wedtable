@@ -6,7 +6,7 @@
 import { useState } from "react"
 import Icon from "@/components/ui/Icon"
 import { estimateTables, HALL_PRESETS, sampleLayout } from "@/lib/hall"
-import { TEMPLATES, THEMES } from "@/lib/inviteThemes"
+import { TEMPLATES, THEMES, DEFAULT_TEMPLATE } from "@/lib/inviteThemes"
 import type { InviteStyle } from "@/lib/inviteThemes"
 
 const STEPS = ["Cô dâu chú rể", "Thời gian, địa điểm", "Khách và hội trường", "Phong cách thiệp"]
@@ -24,7 +24,7 @@ export default function CreateWizard({ onCreated, onCancel, onDemo }: { onCreate
     seats: "10",
     hall: "24x16",
     buildPlan: true,
-    template: "floral" as InviteStyle,
+    template: DEFAULT_TEMPLATE as InviteStyle,
   })
   const [err, setErr] = useState("")
   const [saving, setSaving] = useState("")

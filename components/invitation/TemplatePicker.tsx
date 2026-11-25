@@ -7,7 +7,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import Icon from "@/components/ui/Icon"
 import { TemplateCover } from "@/app/invite/[guestCode]/InviteClient"
-import { TEMPLATES, TEMPLATE_GROUPS, THEMES, THEME_INFO } from "@/lib/inviteThemes"
+import { FREE_TEMPLATE, TEMPLATES, TEMPLATE_GROUPS, THEMES, THEME_INFO } from "@/lib/inviteThemes"
 import type { InviteStyle, TemplateGroup } from "@/lib/inviteThemes"
 
 const PHONE_W = 390
@@ -123,6 +123,9 @@ export default function TemplatePicker({ event, cover, second, template, palette
           </h2>
           <p className="text-sm text-muted mt-1">{t.desc}</p>
 
+          {t.fixed ? (
+            <p className="text-sm text-muted mt-4">Mẫu này có bảng màu riêng vẽ sẵn cùng minh hoạ.</p>
+          ) : (
           <div className="mt-4">
             <p className="text-sm text-text">
               Màu: <span className="text-muted">{THEMES[palette]?.label ?? "Mặc định"}</span>
@@ -144,8 +147,9 @@ export default function TemplatePicker({ event, cover, second, template, palette
                 ))}
               </div>
             )}
-            {!premium && <p className="text-xs text-muted mt-2">Gói Miễn phí dùng mẫu Ngà dập nổi, màu Ngà và đỏ đô.</p>}
+            {!premium && <p className="text-xs text-muted mt-2">Gói Miễn phí dùng mẫu {TEMPLATES[FREE_TEMPLATE].label}.</p>}
           </div>
+          )}
 
           <div className="flex items-center gap-2 mt-5 flex-wrap">
             <button type="button" onClick={() => setOpen(true)} className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg border border-border bg-surface hover:bg-surface-hover hover:border-border-hover text-sm font-medium">
@@ -202,10 +206,10 @@ function Gallery({
 }) {
   const [group, setGroup] = useState<TemplateGroup | "all">("all")
   const [trying, setTrying] = useState<{ id: InviteStyle; palette: string } | null>(null)
-  const ids = (Object.keys(TEMPLATES) as InviteStyle[]).filter((id) => group === "all" || TEMPLATES[id].group === group)
+  const ids = (Object.keys(TEMPLATES) as InviteStyle[]).filter((id) => !TEMPLATES[id].retired && (group === "all" || TEMPLATES[id].group === group))
   // the color each card is showing (starts at the template's default, or the current color for the current template)
   const [shown, setShown] = useState<Record<string, string>>(() => ({ [current]: currentPalette }))
-  const groups = useMemo(() => (Object.keys(TEMPLATE_GROUPS) as TemplateGroup[]).filter((g) => Object.values(TEMPLATES).some((t) => t.group === g)), [])
+  const groups = useMemo(() => (Object.keys(TEMPLATE_GROUPS) as TemplateGroup[]).filter((g) => Object.values(TEMPLATES).some((t) => !t.retired && t.group === g)), [])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose()
