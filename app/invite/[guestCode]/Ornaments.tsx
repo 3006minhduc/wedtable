@@ -11,6 +11,40 @@ const PaletteCtx = createContext<Palette>(THEMES.blush.p)
 export const PaletteProvider = PaletteCtx.Provider
 export const useIV = () => useContext(PaletteCtx)
 
+/**
+ * How body sections enter when scrolled into view, one style per template so the motion matches its
+ * material: ivory is pressed into the paper, lacquer gets a gold-leaf wipe, film flickers in like a
+ * frame, silk unfurls from the middle like a ribbon, the veil lifts, a record swings in, scrapbook
+ * pieces get stuck onto the page, daisies bloom. CSS lives in REVEAL_CSS.
+ */
+export type RevealStyle = "fade" | "press" | "gold" | "flicker" | "unfurl" | "lift" | "swing" | "stick" | "bloom"
+const RevealCtx = createContext<RevealStyle>("fade")
+export const RevealProvider = RevealCtx.Provider
+
+export const REVEAL_CSS = `
+.wt-rv{opacity:0;will-change:opacity,transform}
+.wt-rv.wt-on{opacity:1;transition:opacity .9s ease-out,transform 1s cubic-bezier(.2,.7,.2,1),filter 1s ease-out,clip-path 1.1s cubic-bezier(.65,0,.35,1)}
+.wt-rv-press{transform:translateY(8px) scale(1.02);filter:blur(5px)}
+.wt-rv-press.wt-on{transform:none;filter:none}
+.wt-rv-gold{position:relative;clip-path:inset(0 100% 0 0)}
+.wt-rv-gold.wt-on{clip-path:inset(0 0 0 0);transition-duration:.5s,1s,1s,1.3s}
+.wt-rv-gold.wt-on::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 30%,rgba(255,236,180,.55) 48%,transparent 66%);background-size:250% 100%;animation:wtShine 1.6s .5s ease-out both;mix-blend-mode:soft-light}
+@keyframes wtShine{from{background-position:120% 0}to{background-position:-60% 0}}
+.wt-rv-flicker.wt-on{animation:wtFlicker .7s steps(1) both}
+@keyframes wtFlicker{0%{opacity:0;transform:translateY(6px)}20%{opacity:.7;transform:translateY(3px)}35%{opacity:.25}55%{opacity:.9;transform:none}70%{opacity:.6}100%{opacity:1}}
+.wt-rv-unfurl{clip-path:inset(0 50% 0 50%)}
+.wt-rv-unfurl.wt-on{clip-path:inset(0 0 0 0)}
+.wt-rv-lift{transform:translateY(22px);filter:blur(7px)}
+.wt-rv-lift.wt-on{transform:none;filter:none;transition-duration:1.3s,1.4s,1.4s,1s}
+.wt-rv-swing{transform:translateY(18px) rotate(-2.5deg);transform-origin:0 100%}
+.wt-rv-swing.wt-on{transform:none}
+.wt-rv-stick{transform:translateY(-14px) rotate(-2deg) scale(1.04)}
+.wt-rv-stick.wt-on{transform:none;transition:opacity .35s ease-out,transform .65s cubic-bezier(.3,1.55,.5,1)}
+.wt-rv-bloom{transform:translateY(14px) scale(.94)}
+.wt-rv-bloom.wt-on{transform:none;transition:opacity .8s ease-out,transform .9s cubic-bezier(.3,1.4,.5,1)}
+@media (prefers-reduced-motion: reduce){.wt-rv,.wt-rv.wt-on{opacity:1!important;transform:none!important;filter:none!important;clip-path:none!important;animation:none!important;transition:none!important}.wt-rv.wt-on::after{display:none}}
+`
+
 /** Wavy-edged wax seal with the couple's initials */
 export function Seal({ text, size = 120 }: { text: string; size?: number }) {
   const IV = useIV()
@@ -111,6 +145,7 @@ export function Frame({ children, className = "" }: { children: React.ReactNode;
 /** Fades + lifts children in when scrolled into view */
 export function Reveal({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
   const ref = useRef<HTMLDivElement | null>(null)
+  const kind = useContext(RevealCtx)
   const [shown, setShown] = useState(false)
   useEffect(() => {
     const el = ref.current
@@ -126,18 +161,17 @@ export function Reveal({ children, className = "", delay = 0 }: { children: Reac
           io.disconnect()
         }
       },
-      { threshold: 0.15 }
+      { threshold: 0.15, rootMargin: "0px 0px -8% 0px" }
     )
     io.observe(el)
     return () => io.disconnect()
   }, [])
   return (
-    <div
-      ref={ref}
-      className={"transition-opacity duration-700 ease-out motion-reduce:transition-none " + (shown ? "opacity-100" : "opacity-0") + " " + className}
-      style={{ transitionDelay: `${delay}ms` }}
-    >
-      {children}
+    // the observed wrapper is never clipped: IntersectionObserver treats a clip-path'd element as unseen
+    <div ref={ref} className={className}>
+      <div className={`wt-rv wt-rv-${kind} ${shown ? "wt-on" : ""}`} style={{ transitionDelay: `${delay}ms`, animationDelay: `${delay}ms` }}>
+        {children}
+      </div>
     </div>
   )
 }
@@ -190,6 +224,47 @@ export function CurtainIntro({ initials, onOpened }: { initials: string; onOpene
         </p>
       </div>
       <style>{`@keyframes ivPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}`}</style>
+    </div>
+  )
+}
+
+/**
+ * A few pieces drifting down over the invitation while it is read: daisy heads, rose petals, white
+ * tulle petals or gold flecks. Few on purpose (it must never get in the way of reading), deterministic
+ * positions so server and client agree, and hidden when the visitor prefers less motion.
+ */
+export function Drift({ kind, colors, count = 9 }: { kind: "daisy" | "petal" | "fleck"; colors: string[]; count?: number }) {
+  const pieces = Array.from({ length: count }, (_, i) => {
+    const r = (n: number) => {
+      const x = Math.sin((i + 1) * 9301 + n * 49297) * 233280
+      return x - Math.floor(x)
+    }
+    return { left: r(1) * 100, size: kind === "fleck" ? 3 + r(2) * 4 : 10 + r(2) * 10, dur: 16 + r(3) * 14, delay: -r(4) * 30, sway: 20 + r(5) * 40, rot: r(6) * 360, color: colors[i % colors.length], op: 0.45 + r(7) * 0.4 }
+  })
+  return (
+    <div aria-hidden className="wt-drift pointer-events-none fixed inset-0 z-30 overflow-hidden">
+      {pieces.map((p, i) => (
+        <span key={i} className="absolute -top-8 block" style={{ left: `${p.left}%`, animation: `wtFall ${p.dur}s linear ${p.delay}s infinite`, opacity: p.op }}>
+          <span className="block" style={{ animation: `wtSway ${p.dur / 3}s ease-in-out ${p.delay}s infinite alternate`, ["--sw" as any]: `${p.sway}px` }}>
+            {kind === "fleck" ? (
+              <span className="block rounded-full" style={{ width: p.size, height: p.size, background: p.color, boxShadow: `0 0 ${p.size * 2}px ${p.color}` }} />
+            ) : kind === "daisy" ? (
+              <svg width={p.size * 1.4} height={p.size * 1.4} viewBox="-10 -10 20 20" style={{ transform: `rotate(${p.rot}deg)` }}>
+                {Array.from({ length: 8 }, (_, k) => (
+                  <ellipse key={k} cx="0" cy="-5" rx="2.1" ry="4.6" fill="#fff" stroke="rgba(0,0,0,.08)" strokeWidth=".3" transform={`rotate(${k * 45})`} />
+                ))}
+                <circle r="2.6" fill={p.color} />
+              </svg>
+            ) : (
+              <svg width={p.size} height={p.size * 1.25} viewBox="0 0 20 25" style={{ transform: `rotate(${p.rot}deg)` }}>
+                <path d="M10 1 C17 6 19 15 10 24 C1 15 3 6 10 1Z" fill={p.color} />
+                <path d="M10 3 C12 10 12 16 10 22" stroke="rgba(255,255,255,.45)" strokeWidth=".8" fill="none" />
+              </svg>
+            )}
+          </span>
+        </span>
+      ))}
+      <style>{`@keyframes wtFall{from{transform:translateY(-5vh)}to{transform:translateY(110vh)}}@keyframes wtSway{from{transform:translateX(calc(var(--sw) * -1)) rotate(-25deg)}to{transform:translateX(var(--sw)) rotate(25deg)}}@media (prefers-reduced-motion: reduce){.wt-drift{display:none}}`}</style>
     </div>
   )
 }

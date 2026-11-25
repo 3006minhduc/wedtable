@@ -168,10 +168,12 @@ export function IvoryIntro({ event, initials, onOpened, onReveal, guest }: Intro
     if (phase === "out") return
     if (phase !== "idle" || reduce) return finish(600)
     setPhase("press")
-    timers.current.push(window.setTimeout(() => setPhase("run"), 180))
-    timers.current.push(window.setTimeout(() => onReveal?.(), 1100))
-    timers.current.push(window.setTimeout(() => setPhase("out"), 2350))
-    timers.current.push(window.setTimeout(onOpened, 2950))
+    // seal pressed (0.3s) → top and bottom flaps fold back → side flaps → the cover is ready under the
+    // envelope before its inside fades, so nothing flashes white
+    timers.current.push(window.setTimeout(() => setPhase("run"), 300))
+    timers.current.push(window.setTimeout(() => onReveal?.(), 1500))
+    timers.current.push(window.setTimeout(() => setPhase("out"), 3400))
+    timers.current.push(window.setTimeout(onOpened, 4000))
   }
   tapRef.current = tap
   const C = { x: 50, y: 47 } // where the four flaps meet, in %
@@ -234,12 +236,12 @@ export function IvoryIntro({ event, initials, onOpened, onReveal, guest }: Intro
         ${IVORY_CSS}
         .iv-env{transition:opacity .6s ease}
         .iv-gone{opacity:0;pointer-events:none}
-        .iv-flap{transition:transform 1.25s cubic-bezier(.5,.02,.28,1)}
+        .iv-flap{transition:transform 1.6s cubic-bezier(.55,.02,.25,1)}
         .iv-open .iv-top{transform:rotateX(-178deg)}
-        .iv-open .iv-bottom{transform:rotateX(178deg);transition-delay:.08s}
-        .iv-open .iv-left{transform:rotateY(178deg);transition-delay:.9s;transition-duration:1.15s}
-        .iv-open .iv-right{transform:rotateY(-178deg);transition-delay:.93s;transition-duration:1.15s}
-        .iv-back{transition:opacity .5s ease .95s}
+        .iv-open .iv-bottom{transform:rotateX(178deg);transition-delay:.25s}
+        .iv-open .iv-left{transform:rotateY(178deg);transition-delay:1.25s;transition-duration:1.45s}
+        .iv-open .iv-right{transform:rotateY(-178deg);transition-delay:1.35s;transition-duration:1.45s}
+        .iv-back{transition:opacity .7s ease 2.3s}
         .iv-open .iv-back{opacity:0}
         .iv-edges,.iv-who,.iv-hint{transition:opacity .5s}
         .iv-open .iv-edges,.iv-open .iv-who,.iv-open .iv-hint,.iv-press .iv-hint{opacity:0}

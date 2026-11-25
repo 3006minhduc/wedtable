@@ -112,9 +112,10 @@ export function SilkIntro({ onOpened, onReveal, guest, event }: IntroProps) {
     if (phase === "out") return
     if (phase === "run" || reduce) return finish(650)
     setPhase("run")
-    timers.current.push(window.setTimeout(() => onReveal?.(), 1500))
-    timers.current.push(window.setTimeout(() => setPhase("out"), 2500))
-    timers.current.push(window.setTimeout(onOpened, 3150))
+    // untie (0-1.4s) → ribbon slides off (0.9-2.1s) → cover ready underneath (1.8s) → lid lifts (2.0-3.6s)
+    timers.current.push(window.setTimeout(() => onReveal?.(), 1800))
+    timers.current.push(window.setTimeout(() => setPhase("out"), 3500))
+    timers.current.push(window.setTimeout(onOpened, 4150))
   }
   tapRef.current = tap
   const ribbon = IV.rose
@@ -155,20 +156,20 @@ export function SilkIntro({ onOpened, onReveal, guest, event }: IntroProps) {
         ${IVORY_CSS}
         .sk{transition:opacity .65s ease}
         .sk-out{opacity:0;pointer-events:none}
-        .sk-loop-l,.sk-loop-r,.sk-tail-l,.sk-tail-r,.sk-knot{transform-box:fill-box;transition:transform .7s cubic-bezier(.5,0,.3,1),opacity .5s ease .2s}
+        .sk-loop-l,.sk-loop-r,.sk-tail-l,.sk-tail-r,.sk-knot{transform-box:fill-box;transition:transform 1.3s cubic-bezier(.45,0,.25,1),opacity .6s ease .85s}
         .sk-loop-l{transform-origin:100% 50%}.sk-loop-r{transform-origin:0 50%}
-        .sk-run .sk-loop-l{transform:scale(.2) rotate(40deg);opacity:0}
-        .sk-run .sk-loop-r{transform:scale(.2) rotate(-40deg);opacity:0}
-        .sk-run .sk-tail-l{transform:translate(-60px,140px) rotate(-30deg);opacity:0}
-        .sk-run .sk-tail-r{transform:translate(60px,140px) rotate(30deg);opacity:0}
-        .sk-run .sk-knot{opacity:0}
-        .sk-band-h,.sk-band-v{transition:transform .8s cubic-bezier(.5,0,.3,1) .45s,opacity .4s ease .9s}
+        .sk-run .sk-loop-l{transform:translate(-46px,70px) rotate(-62deg) scaleX(.7);opacity:0}
+        .sk-run .sk-loop-r{transform:translate(46px,70px) rotate(62deg) scaleX(.7);opacity:0}
+        .sk-run .sk-tail-l{transform:translate(-30px,220px) rotate(-12deg);opacity:0}
+        .sk-run .sk-tail-r{transform:translate(30px,220px) rotate(12deg);opacity:0}
+        .sk-run .sk-knot{transform:scale(.6);opacity:0}
+        .sk-band-h,.sk-band-v{transition:transform 1.2s cubic-bezier(.5,0,.3,1) .9s,opacity .5s ease 1.6s}
         .sk-run .sk-band-h{transform:translateX(110%);opacity:0}
         .sk-run .sk-band-v{transform:translateY(110%);opacity:0}
-        .sk-thread,.sk-tag{transition:transform .8s cubic-bezier(.5,0,.3,1) .3s,opacity .5s ease .5s}
-        .sk-run .sk-thread,.sk-run .sk-tag{transform:translate(-50%,40px);opacity:0}
-        .sk-run .sk-thread{transform:translateY(40px)}
-        .sk-lid{transition:transform 1.1s cubic-bezier(.6,.05,.3,1) 1.2s,opacity .6s ease 1.7s;box-shadow:0 20px 40px rgba(70,30,40,.3)}
+        .sk-thread,.sk-tag{transition:transform 1s cubic-bezier(.5,0,.3,1),opacity .6s ease .35s}
+        .sk-run .sk-tag{transform:translate(-50%,90px) rotate(-6deg);opacity:0}
+        .sk-run .sk-thread{transform:translateY(90px);opacity:0}
+        .sk-lid{transition:transform 1.6s cubic-bezier(.6,.05,.3,1) 2s,opacity .8s ease 2.7s;box-shadow:0 20px 40px rgba(70,30,40,.3)}
         .sk-run .sk-lid{transform:translateY(-104%) rotateX(18deg);opacity:.6}
         .sk-hint span{animation:skNudge 2.2s ease-in-out infinite}
         .sk-run .sk-hint{opacity:0;transition:opacity .3s}
@@ -214,6 +215,16 @@ export function SilkHero({ event, cover, start, opened }: HeroProps) {
           </p>
         </div>
       )}
+      {/* the ribbon taken off the box lies across the foot of the cover, bow in the middle */}
+      <div className="relative mt-10 w-[calc(100%+3rem)] -mx-6 h-12 flex items-center justify-center" style={enter(8)} aria-hidden>
+        <span className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-3.5" style={{ background: `linear-gradient(180deg, rgba(0,0,0,.1), rgba(255,255,255,.45) 45%, rgba(0,0,0,.1)), ${IV.rose}`, opacity: 0.75 }} />
+        <span className="relative">
+          <MiniBow color={IV.rose} size={70} />
+        </span>
+      </div>
+      <p className="relative mt-3 text-[13px] tracking-[0.14em]" style={{ fontFamily: SC, fontWeight: 700, color: IV.muted, ...enter(9) }}>
+        Cuộn xuống để mở thiệp
+      </p>
       <style>{IVORY_CSS}</style>
     </section>
   )
@@ -235,6 +246,63 @@ export function SilkTitle({ children }: { children: React.ReactNode; kicker?: st
       <h2 className="mt-1 text-[44px] leading-[1.05]" style={{ fontFamily: PIN, color: onDark ? IV.gold[0] : IV.wine }}>
         {children}
       </h2>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------- body pieces (used by every section)
+
+/** A small satin bow: section divider and the knot on silk cards */
+export function MiniBow({ color, size = 54 }: { color: string; size?: number }) {
+  return (
+    <svg viewBox="-60 -34 120 80" width={size} height={size * 0.67} aria-hidden style={{ overflow: "visible", filter: "drop-shadow(0 2px 2px rgba(70,30,40,.25))" }}>
+      <defs>
+        <linearGradient id="mbw" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#fff" stopOpacity=".5" />
+          <stop offset=".5" stopColor="#fff" stopOpacity="0" />
+          <stop offset="1" stopColor="#000" stopOpacity=".22" />
+        </linearGradient>
+      </defs>
+      {[
+        "M-4 4 C-14 22 -22 34 -30 44 L-20 41 L-15 47 C-9 32 -3 18 3 6Z",
+        "M4 4 C14 22 22 34 30 44 L20 41 L15 47 C9 32 3 18 -3 6Z",
+        "M-4 0 C-20 -30 -56 -28 -53 -4 C-51 15 -22 12 -4 2Z",
+        "M4 0 C20 -30 56 -28 53 -4 C51 15 22 12 4 2Z",
+      ].map((d) => (
+        <g key={d}>
+          <path d={d} fill={color} />
+          <path d={d} fill="url(#mbw)" />
+        </g>
+      ))}
+      <rect x="-8" y="-8" width="16" height="16" rx="5" fill={color} />
+      <rect x="-8" y="-8" width="16" height="16" rx="5" fill="url(#mbw)" />
+    </svg>
+  )
+}
+
+export function SilkDivider({ className = "" }: { className?: string }) {
+  const IV = useIV()
+  return (
+    <div className={"flex items-center justify-center gap-3 " + className} aria-hidden>
+      <span className="h-px w-16" style={{ background: `linear-gradient(90deg, transparent, ${IV.rose})` }} />
+      <MiniBow color={IV.rose} size={42} />
+      <span className="h-px w-16" style={{ background: `linear-gradient(90deg, ${IV.rose}, transparent)` }} />
+    </div>
+  )
+}
+
+/** A silk card tied with a satin ribbon: the band runs across the top edge, the bow sits on it */
+export function SilkFrame({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  const IV = useIV()
+  return (
+    <div className={"relative mx-auto max-w-[360px] text-center " + className}>
+      <div className="relative rounded-2xl px-5 pt-10 pb-7 overflow-hidden" style={{ ...silk(IV.paper), boxShadow: `inset 0 0 0 1px ${IV.line}, 0 14px 26px -16px rgba(70,30,40,.35)` }}>
+        <span aria-hidden className="absolute left-0 right-0 top-[14px] h-3" style={{ background: `linear-gradient(180deg, rgba(0,0,0,.08), rgba(255,255,255,.4) 45%, rgba(0,0,0,.08)), ${IV.rose}`, opacity: 0.6 }} />
+        <div className="relative">{children}</div>
+      </div>
+      <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+        <MiniBow color={IV.rose} size={64} />
+      </div>
     </div>
   )
 }

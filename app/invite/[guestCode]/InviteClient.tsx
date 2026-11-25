@@ -4,17 +4,16 @@ import { useEffect, useState } from "react"
 import { confirmSeat, declineInvite, markViewed } from "./actions"
 import { formatInviteDate } from "@/lib/formatDate"
 import { videoEmbed } from "@/lib/videoEmbed"
-import { hallOf } from "@/lib/hall"
 import { Collage, FilmStrip, Lightbox, PhotoInterlude } from "./Album"
 import { LINEN, PAPER_GRAIN } from "./Paper"
-import FloorLayers from "@/components/seating/FloorLayers"
+import TablePicker from "./TablePicker"
 import { caps, display, hand, pinyon, script, serif, sans, smallcaps } from "./fonts"
 import { VeilHero, VeilIntro, VeilTitle } from "./Veil"
 import { Tracklist, VinylHero, VinylIntro, VinylTitle } from "./Vinyl"
-import { ScrapHero, ScrapIntro, ScrapTitle } from "./Scrap"
+import { ScrapHero, ScrapIntro, ScrapTitle, SCRAP_DOTS_CSS, ScrapDivider, ScrapFrame, Tape } from "./Scrap"
 import { HyHero2, HyIntro2 } from "./Hy"
 import { FilmHero2, FilmIntro2, FilmReel } from "./Film"
-import { SilkHero, SilkIntro, SilkTitle, silk } from "./Silk"
+import { SilkHero, SilkIntro, SilkTitle, silk, SilkDivider, SilkFrame } from "./Silk"
 import { IvoryClosing, IvoryDivider, IvoryEventDate, IvoryHero, IvoryIntro, IvoryTimeline, IvoryTitle, LineIcon, useBorderPaper } from "./Ivory"
 import { DateStrip, EventDate, dotDate, FilmHero, FilmIntro, FilmTitle, HyHero, HyIntro, HyTitle, LetterHero, LetterIntro, LetterTitle, MagHero, MagIntro, MagTitle, WaxSeal } from "./Looks"
 import type { HeroProps, IntroProps } from "./Looks"
@@ -22,7 +21,8 @@ import { DietaryPicker, FaqList, MusicToggle } from "./Extras"
 import { Ceremonies, GiftAccounts, Guestbook, Milestones, SidePicker } from "./Sections"
 import type { Ceremony, GiftAccount, Milestone } from "./Sections"
 import { ConfettiOnView, DAISY_BRANCH_BG, DaisyDivider, DaisyFrame, DaisyHero, DaisyIntro, DaisySeal, ScrollHint } from "./Daisy"
-import { PaletteProvider, Reveal, THEMES, useIV } from "./Ornaments"
+import { Drift, PaletteProvider, Reveal, REVEAL_CSS, RevealProvider, THEMES, useIV } from "./Ornaments"
+import type { RevealStyle } from "./Ornaments"
 import { TEMPLATES, templateOf } from "@/lib/inviteThemes"
 import type { InviteStyle, Palette } from "@/lib/inviteThemes"
 
@@ -43,85 +43,6 @@ function eventStart(date?: string | null, time?: string | null) {
 }
 
 // ---------- seat map (guest picks a table) ----------
-function TableMap({ floors, value, companions, onChange }: { floors: any[]; value: string; companions: number; onChange: (id: string) => void }) {
-  const IV = useIV()
-  const initial = Math.max(0, floors.findIndex((f) => (f.tables ?? []).some((t: any) => t.id === value)))
-  const [floorIdx, setFloorIdx] = useState(initial)
-  const floor = floors[Math.min(floorIdx, floors.length - 1)]
-  if (!floor) return null
-  const hall = hallOf(floor)
-
-  return (
-    <div>
-      {floors.length > 1 && (
-        <div className="flex gap-2 mb-3 justify-center flex-wrap">
-          {floors.map((f, i) => (
-            <button
-              key={f.id}
-              type="button"
-              onClick={() => setFloorIdx(i)}
-              className="rounded-full px-4 min-h-9 text-[13px] border transition-colors"
-              style={i === floorIdx ? { background: IV.wine, borderColor: IV.wine, color: "#fff" } : { borderColor: IV.line, color: IV.muted }}
-            >
-              {f.name}
-            </button>
-          ))}
-        </div>
-      )}
-      {/* drawn to the hall's real proportions; a big hall scrolls sideways instead of squeezing the tables */}
-      <div
-        ref={(el) => {
-          // open centred on the hall the first time (a wide hall scrolls sideways)
-          if (el && !el.dataset.centred) {
-            el.dataset.centred = "1"
-            el.scrollLeft = (el.scrollWidth - el.clientWidth) / 2
-          }
-        }}
-        className="w-full rounded-2xl overflow-auto border"
-        style={{ background: IV.paper, borderColor: IV.line }}
-      >
-      <div className="relative" style={{ width: `max(100%, ${hall.w * 15}px)`, aspectRatio: `${hall.w} / ${hall.h}` }}>
-        <FloorLayers floor={floor} theme="light" />
-        {(floor.tables ?? []).map((t: any) => {
-          const left = t.seats - (t.used ?? 0)
-          const full = left < 1 + companions
-          const selected = t.id === value
-          const style: React.CSSProperties = selected
-            ? { background: IV.wine, borderColor: IV.wine, color: "#fff" }
-            : full
-            ? { background: "#fff", borderColor: IV.line, color: IV.muted, opacity: 0.45 }
-            : t.vip
-            ? { background: "#F6E6D8", borderColor: "#C9A46A", color: "#7A5A24" }
-            : { background: "#fff", borderColor: IV.sage, color: IV.ink }
-          return (
-            <button
-              key={t.id}
-              type="button"
-              disabled={full && !selected}
-              aria-pressed={selected}
-              aria-label={`${t.name}${t.vip ? ", bàn VIP" : ""}, ${full && !selected ? "đã đủ chỗ" : `còn ${Math.max(0, left)} chỗ`}`}
-              onClick={() => onChange(t.id)}
-              style={{ left: `${t.x_pct}%`, top: `${t.y_pct}%`, transform: "translate(-50%, -50%)", ...style }}
-              className={
-                "absolute border-[1.5px] flex flex-col items-center justify-center text-[10px] leading-tight transition-transform active:scale-95 shadow-sm " +
-                (t.shape === "rect" ? "w-20 h-10 rounded-xl " : "w-[50px] h-[50px] rounded-full ") +
-                (selected ? "scale-110 font-medium" : "")
-              }
-            >
-              <span className="max-w-[46px] truncate">{t.name}</span>
-              <span className="opacity-80">{full && !selected ? "đầy" : `còn ${Math.max(0, left)}`}</span>
-            </button>
-          )
-        })}
-      </div>
-      </div>
-      <p className="text-xs mt-2" style={{ color: IV.muted }}>
-        Chạm vào bàn để chọn chỗ ngồi. Bàn mờ đã đủ chỗ cho nhóm của bạn.{hall.w > 18 ? " Vuốt ngang để xem hết sơ đồ." : ""}
-      </p>
-    </div>
-  )
-}
-
 /** Palette remap for text sitting on the dark "deep" background of gilded themes */
 function onDeep(IV: Palette): Palette {
   const gold = IV.gold ?? [IV.blush, IV.rose, IV.wine]
@@ -352,14 +273,84 @@ type Look = {
   Frame: (p: { children: React.ReactNode; className?: string }) => JSX.Element
 }
 
+/**
+ * Section headings. Each template keeps one idea all the way down the card (the film is a screening,
+ * the record has a tracklist, the scrapbook is a diary), the way the best invitations studied do.
+ */
+type CopyKey = "countdown" | "ceremonies" | "timeline" | "dress" | "story" | "album" | "faq" | "rsvp" | "gift" | "wishes" | "video"
+const COPY_DEFAULT: Record<CopyKey, [string | undefined, string]> = {
+  countdown: [undefined, "Hôn lễ sẽ diễn ra sau"],
+  ceremonies: ["Lịch cưới", "Các nghi lễ"],
+  timeline: ["Lịch trình", "Ngày vui của chúng mình"],
+  dress: ["Trang phục", "Dress code"],
+  story: ["Câu chuyện", "Chuyện của chúng mình"],
+  album: ["Khoảnh khắc", "Album của chúng tôi"],
+  faq: ["Hỏi đáp", "Bạn có thể thắc mắc"],
+  rsvp: ["Hồi âm", "Xác nhận tham dự"],
+  gift: ["Gửi yêu thương", "Hộp mừng cưới"],
+  wishes: ["Sổ lưu bút", "Gửi lời chúc"],
+  video: ["Thước phim", "Video cưới"],
+}
+const COPY_BY_LOOK: Partial<Record<string, Partial<Record<CopyKey, [string | undefined, string]>>>> = {
+  glass: {
+    countdown: ["Công chiếu", "Buổi chiếu bắt đầu sau"],
+    ceremonies: ["Lịch chiếu", "Các suất chiếu"],
+    timeline: ["Kịch bản", "Diễn biến ngày cưới"],
+    story: ["Hậu trường", "Chuyện của chúng mình"],
+    album: ["Những thước phim", "Cảnh quay đẹp nhất"],
+    rsvp: ["Vé mời", "Giữ vé cho bạn"],
+    wishes: ["Lời bình", "Cảm nhận của khán giả"],
+  },
+  vinyl: {
+    countdown: ["Mặt A", "Bản nhạc bắt đầu sau"],
+    ceremonies: ["Mặt A", "Những bản nghi lễ"],
+    timeline: ["Danh sách bài hát", "Ngày vui của chúng mình"],
+    story: ["Mặt B", "Bản tình ca của chúng mình"],
+    album: ["Bìa đĩa", "Những khoảnh khắc"],
+    rsvp: ["Đặt chỗ", "Giữ một chỗ nghe nhạc"],
+    wishes: ["Lời đề tặng", "Viết lên bìa đĩa"],
+  },
+  scrapbook: {
+    countdown: [undefined, "Còn bao lâu nữa nhỉ?"],
+    ceremonies: [undefined, "Những ngày quan trọng"],
+    timeline: [undefined, "Lịch trình hôm ấy"],
+    story: [undefined, "Trang nhật ký"],
+    album: [undefined, "Ảnh dán sổ"],
+    rsvp: [undefined, "Bạn sẽ đến chứ?"],
+    gift: [undefined, "Gửi quà mừng"],
+    wishes: [undefined, "Viết vào sổ"],
+  },
+  gilded: {
+    countdown: ["Ngày lành tháng tốt", "Hôn lễ cử hành sau"],
+    ceremonies: ["Lễ nghi", "Nghi lễ cưới hỏi"],
+    timeline: ["Trình tự", "Trình tự hôn lễ"],
+    gift: ["Mừng hạnh phúc", "Hộp mừng cưới"],
+    wishes: ["Chúc phúc", "Lời chúc trăm năm"],
+  },
+  emboss: {
+    ceremonies: ["Mở hộp", "Những nghi lễ"],
+    album: ["Kỷ niệm", "Những điều trong hộp"],
+    rsvp: ["Hồi âm", "Nhận lời mời"],
+    wishes: ["Thiệp chúc", "Gửi lời yêu thương"],
+  },
+  veil: {
+    countdown: ["Sắp rồi", "Ngày vén voan còn"],
+    wishes: ["Lời chúc", "Gửi đến cô dâu chú rể"],
+  },
+}
+
+const shortTable = (n?: string) => (n ? String(n).replace(/^bàns+/i, "") : "")
+
+const REVEAL_BY_LOOK: Record<string, RevealStyle> = { floral: "press", gilded: "gold", glass: "flicker", emboss: "unfurl", veil: "lift", vinyl: "swing", scrapbook: "stick", daisy: "bloom" }
+
 const LOOKS: Record<InviteStyle, Look> = {
   floral: { Intro: IvoryIntro, Hero: IvoryHero, Title: IvoryTitle, Divider: IvoryDivider, Frame: (p) => <div className={"text-center " + (p.className ?? "")}>{p.children}</div> },
   gilded: { Intro: HyIntro2, Hero: HyHero2, Title: HyTitle, Divider: RuleDivider, Frame: (p) => <CardFrame {...p} gilt /> },
   glass: { Intro: FilmIntro2, Hero: FilmHero2, Title: FilmTitle, Divider: RuleDivider, Frame: (p) => <CardFrame {...p} square /> },
-  emboss: { Intro: SilkIntro, Hero: SilkHero, Title: SilkTitle, Divider: RuleDivider, Frame: (p) => <div className={"text-center " + (p.className ?? "")}>{p.children}</div> },
+  emboss: { Intro: SilkIntro, Hero: SilkHero, Title: SilkTitle, Divider: SilkDivider, Frame: SilkFrame },
   veil: { Intro: VeilIntro, Hero: VeilHero, Title: VeilTitle, Divider: RuleDivider, Frame: (p) => <CardFrame {...p} /> },
   vinyl: { Intro: VinylIntro, Hero: VinylHero, Title: VinylTitle, Divider: RuleDivider, Frame: (p) => <CardFrame {...p} square /> },
-  scrapbook: { Intro: ScrapIntro, Hero: ScrapHero, Title: ScrapTitle, Divider: RuleDivider, Frame: (p) => <CardFrame {...p} /> },
+  scrapbook: { Intro: ScrapIntro, Hero: ScrapHero, Title: ScrapTitle, Divider: ScrapDivider, Frame: ScrapFrame },
   daisy: {
     Intro: (p) => <DaisyIntro onOpened={p.onOpened} onReveal={p.onReveal} />,
     Hero: (p) => <DaisyHero event={p.event} shortDate={p.date} opened={p.opened} />,
@@ -414,6 +405,14 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
   const daisy = look === "daisy"
   // Each template: its opening, cover, section title, divider, card frame and closing seal
   const L = LOOKS[look]
+  const T = (k: CopyKey): [string | undefined, string] => COPY_BY_LOOK[look]?.[k] ?? COPY_DEFAULT[k]
+  // a few pieces drifting down while reading, chosen to match each template's material
+  const drift: { kind: "daisy" | "petal" | "fleck"; colors: string[]; count?: number } | null =
+    look === "daisy" ? { kind: "daisy", colors: [base.gold[1], "#F2C14E"], count: 7 }
+    : look === "gilded" ? { kind: "fleck", colors: [base.gold[0], base.gold[1]], count: 14 }
+    : look === "emboss" ? { kind: "petal", colors: [base.blush, base.rose], count: 8 }
+    : look === "veil" ? { kind: "petal", colors: ["#FFFFFF", base.blush], count: 9 }
+    : null
   const O = { Divider: L.Divider, Frame: L.Frame }
   const SectionTitle = L.Title
   const deepRsvp = look === "gilded" || darkBody
@@ -534,12 +533,14 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
   return (
     <PaletteProvider value={IV}>
     <div
-      className={`${serif.variable} ${sans.variable} ${script.variable} ${caps.variable} ${display.variable} ${pinyon.variable} ${smallcaps.variable} ${hand.variable} min-h-screen wt-paper ${daisy ? "wt-daisy" : ""} ${ivory ? "wt-ivory" : ""} ${silky ? "wt-silk" : ""}`}
+      className={`${serif.variable} ${sans.variable} ${script.variable} ${caps.variable} ${display.variable} ${pinyon.variable} ${smallcaps.variable} ${hand.variable} min-h-screen wt-paper ${daisy ? "wt-daisy" : ""} ${ivory ? "wt-ivory" : ""} ${silky ? "wt-silk" : ""} ${look === "scrapbook" ? "wt-scrap" : ""}`}
       style={{ backgroundColor: IV.bg, backgroundImage: LINEN, color: IV.ink, fontFamily: "var(--iv-serif), serif" }}
     >
-      <style>{`.wt-paper main section{position:relative}.wt-paper main section::after{content:"";position:absolute;inset:0;pointer-events:none;background-image:${PAPER_GRAIN};mix-blend-mode:multiply}.wt-paper main section.wt-bare::after{display:none}.wt-paper h1,.wt-paper h2{text-wrap:balance}.wt-ivory main section:not(.wt-full){background:transparent!important}.wt-ivory main section:not(.wt-full):not(.wt-wide){padding-left:40px!important;padding-right:40px!important}.wt-ivory main section.wt-wide{padding-left:12px!important;padding-right:12px!important}.wt-ivory main section:not(.wt-full)::after{display:none}.wt-silk main section:not(.wt-bare){background:transparent!important}.wt-silk main section::after{display:none}.wt-paper p{text-wrap:pretty}.wt-paper{font-variant-numeric:lining-nums}.wt-paper main .text-[15px]{font-size:17px}.wt-paper main .text-sm{font-size:15.5px}.wt-paper input,.wt-paper select,.wt-paper textarea,.wt-paper button,.wt-paper .wt-sans{font-family:var(--iv-sans)}`}</style>
+      <style>{`.wt-paper main section{position:relative}.wt-paper main section::after{content:"";position:absolute;inset:0;pointer-events:none;background-image:${PAPER_GRAIN};mix-blend-mode:multiply}.wt-paper main section.wt-bare::after{display:none}.wt-paper h1,.wt-paper h2{text-wrap:balance}.wt-ivory main section:not(.wt-full){background:transparent!important}.wt-ivory main section:not(.wt-full):not(.wt-wide){padding-left:40px!important;padding-right:40px!important}.wt-ivory main section.wt-wide{padding-left:12px!important;padding-right:12px!important}.wt-ivory main section:not(.wt-full)::after{display:none}.wt-silk main section:not(.wt-bare){background:transparent!important}.wt-silk main section::after{display:none}.wt-paper p{text-wrap:pretty}.wt-paper{font-variant-numeric:lining-nums}.wt-paper main .text-[15px]{font-size:17px}.wt-paper main .text-sm{font-size:15.5px}${look === "scrapbook" ? SCRAP_DOTS_CSS : ""}${REVEAL_CSS}.wt-paper input,.wt-paper select,.wt-paper textarea,.wt-paper button,.wt-paper .wt-sans{font-family:var(--iv-sans)}`}</style>
+      {opened && drift && <Drift {...drift} />}
       {!opened && <L.Intro event={event} cover={cover} initials={initials} date={dotDate(start)} guest={guest.name} onReveal={() => setRevealed(true)} onOpened={() => { setRevealed(true); setOpened(true) }} />}
 
+      <RevealProvider value={REVEAL_BY_LOOK[look] ?? "fade"}>
       <main
         className="relative max-w-md mx-auto sm:my-10 sm:rounded-[4px] overflow-hidden"
         style={{
@@ -564,7 +565,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
           <PaletteProvider value={S}>
             <section className="px-6 py-14 text-center" style={{ background: S.paper }}>
               <Reveal>
-                <SectionTitle>{dayOver ? "Ngày chung đôi" : "Hôn lễ sẽ diễn ra sau"}</SectionTitle>
+                <SectionTitle kicker={T("countdown")[0]}>{dayOver ? "Ngày chung đôi" : T("countdown")[1]}</SectionTitle>
                 <Countdown start={start} variant={look === "gilded" ? "square" : look === "glass" || look === "vinyl" ? "plain" : look === "floral" || look === "emboss" || look === "scrapbook" ? "cells" : "circle"} />
                 <div className="mt-10">
                   <MonthCalendar date={start} />
@@ -692,7 +693,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
         {ceremonies.length > 0 && (
           <section className="px-6 py-14 text-center">
             <Reveal>
-              <SectionTitle kicker="Lịch cưới">Các nghi lễ</SectionTitle>
+              <SectionTitle kicker={T("ceremonies")[0]}>{T("ceremonies")[1]}</SectionTitle>
             </Reveal>
             <Reveal>
               <Ceremonies items={ceremonies} />
@@ -714,7 +715,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
         {timeline.length > 0 && (
           <section className="px-8 py-14">
             <Reveal>
-              <SectionTitle kicker="Lịch trình">Ngày vui của chúng mình</SectionTitle>
+              <SectionTitle kicker={T("timeline")[0]}>{T("timeline")[1]}</SectionTitle>
             </Reveal>
             {ivory ? <IvoryTimeline items={timeline} /> : look === "vinyl" ? <Tracklist items={timeline} /> : <Timeline items={timeline} />}
           </section>
@@ -724,7 +725,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
         {premium && (event.dress_code || dressColors.length > 0) && (
           <section className="px-8 py-14 text-center" style={{ background: IV.bg }}>
             <Reveal>
-              <SectionTitle kicker="Trang phục">Dress code</SectionTitle>
+              <SectionTitle kicker={T("dress")[0]}>{T("dress")[1]}</SectionTitle>
               {event.dress_code && <p className="text-[15px] leading-relaxed whitespace-pre-line">{event.dress_code}</p>}
               {dressColors.length > 0 && (
                 <div className="flex justify-center gap-3 mt-6">
@@ -741,7 +742,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
         {premium && (event.love_story || milestones.length > 0) && (
           <section className="px-8 py-14 text-center">
             <Reveal>
-              <SectionTitle kicker="Câu chuyện">Chuyện của chúng mình</SectionTitle>
+              <SectionTitle kicker={T("story")[0]}>{T("story")[1]}</SectionTitle>
             </Reveal>
             {storyPhoto && (
               <Reveal>
@@ -770,7 +771,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
         {albumPhotos.length > 0 && (
           <section className="px-6 py-14">
             <Reveal>
-              <SectionTitle kicker="Khoảnh khắc">Album của chúng tôi</SectionTitle>
+              <SectionTitle kicker={T("album")[0]}>{T("album")[1]}</SectionTitle>
             </Reveal>
             {look === "glass" ? (
               <FilmReel photos={albumPhotos} onOpen={openPhoto} />
@@ -792,7 +793,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
         {faq.length > 0 && (
           <section className="px-6 py-14">
             <Reveal>
-              <SectionTitle kicker="Hỏi đáp">Bạn có thể thắc mắc</SectionTitle>
+              <SectionTitle kicker={T("faq")[0]}>{T("faq")[1]}</SectionTitle>
             </Reveal>
             <Reveal>
               <FaqList items={faq} />
@@ -804,12 +805,44 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
         <section className="px-6 py-14 wt-wide" style={{ background: deepRsvp ? base.deep : IV.bg }}>
           <PaletteProvider value={deepRsvp ? darkPalette(base) : IV}>
             <Reveal>
-              <SectionTitle kicker="Hồi âm">Xác nhận tham dự</SectionTitle>
+              <SectionTitle kicker={T("rsvp")[0]}>{T("rsvp")[1]}</SectionTitle>
             </Reveal>
           </PaletteProvider>
           <PaletteProvider value={base}>
           <Reveal>
-            <div className="rounded-3xl p-5 sm:p-6 border" style={{ color: base.ink, backgroundColor: base.paper, backgroundImage: PAPER_GRAIN, borderColor: base.line, boxShadow: `inset 0 1px 0 rgba(255,255,255,0.7), 0 2px 3px rgba(0,0,0,0.08), 0 24px 40px -20px rgba(0,0,0,0.45)` }}>
+            <div className="relative rounded-3xl p-5 sm:p-6 border" style={{ color: base.ink, backgroundColor: base.paper, backgroundImage: PAPER_GRAIN, borderColor: base.line, boxShadow: `inset 0 1px 0 rgba(255,255,255,0.7), 0 2px 3px rgba(0,0,0,0.08), 0 24px 40px -20px rgba(0,0,0,0.45)` }}>
+              {(look === "glass" || look === "vinyl") && start && (
+                <div className="-mx-5 sm:-mx-6 -mt-5 sm:-mt-6 mb-5 px-5 sm:px-6 py-4 relative flex items-end justify-between gap-3 rounded-t-3xl" style={{ borderBottom: `2px dashed ${base.line}`, background: look === "glass" ? base.soft : `radial-gradient(circle at 26px 50%, ${base.deep} 0 9px, ${base.gold[1]} 9.5px 11px, transparent 11.5px), ${base.soft}` }}>
+                  <div className={look === "vinyl" ? "pl-10" : ""}>
+                    <p className="text-[12px] tracking-[0.28em] uppercase" style={{ color: base.muted, fontFamily: "var(--iv-sc), serif", fontWeight: 700 }}>
+                      {look === "glass" ? "Vé mời · 1 suất" : "Mặt A · Hồi âm"}
+                    </p>
+                    <p className="text-[20px] leading-tight mt-0.5" style={{ color: base.ink }}>
+                      {String(start.getHours()).padStart(2, "0")}:{String(start.getMinutes()).padStart(2, "0")} · {dotDate(start)}
+                    </p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-[12px] tracking-[0.2em] uppercase" style={{ color: base.muted, fontFamily: "var(--iv-sc), serif", fontWeight: 700 }}>
+                      {look === "glass" ? "Ghế" : "Bàn"}
+                    </p>
+                    <p className="text-[22px] leading-tight" style={{ color: base.wine }}>
+                      {shortTable(allTables.find((t: any) => t.id === tableId)?.name) || "—"}
+                    </p>
+                  </div>
+                  {look === "glass" && (
+                    <>
+                      <span aria-hidden className="absolute -left-3 -bottom-3 w-6 h-6 rounded-full" style={{ background: base.deep }} />
+                      <span aria-hidden className="absolute -right-3 -bottom-3 w-6 h-6 rounded-full" style={{ background: base.deep }} />
+                    </>
+                  )}
+                </div>
+              )}
+              {look === "scrapbook" && (
+                <>
+                  <Tape color={base.blush} w={96} rot={-7} className="-top-3 left-6" />
+                  <Tape color={base.sage} w={80} rot={6} className="-top-3 right-6" />
+                </>
+              )}
               {savedTable && !declined && (
                 <div className="text-center mb-5 rounded-2xl py-3 px-4" style={{ background: base.okBg, color: base.leaf }}>
                   <p className="text-[15px] font-medium">
@@ -846,16 +879,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
                     </div>
                   </div>
 
-                  <TableMap floors={floors} value={tableId} companions={companions} onChange={setTableId} />
-
-                  <select className="rounded-full border bg-white px-4 py-2.5 text-sm" style={{ borderColor: base.line }} value={tableId} onChange={(e) => setTableId(e.target.value)}>
-                    <option value="">Hoặc chọn bàn từ danh sách…</option>
-                    {allTables.map((t: any) => (
-                      <option key={t.id} value={t.id} disabled={t.seats - (t.used ?? 0) < 1}>
-                        {t.name} (còn {Math.max(0, t.seats - (t.used ?? 0))} chỗ)
-                      </option>
-                    ))}
-                  </select>
+                  <TablePicker floors={floors} value={tableId} companions={companions} onChange={setTableId} mine={guest.table_id} />
 
                   <SidePicker value={side} onChange={setSide} />
                   <DietaryPicker value={dietary} onChange={setDietary} />
@@ -916,7 +940,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
         {premium && (event.gift_qr_url || giftAccounts.length > 0) && (
           <section className="px-6 py-14 text-center">
             <Reveal>
-              <SectionTitle kicker="Gửi yêu thương">Hộp mừng cưới</SectionTitle>
+              <SectionTitle kicker={T("gift")[0]}>{T("gift")[1]}</SectionTitle>
               <p className="text-[15px] mb-5" style={{ color: IV.muted }}>
                 Dành cho người thân ở xa chưa thể đến chung vui
               </p>
@@ -932,7 +956,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
         {/* ---------- Guestbook ---------- */}
         <section className="px-6 py-14 text-center">
           <Reveal>
-            <SectionTitle kicker="Sổ lưu bút">Gửi lời chúc</SectionTitle>
+            <SectionTitle kicker={T("wishes")[0]}>{T("wishes")[1]}</SectionTitle>
           </Reveal>
           <Reveal>
             <PaletteProvider value={base}>
@@ -945,7 +969,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
         {video && (
           <section className="px-6 py-14 text-center">
             <Reveal>
-              <SectionTitle kicker="Thước phim">Video cưới</SectionTitle>
+              <SectionTitle kicker={T("video")[0]}>{T("video")[1]}</SectionTitle>
             </Reveal>
             <Reveal>
               {video.kind === "link" ? (
@@ -1028,6 +1052,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
         {musicUrl && <MusicToggle src={musicUrl} start={opened} />}
         {viewer !== null && gallery.length > 0 && <Lightbox photos={gallery} index={viewer} onIndex={setViewer} onClose={() => setViewer(null)} />}
       </main>
+      </RevealProvider>
     </div>
     </PaletteProvider>
   )

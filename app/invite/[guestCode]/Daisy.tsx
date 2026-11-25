@@ -493,6 +493,7 @@ export function ScrollHint({ show }: { show: boolean }) {
 
 /** Confetti burst the first time the wrapped block scrolls into view (gift section) */
 export function ConfettiOnView({ children }: { children: React.ReactNode }) {
+  const IV = useIV()
   const ref = useRef<HTMLDivElement | null>(null)
   const [burst, setBurst] = useState(false)
   useEffect(() => {
@@ -509,9 +510,10 @@ export function ConfettiOnView({ children }: { children: React.ReactNode }) {
   }, [])
   const pieces = useMemo(() => {
     const r = rng(11)
-    const colors = ["#F2B8C6", "#F6D27A", "#A9BCD9", "#F59E9E", "#C9E3B5", "#E8C1F0"]
+    // the invitation's own colours (gold, rose, blush, sage), not a rainbow
+    const colors = [IV.gold[0], IV.gold[1], IV.rose, IV.blush, IV.sage, IV.gold[1]]
     return Array.from({ length: 46 }, (_, i) => ({ left: r() * 100, delay: r() * 0.5, dur: 1.8 + r() * 1.2, rot: r() * 360, w: 4 + r() * 4, color: colors[i % colors.length] }))
-  }, [])
+  }, [IV.rose, IV.gold[1]])
   return (
     <div ref={ref} className="relative">
       {children}

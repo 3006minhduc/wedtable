@@ -87,7 +87,7 @@ export function ScrapIntro({ event, guest, onOpened, onReveal }: IntroProps) {
     if (phase === "out") return
     if (phase === "run" || reduce) return finish(650)
     setPhase("run")
-    timers.current.push(window.setTimeout(() => onReveal?.(), 450))
+    timers.current.push(window.setTimeout(() => onReveal?.(), 150))
     timers.current.push(window.setTimeout(() => setPhase("out"), 1500))
     timers.current.push(window.setTimeout(onOpened, 2100))
   }
@@ -148,7 +148,7 @@ export function ScrapIntro({ event, guest, onOpened, onReveal }: IntroProps) {
 
 export function ScrapHero({ event, cover, second, start, opened }: HeroProps) {
   const IV = useIV()
-  const pop = (i: number, rot = 0): React.CSSProperties => ({ opacity: opened ? 1 : 0, transform: opened ? `rotate(${rot}deg)` : `rotate(${rot}deg) translateY(14px) scale(.96)`, transition: `opacity .8s ease ${0.3 + i * 0.22}s, transform .8s cubic-bezier(.3,.7,.2,1.3) ${0.3 + i * 0.22}s` })
+  const pop = (i: number, rot = 0): React.CSSProperties => ({ opacity: opened ? 1 : 0, transform: opened ? `rotate(${rot}deg)` : `rotate(${rot}deg) translateY(14px) scale(.96)`, transition: `opacity .6s ease ${0.15 + i * 0.18}s, transform .8s cubic-bezier(.3,.7,.2,1.3) ${0.15 + i * 0.18}s` })
   return (
     <section className="wt-bare relative min-h-[100svh] overflow-hidden px-6 pt-10 pb-14" style={{ background: `${DOTS}, ${IV.paper}` }}>
       <p className="text-[34px] leading-none" style={{ fontFamily: HAND, color: IV.muted, ...pop(0, -3) }}>
@@ -210,6 +210,37 @@ export function ScrapTitle({ children }: { children: React.ReactNode; kicker?: s
           <path d="M3 8 C50 2 100 11 150 5 S190 6 197 4" fill="none" stroke={IV.rose} strokeWidth="2.4" strokeLinecap="round" />
         </svg>
       </h2>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------- body pieces (used by every section)
+
+/** Notebook dots behind the body sections */
+export const SCRAP_DOTS_CSS = `.wt-scrap main section:not(.wt-full):not(.wt-bare){background-image:radial-gradient(rgba(80,60,50,.13) 1px,transparent 1.3px)!important;background-size:16px 16px!important}`
+
+/** A note card taped onto the page, slightly askew */
+export function ScrapFrame({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  const IV = useIV()
+  return (
+    <div className={"relative mx-auto max-w-[360px] text-center " + className} style={{ transform: "rotate(-0.8deg)" }}>
+      <div className="rounded-[3px] px-5 pt-8 pb-6" style={{ background: IV.paper, boxShadow: "0 1px 1px rgba(0,0,0,.08), 0 12px 22px -12px rgba(60,40,30,.35)" }}>
+        <div style={{ transform: "rotate(0.8deg)" }}>{children}</div>
+      </div>
+      <Tape color={IV.blush} w={86} rot={-8} className="-top-3 -left-3" />
+      <Tape color={IV.sage} w={70} rot={9} className="-top-2.5 -right-2" />
+    </div>
+  )
+}
+
+/** Hand-drawn dashes with a heart in the middle */
+export function ScrapDivider({ className = "" }: { className?: string }) {
+  const IV = useIV()
+  return (
+    <div className={"flex items-center justify-center gap-3 " + className} aria-hidden>
+      <svg width="70" height="8" viewBox="0 0 70 8"><path d="M2 5 C14 2 24 7 36 4 S58 3 68 5" fill="none" stroke={IV.rose} strokeWidth="1.6" strokeLinecap="round" strokeDasharray="5 5" /></svg>
+      <Heart color={IV.rose} size={18} />
+      <svg width="70" height="8" viewBox="0 0 70 8"><path d="M2 4 C14 6 24 2 36 5 S58 6 68 3" fill="none" stroke={IV.rose} strokeWidth="1.6" strokeLinecap="round" strokeDasharray="5 5" /></svg>
     </div>
   )
 }

@@ -914,8 +914,11 @@ function TablePanel({
         </div>
       </div>
 
-      <div className="flex items-center justify-between text-sm">
-        <span>Bàn VIP</span>
+      <div className="flex items-center justify-between gap-3 text-sm">
+        <span>
+          Bàn VIP
+          <span className="block text-xs text-muted">Khách không tự chọn được trên thiệp, chỉ người bạn xếp vào</span>
+        </span>
         <button
           role="switch"
           aria-checked={table.vip}

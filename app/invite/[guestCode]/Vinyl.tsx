@@ -79,9 +79,9 @@ export function VinylIntro({ event, cover, guest, onOpened, onReveal }: IntroPro
     if (phase !== "idle" || reduce) return finish(650)
     setPhase("slide")
     timers.current.push(window.setTimeout(() => setPhase("play"), 1100))
-    timers.current.push(window.setTimeout(() => onReveal?.(), 2300))
-    timers.current.push(window.setTimeout(() => setPhase("out"), 2700))
-    timers.current.push(window.setTimeout(onOpened, 3350))
+    timers.current.push(window.setTimeout(() => setPhase("out"), 2600))
+    timers.current.push(window.setTimeout(() => onReveal?.(), 3000))
+    timers.current.push(window.setTimeout(onOpened, 3700))
   }
   tapRef.current = tap
   const names = [event.bride_name, event.groom_name].filter(Boolean)
@@ -92,7 +92,12 @@ export function VinylIntro({ event, cover, guest, onOpened, onReveal }: IntroPro
         <p className="absolute inset-x-0 top-[9%] text-center text-[13px] tracking-[0.3em]" style={{ fontFamily: SC, fontWeight: 700, color: IV.gold[0] }}>
           {guest ? `Kính gửi ${guest}` : "Thiệp mời cưới"}
         </p>
-        <div className="absolute left-1/2 top-[44%] -translate-x-1/2 -translate-y-1/2" style={{ width: size, height: size }}>
+        {/* before fading out the record glides to exactly where the cover's record sits (48px from the top,
+            280px wide), so the hand-over has no double image */}
+        <div
+          className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2"
+          style={{ width: size, height: size, top: phase === "out" ? 48 + 140 : "44%", scale: phase === "out" ? String(280 / size) : "1", transition: "top .7s cubic-bezier(.4,0,.2,1), scale .7s cubic-bezier(.4,0,.2,1)" }}
+        >
           {/* record (behind the sleeve, slides out to the right, then centres and spins) */}
           <div
             className="absolute inset-0 transition-transform duration-[1000ms] ease-[cubic-bezier(.5,0,.3,1)]"
@@ -142,7 +147,7 @@ export function VinylIntro({ event, cover, guest, onOpened, onReveal }: IntroPro
           </span>
         </div>
       </div>
-      <style>{`.vy{transition:opacity .65s ease}.vy-out{opacity:0;pointer-events:none}.vy-hint span{animation:vyNudge 2.2s ease-in-out infinite}@keyframes vyNudge{50%{transform:translateY(-3px)}}@media (prefers-reduced-motion: reduce){.vy-hint span{animation:none}}`}</style>
+      <style>{`.vy{transition:opacity .5s ease .5s}.vy-out{opacity:0;pointer-events:none}.vy-hint span{animation:vyNudge 2.2s ease-in-out infinite}@keyframes vyNudge{50%{transform:translateY(-3px)}}@media (prefers-reduced-motion: reduce){.vy-hint span{animation:none}}`}</style>
     </div>
   )
 }
@@ -152,7 +157,7 @@ export function VinylHero({ event, cover, start, opened }: HeroProps) {
   const enter = (i: number): React.CSSProperties => ({ opacity: opened ? 1 : 0, transform: opened ? "none" : "translateY(8px)", transition: `opacity 1s ease ${0.3 + i * 0.18}s, transform 1s ease ${0.3 + i * 0.18}s` })
   return (
     <section className="wt-bare relative min-h-[100svh] overflow-hidden flex flex-col items-center px-6 pt-12 pb-14 text-center" style={{ background: `radial-gradient(120% 80% at 50% 30%, ${IV.deep}, #140b0d)`, color: IV.gold[0] }}>
-      <div className="relative" style={enter(0)}>
+      <div className="relative">
         <Record cover={cover} size={280} spin={opened} label={[event.bride_name, event.groom_name].filter(Boolean).join(" & ")} />
       </div>
       <p className="mt-8 text-[13px] tracking-[0.3em]" style={{ fontFamily: SC, fontWeight: 700, color: IV.gold[1], ...enter(1) }}>

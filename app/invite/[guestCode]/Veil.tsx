@@ -72,9 +72,11 @@ export function VeilIntro({ event, cover, guest, onOpened, onReveal }: IntroProp
     if (phase === "out") return
     if (phase === "run" || reduce) return finish(650)
     setPhase("run")
-    timers.current.push(window.setTimeout(() => onReveal?.(), 900))
-    timers.current.push(window.setTimeout(() => setPhase("out"), 2000))
-    timers.current.push(window.setTimeout(onOpened, 2650))
+    // the real cover starts its entrance right away underneath; the photo behind the veil fades into
+    // it while the veil lifts, so there is no cut from a full-screen photo to the arched cover
+    onReveal?.()
+    timers.current.push(window.setTimeout(() => setPhase("out"), 2300))
+    timers.current.push(window.setTimeout(onOpened, 2950))
   }
   tapRef.current = tap
   const names = [event.bride_name, event.groom_name].filter(Boolean).join(" & ")
@@ -120,6 +122,8 @@ export function VeilIntro({ event, cover, guest, onOpened, onReveal }: IntroProp
         .vl-veil{animation:vlSway 5s ease-in-out infinite}
         .vl-run .vl-veil{animation:vlLift 1.7s cubic-bezier(.55,.05,.3,1) forwards}
         .vl-under img{filter:none}
+        .vl-under{transition:opacity 1.1s ease .35s}
+        .vl-run .vl-under{opacity:0}
         .vl-hint span{animation:vlNudge 2.2s ease-in-out infinite}
         .vl-run .vl-hint{opacity:0;transition:opacity .3s}
         @keyframes vlSway{50%{transform:skewX(.6deg) translateX(-3px)}}
