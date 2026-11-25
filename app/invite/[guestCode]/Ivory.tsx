@@ -171,7 +171,7 @@ export function IvoryIntro({ event, initials, onOpened, onReveal, guest }: Intro
     // seal pressed (0.3s) → top and bottom flaps fold back → side flaps → the cover is ready under the
     // envelope before its inside fades, so nothing flashes white
     timers.current.push(window.setTimeout(() => setPhase("run"), 300))
-    timers.current.push(window.setTimeout(() => onReveal?.(), 1500))
+    timers.current.push(window.setTimeout(() => onReveal?.(), 500))
     timers.current.push(window.setTimeout(() => setPhase("out"), 3400))
     timers.current.push(window.setTimeout(onOpened, 4000))
   }
@@ -241,7 +241,7 @@ export function IvoryIntro({ event, initials, onOpened, onReveal, guest }: Intro
         .iv-open .iv-bottom{transform:rotateX(178deg);transition-delay:.25s}
         .iv-open .iv-left{transform:rotateY(178deg);transition-delay:1.25s;transition-duration:1.45s}
         .iv-open .iv-right{transform:rotateY(-178deg);transition-delay:1.35s;transition-duration:1.45s}
-        .iv-back{transition:opacity .7s ease 2.3s}
+        .iv-back{transition:opacity 1.5s ease .6s}
         .iv-open .iv-back{opacity:0}
         .iv-edges,.iv-who,.iv-hint{transition:opacity .5s}
         .iv-open .iv-edges,.iv-open .iv-who,.iv-open .iv-hint,.iv-press .iv-hint{opacity:0}
