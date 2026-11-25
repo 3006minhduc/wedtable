@@ -3,6 +3,7 @@
 // Wedding checklist: built from a template the first time (region, ceremonies, party venue), then
 // fully the couple's own: tick, reassign, rename, add, delete. Items with an auto_key are ticked by
 // WedTable itself from the event's data (same detection as the overview journey).
+import PageSkeleton from "@/components/ui/PageSkeleton"
 import { useCallback, useEffect, useState } from "react"
 import Icon from "@/components/ui/Icon"
 import { useEvents } from "@/lib/useEvents"
@@ -41,7 +42,7 @@ export default function ChecklistPage() {
     load()
   }, [load])
 
-  if (loading || !items) return <p className="text-muted">Đang tải...</p>
+  if (loading || !items) return <PageSkeleton />
   if (!eventId) return <p className="text-muted">Bạn chưa có sự kiện nào. Tạo ở trang Tổng quan.</p>
 
   async function build(s: ChecklistSetup) {
@@ -76,7 +77,8 @@ export default function ChecklistPage() {
   const pct = Math.round((done / total) * 100)
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-  const overdue = items.filter((i) => !isDone(i) && (phaseDue(i.phase, detail?.event_date)?.getTime() ?? Infinity) < today.getTime()).length
+  const weddingOver = !!detail?.event_date && new Date(`${detail.event_date}T23:59:59`).getTime() < today.getTime()
+  const overdue = weddingOver ? 0 : items.filter((i) => !isDone(i) && (phaseDue(i.phase, detail?.event_date)?.getTime() ?? Infinity) < today.getTime()).length
 
   async function patch(id: string, body: Partial<Item>) {
     setItems((list) => list!.map((x) => (x.id === id ? { ...x, ...body } : x)))
@@ -122,7 +124,7 @@ export default function ChecklistPage() {
               {done}
               <span className="text-faint text-xl"> / {total} việc</span>
             </p>
-            <p className="text-sm text-muted mt-1">{overdue > 0 ? <span className="text-error">{overdue} việc đã quá hạn</span> : "Không có việc nào quá hạn"}</p>
+            <p className="text-sm text-muted mt-1">{weddingOver ? "Đám cưới đã diễn ra, các mốc hạn không còn tính." : overdue > 0 ? <span className="text-error">{overdue} việc đã quá hạn</span> : "Không có việc nào quá hạn"}</p>
           </div>
           <p className="font-serif text-3xl tabular-nums">{pct}%</p>
         </div>
@@ -149,7 +151,7 @@ export default function ChecklistPage() {
         const list = items.filter((i) => i.phase === p.key && (filter === "Tất cả" || i.owner === filter) && !(hideDone && isDone(i)))
         const all = items.filter((i) => i.phase === p.key)
         const due = phaseDue(p.key, detail?.event_date)
-        const late = due && due.getTime() < today.getTime() && all.some((i) => !isDone(i))
+        const late = !weddingOver && due && due.getTime() < today.getTime() && all.some((i) => !isDone(i))
         return (
           <section key={p.key} className="bg-surface border border-border rounded-card p-5">
             <div className="flex items-baseline justify-between gap-3 flex-wrap">

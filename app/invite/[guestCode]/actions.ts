@@ -11,6 +11,7 @@ function createClient() {
   )
 }
 
+const FRIENDLY = "Chưa gửi được, có thể do mạng yếu. Bạn thử lại sau ít phút nhé."
 export async function confirmSeat(guestCode: string, tableId: string, companions: number, dietary = "", note = "", side = "") {
   const { data, error } = await createClient().rpc("confirm_seat", {
     p_code: guestCode,
@@ -22,7 +23,7 @@ export async function confirmSeat(guestCode: string, tableId: string, companions
   })
 
   if (error) {
-    return { error: "INTERNAL_ERROR", message: error.message }
+    return { error: "INTERNAL_ERROR", message: FRIENDLY }
   }
 
   revalidatePath(`/invite/${guestCode}`)
@@ -35,11 +36,18 @@ export async function markViewed(guestCode: string) {
 
 export async function addWish(guestCode: string, message: string, name?: string) {
   const { data, error } = await createClient().rpc("add_wish", { p_code: guestCode, p_message: message.slice(0, 500), p_name: name ?? null })
-  if (error) return { error: "INTERNAL_ERROR", message: error.message }
+  if (error) return { error: "INTERNAL_ERROR", message: FRIENDLY }
   return data as { success?: boolean; error?: string; message?: string }
 }
 
 export async function getWishes(guestCode: string) {
   const { data } = await createClient().rpc("get_wishes", { p_code: guestCode })
   return (Array.isArray(data) ? data : []) as { id: string; name: string; message: string; pinned: boolean; created_at: string; mine: boolean }[]
+}
+
+export async function declineInvite(guestCode: string, note = "") {
+  const { data, error } = await createClient().rpc("decline_invite", { p_code: guestCode, p_note: note.slice(0, 1000) || null })
+  if (error) return { error: "INTERNAL_ERROR", message: FRIENDLY }
+  revalidatePath(`/invite/${guestCode}`)
+  return data as { success?: boolean; error?: string; message?: string }
 }

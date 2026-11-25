@@ -1,4 +1,5 @@
 "use client"
+import { fitName } from "./Looks"
 
 // "Vén voan" (template id `veil`, 2026-11-25): a bridal tulle veil with a scalloped lace hem and tiny embroidered
 // flowers lies over the couple's photo; tapping lifts it like the groom lifting the bride's veil.
@@ -149,9 +150,9 @@ export function VeilHero({ event, cover, start, opened }: HeroProps) {
         )}
       </div>
       <h1 className="mt-7 leading-[1.02]" style={{ fontFamily: PIN, color: IV.wine }}>
-        <Letters text={event.bride_name || ""} on={opened} delay={0.9} step={0.07} className="block text-[56px]" />
+        <Letters text={event.bride_name || ""} on={opened} delay={0.9} step={0.07} className="block" style={{ fontSize: fitName(event.bride_name, 56) }} />
         <Letters text="&" on={opened} delay={1.2} className="block text-[34px]" style={{ color: IV.gold[1] }} />
-        <Letters text={event.groom_name || ""} on={opened} delay={1.4} step={0.07} className="block text-[56px]" />
+        <Letters text={event.groom_name || ""} on={opened} delay={1.4} step={0.07} className="block" style={{ fontSize: fitName(event.groom_name, 56) }} />
       </h1>
       {start && (
         <div className="mt-4" style={enter(6)}>

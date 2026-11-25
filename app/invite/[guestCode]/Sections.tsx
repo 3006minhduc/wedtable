@@ -104,7 +104,7 @@ export function Milestones({ items }: { items: Milestone[] }) {
       {items.map((m, i) => (
         <li key={i} className="relative pb-7 last:pb-0">
           <span className="absolute -left-6 top-1.5 w-[15px] h-[15px] rounded-full" style={{ background: IV.paper, boxShadow: `inset 0 0 0 2px ${IV.rose}` }} aria-hidden />
-          <p className="text-[14px] tracking-[0.14em]" style={{ fontFamily: SC, fontWeight: 700, color: IV.rose }}>
+          <p className="text-[14px] tracking-[0.14em]" style={{ fontFamily: SC, fontWeight: 700, color: IV.wine }}>
             {m.year}
           </p>
           <p className="text-[21px] leading-tight mt-0.5" style={{ color: IV.wine, fontWeight: 500 }}>

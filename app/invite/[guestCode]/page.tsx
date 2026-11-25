@@ -43,7 +43,7 @@ export default async function InvitePage({ params }: { params: { guestCode: stri
     return (
       <div className="min-h-screen bg-bg flex items-center justify-center p-4">
         <div className="max-w-sm bg-surface border border-border rounded-card p-8 text-center">
-          <div className="text-3xl mb-3">💌</div>
+          <svg aria-hidden="true" viewBox="0 0 24 24" className="w-9 h-9 mx-auto mb-3 text-brand" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></svg>
           <h1 className="text-lg font-semibold text-text mb-2">Thiệp mời chưa được công bố</h1>
           <p className="text-sm text-muted">Chủ tiệc chưa mở thiệp mời này. Vui lòng quay lại sau hoặc liên hệ trực tiếp với cô dâu chú rể.</p>
         </div>
@@ -53,7 +53,9 @@ export default async function InvitePage({ params }: { params: { guestCode: stri
 
   const { guest, event, floors } = invite
   const lockAt = event.lock_at
-  const locked = lockAt ? new Date(lockAt).getTime() < Date.now() : false
+  // RSVP closes at the lock time, and in any case once the wedding day is over (Vietnam time)
+  const dayOver = event.event_date ? new Date(`${event.event_date}T23:59:59+07:00`).getTime() < Date.now() : false
+  const locked = dayOver || (lockAt ? new Date(lockAt).getTime() < Date.now() : false)
 
   return <InviteClient guest={guest} event={event} floors={floors ?? []} locked={locked} />
 }

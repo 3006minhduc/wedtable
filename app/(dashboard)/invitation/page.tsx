@@ -2,6 +2,7 @@
 
 // Invitation designer: theme, wording, families, timeline, dress code, story, photos, gift QR, video.
 // Autosaves like Settings; the phone preview on the right updates instantly via postMessage.
+import PageSkeleton from "@/components/ui/PageSkeleton"
 import { useEffect, useRef, useState } from "react"
 import TemplatePicker from "@/components/invitation/TemplatePicker"
 import { CeremonyEditor, GiftEditor, MilestoneEditor, WishesManager } from "@/components/invitation/Editors"
@@ -330,7 +331,7 @@ export default function InvitationPage() {
     setUploadingMusic(false)
   }
 
-  if (loading || (eventId && !form)) return <p className="text-muted">Đang tải...</p>
+  if (loading || (eventId && !form)) return <PageSkeleton />
   if (!eventId) return <p className="text-muted">Bạn chưa có sự kiện nào. Tạo ở trang Tổng quan.</p>
 
   const previewSrc = `/invite-preview/${eventId}${intro ? "?intro=1" : ""}`

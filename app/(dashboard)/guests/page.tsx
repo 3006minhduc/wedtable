@@ -1,5 +1,6 @@
 "use client"
 
+import PageSkeleton from "@/components/ui/PageSkeleton"
 import { useCallback, useEffect, useRef, useState } from "react"
 import Icon from "@/components/ui/Icon"
 import { FREE_LIMITS, isPremium } from "@/lib/plan"
@@ -119,7 +120,7 @@ export default function GuestsPage() {
   }
 
   async function handleDelete(guestId: string) {
-    if (!confirm("Xóa khách này?")) return
+    if (!confirm("Xóa khách này? Link thiệp riêng của họ sẽ không mở được nữa, không hoàn tác được.")) return
     setGuests((prev) => prev.filter((g) => g.id !== guestId))
     await fetch(`/api/events/${eventId}/guests/${guestId}`, { method: "DELETE" })
   }
@@ -162,7 +163,7 @@ export default function GuestsPage() {
     return true
   })
 
-  if (eventsLoading || loading) return <p className="text-muted">Đang tải...</p>
+  if (eventsLoading || loading) return <PageSkeleton />
   if (!eventId) return <p className="text-muted">Bạn chưa có sự kiện nào. Tạo ở trang Tổng quan.</p>
 
   const input = "border border-border rounded-card px-3 py-2 text-sm"

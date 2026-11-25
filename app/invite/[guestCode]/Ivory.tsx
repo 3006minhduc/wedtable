@@ -1,4 +1,5 @@
 "use client"
+import { fitName } from "./Looks"
 
 // "Ngà dập nổi" (template id `floral`, 2026-11-25). Style learned from a premium Vietnamese invite the user
 // liked (embossed ivory paper, wax seal, photo that sharpens as the envelope opens, script revealed letter by
@@ -270,7 +271,8 @@ export function IvoryHero({ event, cover, start, opened }: HeroProps) {
   const t1 = 1.0
   const t2 = t1 + Array.from(bride).length * 0.07 + 0.25
   const t3 = t2 + 0.3 + Array.from(groom).length * 0.07
-  const fade = `linear-gradient(to top, ${IV.paper} 0%, ${IV.paper} 24%, ${IV.paper}e0 38%, ${IV.paper}00 62%)`
+  // the paper rises high enough that the small heading line never sits on the photo
+  const fade = `linear-gradient(to top, ${IV.paper} 0%, ${IV.paper} 34%, ${IV.paper}e6 50%, ${IV.paper}00 74%)`
   return (
     <section className="wt-full wt-bare relative h-[100svh] min-h-[620px] overflow-hidden" style={{ backgroundColor: IV.blush, backgroundImage: cover ? undefined : paperImg, backgroundSize: "cover" }}>
       {cover && (
@@ -293,9 +295,9 @@ export function IvoryHero({ event, cover, start, opened }: HeroProps) {
           Trân trọng báo tin lễ thành hôn
         </p>
         <h1 className="mt-2 leading-[1.02]" style={{ fontFamily: PIN, color: IV.wine }}>
-          <Letters text={bride} on={opened} delay={t1} step={0.07} className="block text-[60px]" />
+          <Letters text={bride} on={opened} delay={t1} step={0.07} className="block" style={{ fontSize: fitName(bride, 60, 8) }} />
           <Letters text="&" on={opened} delay={t2} className="block text-[38px] my-0.5" style={{ color: IV.rose }} />
-          <Letters text={groom} on={opened} delay={t2 + 0.3} step={0.07} className="block text-[60px]" />
+          <Letters text={groom} on={opened} delay={t2 + 0.3} step={0.07} className="block" style={{ fontSize: fitName(groom, 60, 8) }} />
         </h1>
         {start && (
           <div className={"mt-4 iv-wipe " + (opened ? "iv-on" : "")} style={{ transitionDelay: `${t3}s` }}>
@@ -468,10 +470,10 @@ function IvoryMoment({ it, last }: { it: any; last: boolean }) {
   return (
     <div ref={ref} className="flex flex-col items-center">
       <LineIcon name={it.icon} on={on} />
-      <p className="mt-2 text-[44px] leading-none" style={{ fontFamily: PIN, color: IV.ink }}>
+      <p className="mt-1.5 text-[38px] leading-none" style={{ fontFamily: PIN, color: IV.ink }}>
         {it.time}
       </p>
-      <p className="mt-2 text-[18px] tracking-[0.08em]" style={{ fontFamily: SC, fontWeight: 700, color: IV.ink }}>
+      <p className="mt-1.5 text-[17px] tracking-[0.08em]" style={{ fontFamily: SC, fontWeight: 700, color: IV.ink }}>
         {it.title}
       </p>
       {it.note && (
@@ -480,8 +482,8 @@ function IvoryMoment({ it, last }: { it: any; last: boolean }) {
         </p>
       )}
       {!last && (
-        <svg width="2" height="64" className={"my-4 iv-draw " + (on ? "iv-on" : "")} aria-hidden>
-          <line x1="1" y1="0" x2="1" y2="64" stroke={IV.muted} strokeOpacity=".55" strokeWidth="1" pathLength={1} style={{ transitionDelay: ".6s" }} />
+        <svg width="2" height="30" className={"my-3 iv-draw " + (on ? "iv-on" : "")} aria-hidden>
+          <line x1="1" y1="0" x2="1" y2="30" stroke={IV.muted} strokeOpacity=".55" strokeWidth="1" pathLength={1} style={{ transitionDelay: ".6s" }} />
         </svg>
       )}
       {last && <div className="h-2" />}

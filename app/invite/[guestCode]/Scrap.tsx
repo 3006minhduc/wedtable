@@ -1,4 +1,5 @@
 "use client"
+import { fitName } from "./Looks"
 
 // "Sổ kỷ niệm" (template id `scrapbook`, 2026-11-25): a kraft notebook with washi tape and a name label; the
 // cover turns like a page onto a scrapbook spread with taped polaroids, handwriting, doodles and a date stamp.
@@ -172,7 +173,7 @@ export function ScrapHero({ event, cover, second, start, opened }: HeroProps) {
           sắp tới!
         </p>
       </div>
-      <h1 className="mt-4 text-[54px] leading-[1]" style={{ fontFamily: HAND, color: IV.wine, ...pop(4, -2) }}>
+      <h1 className="mt-4 leading-[1.05]" style={{ fontSize: fitName((event.bride_name || "") + (event.groom_name || ""), 54, 11), fontFamily: HAND, color: IV.wine, ...pop(4, -2) }}>
         {event.bride_name}
         <Heart color={IV.rose} size={30} className="inline-block mx-2 align-middle" />
         {event.groom_name}

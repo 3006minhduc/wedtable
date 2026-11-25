@@ -1,4 +1,5 @@
 "use client"
+import { fitName } from "./Looks"
 
 // "Daisy envelope" template (docs/mau-thiep/hoa-cuc-phong-bi.md): an embroidered daisy on an envelope
 // flap, a gold light running up the thread from the wax seal, the flap flipping open, then a pastel-blue
@@ -416,9 +417,9 @@ export function DaisyHero({ event, shortDate, opened }: { event: any; shortDate:
           Chúng mình sắp cưới
         </p>
         <h1 className="mt-5 leading-[1.05] break-words max-w-full" style={scriptF}>
-          <span className="block text-[46px]" style={line(2)}>{event.bride_name}</span>
+          <span className="block" style={{ fontSize: fitName(event.bride_name, 46), ...line(2) }}>{event.bride_name}</span>
           <span className="block text-[30px] my-1" style={line(3)}>&amp;</span>
-          <span className="block text-[46px]" style={line(4)}>{event.groom_name}</span>
+          <span className="block" style={{ fontSize: fitName(event.groom_name, 46), ...line(4) }}>{event.groom_name}</span>
         </h1>
         <div style={line(5)}>
           <DaisyDivider className="my-6 !w-32" />

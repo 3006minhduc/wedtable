@@ -1,5 +1,6 @@
 "use client"
 
+import PageSkeleton from "@/components/ui/PageSkeleton"
 import { useEffect, useRef, useState } from "react"
 import Icon from "@/components/ui/Icon"
 import { ROLE_LABEL, useEvents } from "@/lib/useEvents"
@@ -293,7 +294,7 @@ export default function SettingsPage() {
     window.location.href = "/"
   }
 
-  if (loading || (eventId && !form)) return <p className="text-muted">Đang tải...</p>
+  if (loading || (eventId && !form)) return <PageSkeleton />
   if (!eventId) return <p className="text-muted">Bạn chưa có sự kiện nào. Tạo ở trang Tổng quan.</p>
 
   const base = "border rounded-lg min-h-10 px-3 py-2 text-sm w-full bg-surface hover:border-border-hover focus:outline-none focus:border-brand focus:ring-[3px] focus:ring-brand/10 "

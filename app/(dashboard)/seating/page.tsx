@@ -1,5 +1,6 @@
 "use client"
 
+import PageSkeleton from "@/components/ui/PageSkeleton"
 import { useCallback, useEffect, useRef, useState } from "react"
 import Icon from "@/components/ui/Icon"
 import SeatingCanvas, { occupiedSeats } from "@/components/seating/SeatingCanvas"
@@ -504,9 +505,9 @@ export default function SeatingPage() {
     return () => window.removeEventListener("keydown", h)
   }, [])
 
-  if (loading) return <p className="text-muted">Đang tải...</p>
+  if (loading) return <PageSkeleton />
   if (!eventId) return <p className="text-muted">Bạn chưa có sự kiện nào. Tạo ở trang Tổng quan.</p>
-  if (!detail) return <p className="text-muted">Đang tải...</p>
+  if (!detail) return <PageSkeleton />
 
   const floorSeats = tables.reduce((s, t) => s + t.seats, 0)
   const floorUsed = tables.reduce((s, t) => s + occupiedSeats(guests, t.id), 0)

@@ -64,16 +64,19 @@ export default function GuestTable({
   onQr?: (guest: Guest) => void
   onCompanions?: (guestId: string, value: number) => void
 }) {
+  const pill = "inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-md whitespace-nowrap "
   const badge = (g: Guest) =>
     g.checked_in ? (
-      <span className="text-xs bg-pr-l text-pr-d px-2 py-1 rounded-pill">Đã check-in</span>
+      <span className={pill + "bg-success text-white"}>✓ Đã đến</span>
     ) : g.no_show ? (
-      <span className="text-xs bg-rose/10 text-rose px-2 py-1 rounded-pill">Không đến</span>
+      <span className={pill + "bg-surface-alt text-muted"}>Không đến</span>
     ) : g.confirmed ? (
-      <span className="text-xs bg-sage/10 text-sage px-2 py-1 rounded-pill">Đã xác nhận</span>
+      <span className={pill + "bg-success/10 text-success"}>Đã xác nhận</span>
     ) : (
-      <span className="text-xs bg-muted/10 text-muted px-2 py-1 rounded-pill">Chưa phản hồi</span>
+      <span className={pill + "bg-warning/10 text-warning"}>Chưa phản hồi</span>
     )
+  const act = "h-8 px-2.5 rounded-md text-[13px] text-text hover:bg-surface-alt transition-colors"
+  const del = "h-8 px-2.5 rounded-md text-[13px] text-muted hover:text-error hover:bg-error/10 transition-colors"
 
   return (
     <>
@@ -119,19 +122,19 @@ export default function GuestTable({
               <span className="text-xs text-muted">Đi kèm</span>
               {onCompanions ? <CompanionsInput value={g.companions} onChange={(v) => onCompanions(g.id, v)} /> : <span>{g.companions}</span>}
             </div>
-            <div className="flex gap-4 text-xs pt-1 border-t border-border">
+            <div className="flex gap-1 pt-1 border-t border-border -mx-1">
               {onQr && (
-                <button className="text-pr-d py-1" onClick={() => onQr(g)}>
+                <button className={act + " h-10"} onClick={() => onQr(g)} aria-label={`Mã QR của ${g.name}`}>
                   QR
                 </button>
               )}
-              <button className="text-pr-d py-1" onClick={() => onRemind(g.id)}>
+              <button className={act + " h-10"} onClick={() => onRemind(g.id)}>
                 Nhắc
               </button>
-              <button className="text-muted py-1" onClick={() => onToggleNoShow(g.id, !g.no_show)}>
+              <button className={act + " h-10"} onClick={() => onToggleNoShow(g.id, !g.no_show)}>
                 {g.no_show ? "Có đến" : "Vắng"}
               </button>
-              <button className="text-rose py-1" onClick={() => onDelete(g.id)}>
+              <button className={del + " h-10 ml-auto"} onClick={() => onDelete(g.id)} aria-label={`Xóa ${g.name}`}>
                 Xóa
               </button>
             </div>
@@ -182,12 +185,8 @@ export default function GuestTable({
                 </div>
               </td>
               <td className="px-4 py-3">
-                {g.checked_in ? (
-                  <span className="text-xs bg-pr-l text-pr-d px-2 py-1 rounded-pill">Đã check-in</span>
-                ) : g.no_show ? (
-                  <span className="text-xs bg-rose/10 text-rose px-2 py-1 rounded-pill">Không đến</span>
-                ) : g.confirmed ? (
-                  <span className="text-xs bg-sage/10 text-sage px-2 py-1 rounded-pill">Đã xác nhận</span>
+                {g.checked_in || g.no_show || g.confirmed ? (
+                  badge(g)
                 ) : (
                   <span className="text-xs bg-muted/10 text-muted px-2 py-1 rounded-pill">Chưa phản hồi</span>
                 )}
@@ -214,19 +213,19 @@ export default function GuestTable({
                 )}
               </td>
               <td className="px-4 py-3">
-                <div className="flex gap-3 text-xs">
+                <div className="flex gap-1 -ml-2.5">
                   {onQr && (
-                    <button className="text-pr-d hover:underline" onClick={() => onQr(g)}>
+                    <button className={act} onClick={() => onQr(g)} aria-label={`Mã QR của ${g.name}`}>
                       QR
                     </button>
                   )}
-                  <button className="text-pr-d hover:underline" onClick={() => onRemind(g.id)}>
+                  <button className={act} onClick={() => onRemind(g.id)}>
                     Nhắc
                   </button>
-                  <button className="text-muted hover:underline" onClick={() => onToggleNoShow(g.id, !g.no_show)}>
+                  <button className={act} onClick={() => onToggleNoShow(g.id, !g.no_show)}>
                     {g.no_show ? "Có đến" : "Vắng"}
                   </button>
-                  <button className="text-rose hover:underline" onClick={() => onDelete(g.id)}>
+                  <button className={del} onClick={() => onDelete(g.id)} aria-label={`Xóa ${g.name}`}>
                     Xóa
                   </button>
                 </div>

@@ -1,4 +1,5 @@
 "use client"
+import { fitName } from "./Looks"
 
 // "Hộp lụa nơ" (template id `emboss`, 2026-11-25, replaces the lotus look the owner found too temple-like):
 // a silk-covered invitation box with an embossed rose wreath on the lid, a satin ribbon tied in a bow and a
@@ -199,9 +200,9 @@ export function SilkHero({ event, cover, start, opened }: HeroProps) {
         </div>
       </div>
       <h1 className="relative mt-4 leading-[1.02]" style={{ fontFamily: PIN, color: IV.wine }}>
-        <Letters text={event.bride_name || ""} on={opened} delay={0.8} step={0.07} className="block text-[56px]" />
+        <Letters text={event.bride_name || ""} on={opened} delay={0.8} step={0.07} className="block" style={{ fontSize: fitName(event.bride_name, 56) }} />
         <Letters text="&" on={opened} delay={1.1} className="block text-[34px]" style={{ color: IV.rose }} />
-        <Letters text={event.groom_name || ""} on={opened} delay={1.3} step={0.07} className="block text-[56px]" />
+        <Letters text={event.groom_name || ""} on={opened} delay={1.3} step={0.07} className="block" style={{ fontSize: fitName(event.groom_name, 56) }} />
       </h1>
       {start && (
         <div className="relative mt-4" style={enter(6)}>

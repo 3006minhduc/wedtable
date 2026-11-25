@@ -1,5 +1,6 @@
 "use client"
 
+import PageSkeleton from "@/components/ui/PageSkeleton"
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Avatar, displayName } from "@/components/layout/UserMenu"
@@ -32,7 +33,7 @@ export default function ProfilePage() {
     setMsg("Đã lưu tên hiển thị")
   }
 
-  if (!user) return <p className="text-muted">Đang tải...</p>
+  if (!user) return <PageSkeleton />
 
   const provider = user.app_metadata?.provider ?? "email"
   const providerLabel = provider === "google" ? "Google" : provider === "phone" ? "Số điện thoại" : "Email / mật khẩu"

@@ -1,5 +1,6 @@
 "use client"
 
+import PageSkeleton from "@/components/ui/PageSkeleton"
 import { useCallback, useEffect, useRef, useState } from "react"
 import Icon from "@/components/ui/Icon"
 import PremiumNote from "@/components/ui/PremiumNote"
@@ -114,7 +115,7 @@ export default function CheckinPage() {
     setWalkSaving(false)
   }
 
-  if (loading) return <p className="text-muted">Đang tải...</p>
+  if (loading) return <PageSkeleton />
   if (!eventId) return <p className="text-muted">Bạn chưa có sự kiện nào. Tạo ở trang Tổng quan.</p>
 
   const q = query.trim().toLowerCase()

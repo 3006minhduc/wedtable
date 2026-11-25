@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { confirmSeat, markViewed } from "./actions"
+import { confirmSeat, declineInvite, markViewed } from "./actions"
 import { formatInviteDate } from "@/lib/formatDate"
 import { videoEmbed } from "@/lib/videoEmbed"
 import { hallOf } from "@/lib/hall"
@@ -15,7 +15,7 @@ import { ScrapHero, ScrapIntro, ScrapTitle } from "./Scrap"
 import { HyHero2, HyIntro2 } from "./Hy"
 import { FilmHero2, FilmIntro2, FilmReel } from "./Film"
 import { SilkHero, SilkIntro, SilkTitle, silk } from "./Silk"
-import { IvoryClosing, IvoryDivider, IvoryEventDate, IvoryHero, IvoryIntro, IvoryTimeline, IvoryTitle, useBorderPaper } from "./Ivory"
+import { IvoryClosing, IvoryDivider, IvoryEventDate, IvoryHero, IvoryIntro, IvoryTimeline, IvoryTitle, LineIcon, useBorderPaper } from "./Ivory"
 import { DateStrip, EventDate, dotDate, FilmHero, FilmIntro, FilmTitle, HyHero, HyIntro, HyTitle, LetterHero, LetterIntro, LetterTitle, MagHero, MagIntro, MagTitle, WaxSeal } from "./Looks"
 import type { HeroProps, IntroProps } from "./Looks"
 import { DietaryPicker, FaqList, MusicToggle } from "./Extras"
@@ -60,7 +60,7 @@ function TableMap({ floors, value, companions, onChange }: { floors: any[]; valu
               key={f.id}
               type="button"
               onClick={() => setFloorIdx(i)}
-              className="rounded-full px-4 py-1 text-xs border transition-colors"
+              className="rounded-full px-4 min-h-9 text-[13px] border transition-colors"
               style={i === floorIdx ? { background: IV.wine, borderColor: IV.wine, color: "#fff" } : { borderColor: IV.line, color: IV.muted }}
             >
               {f.name}
@@ -98,6 +98,8 @@ function TableMap({ floors, value, companions, onChange }: { floors: any[]; valu
               key={t.id}
               type="button"
               disabled={full && !selected}
+              aria-pressed={selected}
+              aria-label={`${t.name}${t.vip ? ", bàn VIP" : ""}, ${full && !selected ? "đã đủ chỗ" : `còn ${Math.max(0, left)} chỗ`}`}
               onClick={() => onChange(t.id)}
               style={{ left: `${t.x_pct}%`, top: `${t.y_pct}%`, transform: "translate(-50%, -50%)", ...style }}
               className={
@@ -287,17 +289,19 @@ function Timeline({ items }: { items: any[] }) {
   const IV = useIV()
   return (
     <div className="relative pl-2">
-      <div className="absolute left-[13px] top-3 bottom-3 border-l" style={{ borderColor: IV.line }} />
-      <div className="flex flex-col gap-7">
+      <div className="absolute left-[29px] top-6 bottom-6 border-l" style={{ borderColor: IV.line }} />
+      <div className="flex flex-col gap-6">
         {items.map((it, i) => (
           <Reveal key={i} delay={i * 90}>
             <div className="flex items-start gap-4">
-              <span className="relative z-10 mt-2.5 ml-px w-2.5 h-2.5 shrink-0 rounded-full" style={{ background: IV.rose, boxShadow: `0 0 0 4px ${IV.paper}` }} aria-hidden />
+              <span className="relative z-10 w-11 h-11 shrink-0 rounded-full flex items-center justify-center" style={{ background: IV.paper, boxShadow: `inset 0 0 0 1px ${IV.line}, 0 0 0 5px ${IV.bg}` }} aria-hidden>
+                <LineIcon name={it.icon} on size={28} />
+              </span>
               <div className="pt-0.5 text-left">
-                <p className="text-[22px] tabular-nums" style={{ fontFamily: "var(--iv-caps), serif", fontWeight: 600, color: IV.wine }}>
+                <p className="text-[22px] leading-none mt-1 tabular-nums" style={{ fontFamily: "var(--iv-caps), serif", fontWeight: 600, color: IV.wine }}>
                   {it.time}
                 </p>
-                <p className="text-[15px] font-medium" style={{ color: IV.ink }}>
+                <p className="text-[17px] mt-1" style={{ color: IV.ink, fontWeight: 500 }}>
                   {it.title}
                 </p>
                 {it.note && (
@@ -400,7 +404,9 @@ export default function InviteClient(props: InviteProps) {
 function Invite({ guest, event, floors, locked, preview = false, skipIntro = false, look = "floral" }: InviteProps & { look?: InviteStyle }) {
   const base = useIV()
   // film: the whole body is dark; traditional: red bands for the countdown and the invitation block
-  const IV = look === "glass" ? darkPalette(base) : base
+  // film and record: the whole body stays dark like their covers; traditional: red bands
+  const darkBody = look === "glass" || look === "vinyl"
+  const IV = darkBody ? darkPalette(base) : base
   const S = look === "gilded" ? darkPalette(base) : IV
   const ivory = look === "floral"
   const silky = look === "emboss"
@@ -410,7 +416,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
   const L = LOOKS[look]
   const O = { Divider: L.Divider, Frame: L.Frame }
   const SectionTitle = L.Title
-  const deepRsvp = look === "gilded" || look === "glass"
+  const deepRsvp = look === "gilded" || darkBody
   const [opened, setOpened] = useState(skipIntro)
   // cover entrance starts while the opening is still finishing (doors / page turn show the cover underneath)
   const [revealed, setRevealed] = useState(skipIntro)
@@ -421,6 +427,11 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
   const [side, setSide] = useState<string>(guest.side ?? "")
   const [status, setStatus] = useState<{ error?: string; message?: string; success?: boolean } | null>(null)
   const [loading, setLoading] = useState(false)
+  // guest said they can't come (no_show without a confirmation); "asking" shows the short decline form
+  const [declined, setDeclined] = useState<boolean>(!!guest.no_show && !guest.confirmed)
+  const [asking, setAsking] = useState(false)
+  const [savedTable, setSavedTable] = useState<string>(guest.confirmed ? guest.table_id ?? "" : "")
+  const [savedCompanions, setSavedCompanions] = useState<number>(guest.companions ?? 0)
 
   useEffect(() => {
     if (!preview) markViewed(guest.code)
@@ -443,7 +454,9 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
   const rest = gallery.slice(storyPhoto && event.plan === "premium" && event.love_story ? 2 : 1)
   const interlude1 = rest.length >= 3 ? rest[0] : undefined
   const interlude2 = rest.length >= 8 ? rest[rest.length - 1] : undefined
-  const albumAll = rest.filter((u) => u !== interlude1 && u !== interlude2)
+  // closing "thank you" photo: only when there are enough photos, and it is then left out of the album
+  const thanksPhoto = !interlude2 && rest.length >= 5 ? rest[rest.length - 1] : undefined
+  const albumAll = rest.filter((u) => u !== interlude1 && u !== interlude2 && u !== thanksPhoto)
   // three photos printed with the date (only when the album still has photos left after them)
   const datePhotos = albumAll.length >= 4 ? albumAll.slice(0, 3) : []
   const albumPhotos = albumAll.slice(datePhotos.length)
@@ -463,6 +476,11 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
   const milestones: Milestone[] = premium ? (Array.isArray(event.story_milestones) ? event.story_milestones : []).filter((m: any) => m?.title?.trim() || m?.year?.trim()) : []
   const dressColors: string[] = Array.isArray(event.dress_colors) ? event.dress_colors.filter(Boolean) : []
   const start = eventStart(event.event_date, event.event_time)
+  // computed after mount so server and client markup agree
+  const [dayOver, setDayOver] = useState(false)
+  useEffect(() => {
+    if (start) setDayOver(Date.now() > new Date(start.getFullYear(), start.getMonth(), start.getDate(), 23, 59, 59).getTime())
+  }, [event.event_date])
   const initials = `${initialOf(event.bride_name)}&${initialOf(event.groom_name)}`
   // Map: the address when given, else the venue name
   const mapQuery = [event.venue_name, event.venue_address].filter(Boolean).join(", ")
@@ -489,6 +507,28 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
     const result = await confirmSeat(guest.code, tableId, Number(companions), dietary, note, side)
     setLoading(false)
     setStatus(result)
+    if (result?.success) {
+      setDeclined(false)
+      setSavedTable(tableId)
+      setSavedCompanions(Number(companions))
+    }
+  }
+
+  async function handleDecline() {
+    if (preview) {
+      setStatus({ error: "PREVIEW", message: "Đây là bản xem trước. Khách thật sẽ gửi được ở đây." })
+      return
+    }
+    setLoading(true)
+    const result = await declineInvite(guest.code, note)
+    setLoading(false)
+    if (result?.success) {
+      setDeclined(true)
+      setAsking(false)
+      setSavedTable("")
+      setTableId("")
+      setStatus(null)
+    } else setStatus(result)
   }
 
   return (
@@ -524,7 +564,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
           <PaletteProvider value={S}>
             <section className="px-6 py-14 text-center" style={{ background: S.paper }}>
               <Reveal>
-                <SectionTitle>Hôn lễ sẽ diễn ra sau</SectionTitle>
+                <SectionTitle>{dayOver ? "Ngày chung đôi" : "Hôn lễ sẽ diễn ra sau"}</SectionTitle>
                 <Countdown start={start} variant={look === "gilded" ? "square" : look === "glass" || look === "vinyl" ? "plain" : look === "floral" || look === "emboss" || look === "scrapbook" ? "cells" : "circle"} />
                 <div className="mt-10">
                   <MonthCalendar date={start} />
@@ -603,7 +643,7 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
             <O.Frame>
               {!ivory && (
                 <p className="text-[22px] mb-5" style={{ fontFamily: "var(--iv-caps), serif", fontWeight: 600, color: S.wine }}>
-                  Lễ thành hôn và tiệc cưới
+                  {ceremonies.length > 0 ? "Tiệc cưới" : "Lễ thành hôn và tiệc cưới"}
                 </p>
               )}
               {start ? ivory ? <IvoryEventDate start={start} /> : <EventDate start={start} /> : <p className="text-sm font-medium">{formatInviteDate(event.event_date, event.event_time)}</p>}
@@ -648,14 +688,6 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
         </section>
         </PaletteProvider>
 
-        {datePhotos.length === 3 && start && (
-          <section className="px-6 py-10 wt-bare wt-wide" style={{ background: IV.paper }}>
-            <Reveal>
-              <DateStrip start={start} photos={datePhotos} onOpen={openPhoto} />
-            </Reveal>
-          </section>
-        )}
-
         {/* ---------- Ceremonies ---------- */}
         {ceremonies.length > 0 && (
           <section className="px-6 py-14 text-center">
@@ -664,6 +696,14 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
             </Reveal>
             <Reveal>
               <Ceremonies items={ceremonies} />
+            </Reveal>
+          </section>
+        )}
+
+        {datePhotos.length === 3 && start && (
+          <section className="px-6 py-10 wt-bare wt-wide" style={{ background: IV.paper }}>
+            <Reveal>
+              <DateStrip start={start} photos={datePhotos} onOpen={openPhoto} />
             </Reveal>
           </section>
         )}
@@ -770,25 +810,37 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
           <PaletteProvider value={base}>
           <Reveal>
             <div className="rounded-3xl p-5 sm:p-6 border" style={{ color: base.ink, backgroundColor: base.paper, backgroundImage: PAPER_GRAIN, borderColor: base.line, boxShadow: `inset 0 1px 0 rgba(255,255,255,0.7), 0 2px 3px rgba(0,0,0,0.08), 0 24px 40px -20px rgba(0,0,0,0.45)` }}>
-              {guest.confirmed && !status?.success && (
-                <p className="text-xs text-center mb-4 rounded-full py-1.5 px-3" style={{ background: base.okBg, color: base.leaf }}>
-                  {locked ? "Bạn đã xác nhận tham dự." : "Bạn đã xác nhận tham dự. Bạn vẫn có thể đổi bàn bên dưới."}
-                </p>
+              {savedTable && !declined && (
+                <div className="text-center mb-5 rounded-2xl py-3 px-4" style={{ background: base.okBg, color: base.leaf }}>
+                  <p className="text-[15px] font-medium">
+                    Bạn đã xác nhận · {allTables.find((t: any) => t.id === savedTable)?.name ?? "đã chọn bàn"}
+                    {savedCompanions > 0 ? ` · đi cùng ${savedCompanions} người` : ""}
+                  </p>
+                  {!locked && <p className="text-[13px] mt-0.5 opacity-80">Bạn vẫn đổi được bàn hoặc số người bên dưới.</p>}
+                </div>
+              )}
+              {declined && (
+                <div className="text-center mb-5 rounded-2xl py-3 px-4" style={{ background: base.soft, color: base.ink }}>
+                  <p className="text-[15px] font-medium">Bạn đã báo không thể tham dự.</p>
+                  <p className="text-[13px] mt-0.5" style={{ color: base.muted }}>
+                    {locked ? "Cảm ơn bạn đã cho cô dâu chú rể biết." : "Nếu thu xếp được, bạn chọn bàn bên dưới để xác nhận lại nhé."}
+                  </p>
+                </div>
               )}
               {locked ? (
                 <p className="text-sm text-center" style={{ color: base.wine }}>
-                  Danh sách khách đã chốt, không thể thay đổi lựa chọn. Cảm ơn bạn!
+                  {dayOver ? "Tiệc cưới đã diễn ra. Cảm ơn bạn đã dành tình cảm cho cô dâu chú rể!" : "Danh sách khách đã chốt, không thể thay đổi lựa chọn. Cảm ơn bạn!"}
                 </p>
               ) : (
                 <div className="flex flex-col gap-5">
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Số người đi cùng bạn</span>
                     <div className="flex items-center rounded-full border bg-white" style={{ borderColor: base.line }}>
-                      <button type="button" className="w-9 h-9 rounded-full text-lg" style={{ color: base.wine }} onClick={() => setCompanions((c) => Math.max(0, c - 1))} aria-label="Bớt một người">
+                      <button type="button" className="w-11 h-11 rounded-full text-xl" style={{ color: base.wine }} onClick={() => setCompanions((c) => Math.max(0, c - 1))} aria-label="Bớt một người">
                         −
                       </button>
                       <span className="w-6 text-center text-sm font-medium">{companions}</span>
-                      <button type="button" className="w-9 h-9 rounded-full text-lg" style={{ color: base.wine }} onClick={() => setCompanions((c) => Math.min(20, c + 1))} aria-label="Thêm một người">
+                      <button type="button" className="w-11 h-11 rounded-full text-xl" style={{ color: base.wine }} onClick={() => setCompanions((c) => Math.min(20, c + 1))} aria-label="Thêm một người">
                         +
                       </button>
                     </div>
@@ -826,14 +878,32 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
                     {loading ? "Đang gửi…" : "Xác nhận tham dự"}
                   </button>
                   {status?.error && (
-                    <p className="text-sm text-center" style={{ color: base.wine }}>
+                    <p role="alert" className="text-sm text-center" style={{ color: base.wine }}>
                       {status.message}
                     </p>
                   )}
                   {status?.success && (
-                    <p className="text-lg italic text-center" style={{ ...SERIF, color: base.leaf }}>
+                    <p role="status" className="text-lg italic text-center" style={{ ...SERIF, color: base.leaf }}>
                       Cảm ơn bạn! Hẹn gặp bạn tại tiệc cưới.
                     </p>
+                  )}
+                  {!declined && !asking && (
+                    <button type="button" onClick={() => setAsking(true)} className="mx-auto text-[14px] underline underline-offset-4 min-h-11 px-3" style={{ color: base.muted }}>
+                      Tôi không thể tham dự
+                    </button>
+                  )}
+                  {asking && (
+                    <div className="rounded-2xl border p-4 flex flex-col gap-3 text-center" style={{ borderColor: base.line }}>
+                      <p className="text-[15px]">Tiếc quá! Bạn có thể để lại lời nhắn ở ô phía trên, cô dâu chú rể sẽ đọc được.</p>
+                      <div className="flex gap-2 justify-center flex-wrap">
+                        <button type="button" disabled={loading} onClick={handleDecline} className="rounded-lg h-11 px-4 text-[14px] border font-medium disabled:opacity-60" style={{ borderColor: base.wine, color: base.wine }}>
+                          {loading ? "Đang gửi…" : "Gửi lời báo không đến"}
+                        </button>
+                        <button type="button" onClick={() => setAsking(false)} className="rounded-lg h-11 px-4 text-[14px]" style={{ color: base.muted }}>
+                          Để mình xem lại
+                        </button>
+                      </div>
+                    </div>
                   )}
                 </div>
               )}
@@ -851,7 +921,9 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
                 Dành cho người thân ở xa chưa thể đến chung vui
               </p>
               <ConfettiOnView>
-                <GiftAccounts accounts={giftAccounts} fallbackQr={event.gift_qr_url} />
+                <PaletteProvider value={base}>
+                  <GiftAccounts accounts={giftAccounts} fallbackQr={event.gift_qr_url} />
+                </PaletteProvider>
               </ConfettiOnView>
             </Reveal>
           </section>
@@ -863,7 +935,9 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
             <SectionTitle kicker="Sổ lưu bút">Gửi lời chúc</SectionTitle>
           </Reveal>
           <Reveal>
-            <Guestbook code={guest.code} guestName={guest.name} preview={preview} />
+            <PaletteProvider value={base}>
+              <Guestbook code={guest.code} guestName={guest.name} preview={preview} />
+            </PaletteProvider>
           </Reveal>
         </section>
 
@@ -910,10 +984,10 @@ function Invite({ guest, event, floors, locked, preview = false, skipIntro = fal
         )}
 
         {/* ---------- Thank-you photo ---------- */}
-        {gallery.length >= 2 && gallery[gallery.length - 1] !== interlude2 && (
+        {thanksPhoto && (
           <section className="wt-bare wt-full relative h-[78svh] max-h-[640px] min-h-[420px] overflow-hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={gallery[gallery.length - 1]} alt="" loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
+            <img src={thanksPhoto} alt="" loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
             <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,.6) 100%)" }} />
             <div className="absolute inset-x-0 bottom-0 px-8 pb-12 text-white text-center">
               <Reveal>

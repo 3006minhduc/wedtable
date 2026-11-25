@@ -1,4 +1,5 @@
 "use client"
+import { fitName } from "./Looks"
 
 // "Cuộn phim" (template id `glass`, rebuilt 2026-11-25): an old film projector. A title card, then a
 // 3-2-1 film leader with a sweeping hand, a white flash, and the wedding photo framed by sprocket holes
@@ -164,11 +165,11 @@ export function FilmHero2({ event, cover, start, opened }: HeroProps) {
             Chúng mình cưới
           </p>
           <h1 className="mt-3 text-[52px] leading-[1]" style={{ fontFamily: DISPLAY }}>
-            <span className="block" style={enter(1)}>
+            <span className="block" style={{ fontSize: fitName(event.bride_name, 52, 9), ...enter(1) }}>
               {event.bride_name}
             </span>
-            <span className="block" style={enter(2)}>
-              <i className="text-[34px] font-normal">và</i> {event.groom_name}
+            <span className="block" style={{ fontSize: fitName(event.groom_name, 52, 7), ...enter(2) }}>
+              <i className="text-[0.65em] font-normal">và</i> {event.groom_name}
             </span>
           </h1>
           {start && (

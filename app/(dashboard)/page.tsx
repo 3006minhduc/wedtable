@@ -1,5 +1,6 @@
 "use client"
 
+import PageSkeleton from "@/components/ui/PageSkeleton"
 import { useCallback, useEffect, useState } from "react"
 import Icon from "@/components/ui/Icon"
 import { SuggestionList, UpcomingCard } from "@/components/overview/Guide"
@@ -42,7 +43,7 @@ export default function DashboardHome() {
     await handleCreated(d.id)
   }
 
-  if (loading) return <p className="text-muted">Đang tải...</p>
+  if (loading) return <PageSkeleton />
 
   if (events.length === 0) {
     return (
@@ -94,12 +95,13 @@ function Overview({
   onDemo: () => void
   onDeleted: () => void
 }) {
-  if (!detail) return <p className="text-muted">Đang tải...</p>
+  if (!detail) return <PageSkeleton />
 
   const stats = detail._stats ?? { total: 0, confirmed: 0, pending: 0, no_show: 0, checked_in: 0 }
   const floors: any[] = detail.floors ?? []
   const guests: any[] = detail.guests ?? []
-  const tables = floors.flatMap((f) => f.tables ?? [])
+  // natural order: Bàn 2 before Bàn 10, named tables after numbered ones
+  const tables = floors.flatMap((f) => f.tables ?? []).sort((a: any, b: any) => String(a.name).localeCompare(String(b.name), "vi", { numeric: true, sensitivity: "base" }))
   const totalSeats = tables.reduce((s: number, t: any) => s + t.seats, 0)
   const seated = tables.reduce((s: number, t: any) => s + seatsUsed(guests, t.id), 0)
   const unseated = guests.filter((g) => !g.table_id && !g.no_show).length
@@ -189,7 +191,8 @@ function Overview({
 
       {creating && <CreateWizard onCreated={onCreated} onCancel={() => setCreating(false)} onDemo={events.some((e) => e.is_demo) ? undefined : onDemo} />}
 
-      <UpcomingCard ev={detail} />
+      {/* the preparation checklist stops mattering once the wedding is over */}
+      {!(left !== null && left < 0) && <UpcomingCard ev={detail} />}
 
       <div className="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
         <div className="flex flex-col gap-6">

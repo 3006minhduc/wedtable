@@ -1,4 +1,5 @@
 "use client"
+import { fitName } from "./Looks"
 
 // "Hỷ sơn mài" (template id `gilded`, rebuilt 2026-11-25): carved red-lacquer doors with antique-gold relief
 // (peony branch, lattice, auspicious clouds) and a gold double-happiness medallion; the doors swing open on a
@@ -165,13 +166,13 @@ export function HyHero2({ event, cover, start, opened }: HeroProps) {
         Lễ thành hôn
       </p>
       <h1 className="mt-3 leading-[1.05]" style={{ fontFamily: SC, fontWeight: 700, letterSpacing: "0.04em" }}>
-        <span className="block text-[46px] pb-1" style={{ ...foil, ...enter(2) }}>
+        <span className="block pb-1" style={{ fontSize: fitName(event.bride_name, 46, 8), ...foil, ...enter(2) }}>
           {event.bride_name}
         </span>
         <span className="block text-[24px] my-1" style={{ color: g[1], fontFamily: "var(--iv-caps), serif", fontStyle: "italic", ...enter(3) }}>
           và
         </span>
-        <span className="block text-[46px] pb-1" style={{ ...foil, ...enter(4) }}>
+        <span className="block pb-1" style={{ fontSize: fitName(event.groom_name, 46, 8), ...foil, ...enter(4) }}>
           {event.groom_name}
         </span>
       </h1>

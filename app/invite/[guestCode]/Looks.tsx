@@ -20,6 +20,14 @@ const DISPLAY = "var(--iv-display), serif"
 const HAN = '"Noto Serif SC","Noto Serif CJK SC","Songti SC","STSong","SimSun","PMingLiU",serif'
 const WEEKDAYS = ["Chủ nhật", "Thứ hai", "Thứ ba", "Thứ tư", "Thứ năm", "Thứ sáu", "Thứ bảy"]
 
+/** Cover name size: the template's size for short names, stepping down for long ones and narrow phones
+ *  (e.g. "Đức Minh Hoàng" stays within two lines at 320px). Returns a CSS font-size. */
+export function fitName(name: string | undefined, base: number, room = 10) {
+  const len = Array.from(name || "").length
+  const k = Math.max(0.6, Math.min(1, room / Math.max(1, len)))
+  return `min(${Math.round(base * k)}px, ${((base * k) / 3.9).toFixed(2)}vw)`
+}
+
 export const dotDate = (d: Date | null) =>
   d ? `${String(d.getDate()).padStart(2, "0")}.${String(d.getMonth() + 1).padStart(2, "0")}.${d.getFullYear()}` : ""
 

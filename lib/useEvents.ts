@@ -6,6 +6,38 @@ import { createClient } from "@/lib/supabase/client"
 const KEY = "wt_event"
 const EVT = "wt-event-change"
 let claimed = false
+// Every component on a page (navbar, sidebar, shell, the page itself) calls useEvents.
+// Share one request and a short cache so a page load makes one /api/events call, not five.
+let inflight: Promise<any[] | null> | null = null
+let cached: { list: any[]; at: number } | null = null
+const FRESH_MS = 15000
+
+async function fetchEvents(force: boolean): Promise<any[] | null> {
+  if (!force && cached && Date.now() - cached.at < FRESH_MS) return cached.list
+  if (inflight) return inflight
+  inflight = (async () => {
+    if (!claimed) {
+      claimed = true
+      try {
+        await createClient().rpc("claim_invites")
+      } catch {}
+    }
+    const res = await fetch("/api/events")
+    if (res.status === 401) {
+      window.location.href = "/login"
+      return null
+    }
+    const data = await res.json().catch(() => [])
+    const list: any[] = Array.isArray(data) ? data : []
+    cached = { list, at: Date.now() }
+    return list
+  })()
+  try {
+    return await inflight
+  } finally {
+    inflight = null
+  }
+}
 
 function readSaved(): string | null {
   try {
@@ -20,20 +52,9 @@ export function useEvents() {
   const [eventId, setEventIdState] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
-  const load = useCallback(async () => {
-    if (!claimed) {
-      claimed = true
-      try {
-        await createClient().rpc("claim_invites")
-      } catch {}
-    }
-    const res = await fetch("/api/events")
-    if (res.status === 401) {
-      window.location.href = "/login"
-      return
-    }
-    const data = await res.json()
-    const list: any[] = Array.isArray(data) ? data : []
+  const load = useCallback(async (force?: unknown) => {
+    const list = await fetchEvents(force === true || (typeof force === "object" && force !== null))
+    if (!list) return
     setEvents(list)
     const saved = readSaved()
     const pick = list.find((e) => e.id === saved)?.id ?? list[0]?.id ?? null
@@ -51,7 +72,7 @@ export function useEvents() {
       if (!saved) return
       setEventIdState(saved)
       // another part of the page may have created or deleted a wedding: refresh this instance's list too (e.g. the navbar)
-      load()
+      load(true)
     }
     window.addEventListener(EVT, onChange)
     return () => window.removeEventListener(EVT, onChange)
@@ -67,7 +88,7 @@ export function useEvents() {
 
   const role: string = events.find((e) => e.id === eventId)?._role ?? "owner"
 
-  return { events, eventId, setEventId, loading, reload: load, role }
+  return { events, eventId, setEventId, loading, reload: () => load(true), role }
 }
 
 export function daysLeft(date: string | null | undefined) {
