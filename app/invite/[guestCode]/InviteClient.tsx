@@ -366,9 +366,10 @@ const LOOKS: Partial<Record<InviteStyle, Look>> = {
 
 /** A template's cover with real event data, for the template gallery on /invitation (static, already opened) */
 export function TemplateCover({ id, palette, event, cover, second }: { id: InviteStyle; palette: string; event: any; cover?: string; second?: string }) {
-  if (id === "stained") return <StainedThumb event={event} />
-  if (id === "satin") return <SatinThumb event={event} />
-  if (id === "violet") return <VioletThumb event={event} />
+  const fontVars = `${serif.variable} ${sans.variable} ${script.variable} ${caps.variable} ${display.variable} ${pinyon.variable} ${smallcaps.variable} ${hand.variable}`
+  if (id === "stained") return <div className={fontVars}><StainedThumb event={event} /></div>
+  if (id === "satin") return <div className={fontVars}><SatinThumb event={event} /></div>
+  if (id === "violet") return <div className={fontVars}><VioletThumb event={event} /></div>
   const L = (LOOKS[id] ?? LOOKS.floral)!
   const p = (THEMES[palette] ?? THEMES[TEMPLATES[id].palette] ?? THEMES.classic).p
   const start = eventStart(event.event_date, event.event_time)
