@@ -78,8 +78,8 @@ export default function TablePicker({ floors, value, companions, onChange, mine 
             className="w-full rounded-2xl overflow-auto border"
             style={{ background: IV.paper, borderColor: IV.line }}
           >
-            <div className="relative" style={{ width: `max(100%, ${hall.w * 18}px)`, aspectRatio: `${hall.w} / ${hall.h}` }}>
-              <FloorLayers floor={floor} theme="light" />
+            <div className="relative" style={{ width: `max(100%, ${hall.w * 18}px)`, aspectRatio: `${hall.w} / ${hall.h}`, color: IV.wine }}>
+              <FloorLayers floor={floor} theme="paper" />
               {(floor.tables ?? []).map((t: any) => {
                 const s = state(t)
                 return (

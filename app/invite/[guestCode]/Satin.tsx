@@ -19,7 +19,7 @@ import { WaxSeal } from "./Looks"
 import { MiniBow } from "./Silk"
 import { embossSvg, bloom, leaf } from "./emboss"
 import { useEmbossUrl } from "./useEmboss"
-import { Core, Raised, RsvpForm, eventStart, googleCalendarUrl, p2, useCountdown, useOpening, useScrollProgress, useSeen, weekday } from "./kit"
+import { Core, Painted, Raised, RsvpForm, eventStart, googleCalendarUrl, p2, useCountdown, useOpening, useScrollProgress, useSeen, weekday } from "./kit"
 
 // ---------------------------------------------------------------- palette
 
@@ -399,6 +399,10 @@ function Cover({ c, opened }: { c: { bride: string; groom: string; start: Date |
           )}
         </div>
       </div>
+      {/* a fresh rose laid across the card */}
+      <div className="absolute pointer-events-none" style={{ left: -26, bottom: "6%", width: 190, transform: "rotate(-32deg)", opacity: opened ? 1 : 0, transition: "opacity 1.4s ease 2.6s" }} aria-hidden>
+        <Painted src="rose-blush" style={{ width: "100%" }} />
+      </div>
       {/* light passing over the raised frame once it is revealed */}
       <div className={"absolute inset-0 pointer-events-none st-sheen " + (opened ? "st-sheen-on" : "")} />
     </section>
@@ -471,6 +475,9 @@ function Medallion({ photo }: { photo?: string }) {
         )}
       </div>
       <div className="absolute inset-0" style={{ backgroundImage: ring, backgroundSize: "100% 100%", mixBlendMode: "multiply" }} aria-hidden />
+      <div className="absolute pointer-events-none" style={{ right: -54, top: -34, width: 130, transform: "rotate(38deg)" }} aria-hidden>
+        <Painted src="rose-giant" style={{ width: "100%" }} />
+      </div>
     </div>
   )
 }
@@ -760,8 +767,13 @@ export function SatinPage({ core, opened }: { core: Core; opened: boolean }) {
           )}
 
           <footer className="text-center px-6 pt-12 pb-10" style={{ background: C.card }}>
-            <div className="flex justify-center">
-              <WaxSeal text={initials} size={84} color={C.plum} />
+            <div className="relative flex justify-center h-[120px] items-center">
+              <div className="absolute" style={{ width: 150, transform: "rotate(-70deg)", left: "calc(50% - 110px)", top: -30 }} aria-hidden>
+                <Painted src="rose-blush" style={{ width: "100%" }} />
+              </div>
+              <div className="relative">
+                <WaxSeal text={initials} size={84} color={C.plum} />
+              </div>
             </div>
             <p className="mt-3 text-[44px] leading-tight" style={{ fontFamily: SCRIPT, color: C.plum }}>
               {core.couple}

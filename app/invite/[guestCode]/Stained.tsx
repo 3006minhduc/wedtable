@@ -15,7 +15,7 @@ import { PaletteProvider } from "./Ornaments"
 import { GiftAccounts, Guestbook, Milestones } from "./Sections"
 import { FaqList, MusicToggle } from "./Extras"
 import { Lightbox } from "./Album"
-import { Core, Raised, RsvpForm, eventStart, googleCalendarUrl, p2, useCountdown, useOpening, useScrollProgress, useSeen, weekday } from "./kit"
+import { Core, Painted, Raised, RsvpForm, eventStart, googleCalendarUrl, p2, useCountdown, useOpening, useScrollProgress, useSeen, weekday } from "./kit"
 
 // ---------------------------------------------------------------- palette
 
@@ -152,6 +152,17 @@ function Cluster({ size = 130, rot = 0, flip = false }: { size?: number; rot?: n
       <Rose x={-30} y={22} s={0.62} r={-15} />
       <Rose x={0} y={-2} s={0.85} r={8} />
     </svg>
+  )
+}
+
+/** Hand-painted rose (Redouté, public domain) laid on the glass work; alternates the two pinks */
+let sprayN = 0
+function RoseSpray({ size = 130, rot = 0, flip = false }: { size?: number; rot?: number; flip?: boolean }) {
+  const src = useMemo(() => (sprayN++ % 2 ? "rose-blush" : "rose-pink"), [])
+  return (
+    <div style={{ width: size * 1.05, transform: `rotate(${rot}deg) scaleX(${flip ? -1 : 1})` }} aria-hidden>
+      <Painted src={src} style={{ width: "100%" }} />
+    </div>
   )
 }
 
@@ -610,20 +621,20 @@ function Cover({ core, opened }: { core: Pick<Core, "bride" | "groom" | "start">
           </g>
         </svg>
         {/* climbing roses at the arch springs and the sill */}
-        <div className={"absolute -left-9 top-[13%] sg-bloom " + (opened ? "sg-bloom-on" : "")} style={{ transitionDelay: "1s" }}>
-          <Cluster size={112} rot={-60} />
+        <div className={"absolute -left-16 top-[4%] sg-bloom " + (opened ? "sg-bloom-on" : "")} style={{ transitionDelay: "1s" }}>
+          <RoseSpray size={96} rot={-18} />
         </div>
-        <div className={"absolute -right-9 top-[13%] sg-bloom " + (opened ? "sg-bloom-on" : "")} style={{ transitionDelay: "1.15s" }}>
-          <Cluster size={112} rot={60} flip />
+        <div className={"absolute -right-16 top-[4%] sg-bloom " + (opened ? "sg-bloom-on" : "")} style={{ transitionDelay: "1.15s" }}>
+          <RoseSpray size={96} rot={18} flip />
         </div>
-        <div className={"absolute left-1/2 -translate-x-1/2 -top-8 sg-bloom " + (opened ? "sg-bloom-on" : "")} style={{ transitionDelay: "1.25s" }}>
-          <Cluster size={120} rot={180} />
+        <div className={"absolute left-1/2 -translate-x-1/2 -top-24 sg-bloom " + (opened ? "sg-bloom-on" : "")} style={{ transitionDelay: "1.25s" }}>
+          <RoseSpray size={84} rot={0} />
         </div>
-        <div className={"absolute -left-10 -bottom-10 sg-bloom " + (opened ? "sg-bloom-on" : "")} style={{ transitionDelay: "1.35s" }}>
-          <Cluster size={170} rot={200} flip />
+        <div className={"absolute -left-20 -bottom-16 sg-bloom " + (opened ? "sg-bloom-on" : "")} style={{ transitionDelay: "1.35s" }}>
+          <RoseSpray size={120} rot={12} />
         </div>
-        <div className={"absolute -right-10 -bottom-10 sg-bloom " + (opened ? "sg-bloom-on" : "")} style={{ transitionDelay: "1.5s" }}>
-          <Cluster size={170} rot={160} />
+        <div className={"absolute -right-20 -bottom-16 sg-bloom " + (opened ? "sg-bloom-on" : "")} style={{ transitionDelay: "1.5s" }}>
+          <RoseSpray size={120} rot={-12} flip />
         </div>
         <div className="absolute inset-x-[15%] top-[26%] bottom-[14%] flex flex-col items-center justify-center text-center">
           <p className={"text-[12px] tracking-[0.26em] uppercase sg-fade " + (opened ? "sg-on" : "")} style={{ fontFamily: SC, fontWeight: 700, color: C.muted, transitionDelay: ".9s" }}>
@@ -741,14 +752,11 @@ function ScratchMirror({ photo }: { photo?: string }) {
       <svg viewBox="-125 -160 250 320" className="absolute inset-0 w-full h-full pointer-events-none" aria-hidden>
         <OvalPanes rx={124} ry={158} band={22} n={44} />
       </svg>
-      <div className="absolute -top-10 left-1/2 -translate-x-1/2 pointer-events-none">
-        <Cluster size={120} rot={180} />
+      <div className="absolute -bottom-16 -left-16 pointer-events-none">
+        <RoseSpray size={96} rot={-24} />
       </div>
-      <div className="absolute -bottom-12 -left-8 pointer-events-none">
-        <Cluster size={120} rot={210} flip />
-      </div>
-      <div className="absolute -bottom-12 -right-8 pointer-events-none">
-        <Cluster size={120} rot={150} />
+      <div className="absolute -bottom-16 -right-16 pointer-events-none">
+        <RoseSpray size={96} rot={24} flip />
       </div>
     </div>
   )
@@ -1097,7 +1105,7 @@ export function StainedPage({ core, opened }: { core: Core; opened: boolean }) {
           <footer className="relative text-center px-6 pt-[70px] pb-10" style={{ background: C.paper }}>
             <div className="absolute inset-x-0 top-0 h-[46px] rotate-180" style={{ backgroundImage: SCALLOP, backgroundSize: "80px 46px", backgroundRepeat: "repeat-x", backgroundColor: C.paper }} aria-hidden />
             <div className="flex justify-center">
-              <GlassRose size={70} />
+              <Painted src="rose-pink" style={{ width: 120 }} />
             </div>
             <p className="mt-2 text-[44px] leading-tight" style={{ fontFamily: SCRIPT, color: C.roseDeep }}>
               {core.couple}

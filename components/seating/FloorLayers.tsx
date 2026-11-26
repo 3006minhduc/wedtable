@@ -14,6 +14,13 @@ const THEME = {
     decor: "bg-success/20 border-success/60 text-white/85",
     fallback: "bg-white/10 text-white",
   },
+  // invitations: thin lines in the invitation's own colour (set as `color` on the parent)
+  paper: {
+    stage: "bg-white/50 border-current",
+    path: "bg-transparent border-current border-dashed opacity-50",
+    decor: "bg-white/30 border-current opacity-60",
+    fallback: "bg-white/50 border-[1.5px] border-current",
+  },
   light: {
     stage: "bg-ink text-white border-ink",
     path: "bg-faint/10 border-faint/60 border-dashed text-muted",
@@ -22,7 +29,7 @@ const THEME = {
   },
 }
 
-export default function FloorLayers({ floor, theme = "light" }: { floor: any; theme?: "light" | "dark" }) {
+export default function FloorLayers({ floor, theme = "light" }: { floor: any; theme?: "light" | "dark" | "paper" }) {
   const blocks: Block[] = Array.isArray(floor?.elements) ? floor.elements : []
   const t = THEME[theme]
 

@@ -326,7 +326,7 @@ export function useOpening(total: number, onOpened: () => void, revealAt = 0, on
  * the mouse or the phone's tilt a few degrees, with a light sheen sliding over its face (`shine`).
  * Reduced motion keeps the thickness and drops the movement.
  */
-export function Raised({ children, className = "", max = 7, shine = false, thick = 1, style }: { children: React.ReactNode; className?: string; max?: number; shine?: boolean; thick?: number; style?: React.CSSProperties }) {
+export function Raised({ children, className = "", max = 3, shine = false, thick = 1, style }: { children: React.ReactNode; className?: string; max?: number; shine?: boolean; thick?: number; style?: React.CSSProperties }) {
   const [wrap, seen] = useSeen<HTMLDivElement>(0.12)
   const tilt = useRef<HTMLDivElement | null>(null)
   useEffect(() => {
@@ -364,10 +364,10 @@ export function Raised({ children, className = "", max = 7, shine = false, thick
     }
   }, [max])
   const t = thick
-  const depth = `drop-shadow(0 ${1 * t}px 0 rgba(0,0,0,.10)) drop-shadow(0 ${2 * t}px 0 rgba(0,0,0,.08)) drop-shadow(0 ${3 * t}px 0 rgba(0,0,0,.06)) drop-shadow(0 ${16 * t}px ${14 * t}px rgba(30,15,25,.32))`
+  const depth = `drop-shadow(0 ${1 * t}px 0 rgba(0,0,0,.07)) drop-shadow(0 ${2 * t}px 0 rgba(0,0,0,.05)) drop-shadow(0 ${14 * t}px ${16 * t}px rgba(30,15,25,.22))`
   return (
     <div ref={wrap} className={className} style={{ perspective: 1000, ...style }}>
-      <div style={{ transform: seen ? "none" : "rotateX(24deg) translateY(36px) scale(.96)", transformOrigin: "50% 100%", opacity: seen ? 1 : 0, transition: "transform 1.1s cubic-bezier(.2,.8,.2,1), opacity .8s ease" }}>
+      <div style={{ transform: seen ? "none" : "rotateX(14deg) translateY(24px) scale(.98)", transformOrigin: "50% 100%", opacity: seen ? 1 : 0, transition: "transform 1.1s cubic-bezier(.2,.8,.2,1), opacity .8s ease" }}>
         <div ref={tilt} className="relative" style={{ transition: "transform .45s cubic-bezier(.2,.7,.2,1)", filter: depth, transformStyle: "preserve-3d" }}>
           {children}
           {shine && (
@@ -390,13 +390,27 @@ export function Raised({ children, className = "", max = 7, shine = false, thick
  * plum bands) the light and shadow are re-balanced for a dark ground. Body text stays flat for reading.
  */
 export const EMBOSS_CSS = `
-.em-root h1,.em-root h2,.em-root [style*="--iv-pinyon"],.em-root [style*="--iv-sc"]{text-shadow:-1px -1px 0 rgba(255,255,255,.85),1px 1px 0 rgba(0,0,0,.16),1px 2px 4px rgba(40,20,30,.18)}
-.em-root .em-dark h1,.em-root .em-dark h2,.em-root .em-dark [style*="--iv-pinyon"],.em-root .em-dark [style*="--iv-sc"]{text-shadow:-1px -1px 0 rgba(255,255,255,.22),1px 1px 0 rgba(0,0,0,.5),2px 3px 6px rgba(0,0,0,.4)}
-.em-root main svg:not(.em-flat),.em-root .em-art svg{filter:drop-shadow(-1px -1px 0 rgba(255,255,255,.7)) drop-shadow(1px 1.5px 0 rgba(0,0,0,.2)) drop-shadow(2px 4px 5px rgba(40,20,30,.2))}
-.em-root .em-dark svg:not(.em-flat){filter:drop-shadow(-1px -1px 0 rgba(255,255,255,.2)) drop-shadow(1px 2px 0 rgba(0,0,0,.45)) drop-shadow(2px 5px 6px rgba(0,0,0,.4))}
-.em-root main a.inline-flex{box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 -2px 0 rgba(0,0,0,.22),0 2px 0 rgba(0,0,0,.18),0 7px 12px -5px rgba(30,15,25,.45);transition:transform .15s ease,box-shadow .15s ease}
-.em-root main a.inline-flex:active{transform:translateY(2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),inset 0 -1px 0 rgba(0,0,0,.2),0 0 0 rgba(0,0,0,0),0 3px 6px -3px rgba(30,15,25,.4)}
-.em-root main button[aria-label="Xem ảnh"]{box-shadow:inset 0 0 0 1px rgba(255,255,255,.4),0 2px 0 rgba(0,0,0,.12),0 14px 20px -12px rgba(30,15,25,.55)!important}
-.em-root main button[aria-label="Xem ảnh"] img{box-shadow:inset 0 2px 6px rgba(0,0,0,.35)}
-@media (prefers-reduced-transparency: reduce){.em-root main svg{filter:none}}
+.em-root h1,.em-root h2{text-shadow:0 1px 0 rgba(255,255,255,.75),0 1px 2px rgba(40,20,30,.10)}
+.em-root .em-dark h1,.em-root .em-dark h2{text-shadow:0 1px 0 rgba(0,0,0,.35),0 2px 6px rgba(0,0,0,.25)}
+.em-root main a.inline-flex{box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 1px 0 rgba(0,0,0,.12),0 6px 12px -6px rgba(30,15,25,.35);transition:transform .15s ease,box-shadow .15s ease}
+.em-root main a.inline-flex:active{transform:translateY(1px)}
+.em-root main button[aria-label="Xem ảnh"]{box-shadow:0 1px 0 rgba(0,0,0,.08),0 12px 18px -12px rgba(30,15,25,.45)!important}
+.em-root main{position:relative}
+.em-root main::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;opacity:.32;mix-blend-mode:multiply;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .55 0 0 0 0 .5 0 0 0 0 .48 0 0 0 .18 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E")}
 `
+
+/** A hand-painted flower (Redouté plates, public domain, cut out in public/invite-art) laid on the card */
+export function Painted({ src, className = "", style, shadow = true }: { src: string; className?: string; style?: React.CSSProperties; shadow?: boolean }) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={`/invite-art/${src}.webp`}
+      alt=""
+      aria-hidden
+      draggable={false}
+      decoding="async"
+      className={"pointer-events-none select-none " + className}
+      style={{ filter: shadow ? "drop-shadow(0 8px 10px rgba(40,20,30,.22))" : undefined, ...style }}
+    />
+  )
+}

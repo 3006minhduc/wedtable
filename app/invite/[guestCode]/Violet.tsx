@@ -15,7 +15,7 @@ import { PaletteProvider } from "./Ornaments"
 import { GiftAccounts, Guestbook, Milestones } from "./Sections"
 import { FaqList, MusicToggle } from "./Extras"
 import { Lightbox } from "./Album"
-import { Core, Raised, RsvpForm, eventStart, googleCalendarUrl, p2, useCountdown, useOpening, useSeen, weekday } from "./kit"
+import { Core, Painted, Raised, RsvpForm, eventStart, googleCalendarUrl, p2, useCountdown, useOpening, useSeen, weekday } from "./kit"
 
 const C = {
   plum: "#4E2A4F",
@@ -157,20 +157,21 @@ function Vine({ h, flip = false, on, seed = 1, roses = 6 }: { h: number; flip?: 
   )
 }
 
-/** A corner spray: three roses with buds and leaves, ~110px; grows in when `on` */
+/** A painted rose (Redouté, recoloured to violet) laid across a corner; grows in when `on` */
 function Corner({ on, rot = 0, flip = false, delay = 0, size = 120 }: { on: boolean; rot?: number; flip?: boolean; delay?: number; size?: number }) {
   return (
-    <svg viewBox="-60 -60 120 120" width={size} height={size} aria-hidden style={{ overflow: "visible", transform: `rotate(${rot}deg) scaleX(${flip ? -1 : 1}) scale(${on ? 1 : 0.3})`, opacity: on ? 1 : 0, transition: `transform .9s cubic-bezier(.3,1.4,.5,1) ${delay}s, opacity .6s ease ${delay}s` }}>
-      <Leaf x={-30} y={4} s={1.3} r={160} />
-      <Leaf x={8} y={10} s={1.2} r={30} />
-      <Leaf x={-6} y={-30} s={1.1} r={-110} />
-      <Leaf x={22} y={-14} s={1} r={-30} />
-      <Bud x={-40} y={-22} s={1.2} r={-50} />
-      <Bud x={36} y={16} s={1.1} r={70} />
-      <Rose x={18} y={-20} s={0.75} r={20} />
-      <Rose x={-22} y={18} s={0.85} r={-30} />
-      <Rose x={0} y={0} s={1.15} r={10} />
-    </svg>
+    <div style={{ width: size, transform: `rotate(${rot}deg) scaleX(${flip ? -1 : 1}) scale(${on ? 1 : 0.6})`, opacity: on ? 1 : 0, transition: `transform 1.1s cubic-bezier(.3,1.2,.5,1) ${delay}s, opacity .8s ease ${delay}s`, transformOrigin: "50% 30%" }} aria-hidden>
+      <Painted src={flip ? "rose-lilac" : "rose-violet"} style={{ width: "100%" }} />
+    </div>
+  )
+}
+
+/** A painted rose stem rising from behind the card (revealed from the bottom up) */
+function Stem({ on, side, h = 340, delay = 0 }: { on: boolean; side: "l" | "r"; h?: number; delay?: number }) {
+  return (
+    <div className="absolute bottom-0 pointer-events-none" style={{ [side === "l" ? "left" : "right"]: -54, height: h, transform: side === "r" ? "scaleX(-1)" : undefined } as any} aria-hidden>
+      <Painted src={side === "l" ? "rose-violet" : "rose-lilac"} style={{ height: "100%", width: "auto", clipPath: on ? "inset(0 0 0 0)" : "inset(100% 0 0 0)", transition: `clip-path 2.2s cubic-bezier(.4,0,.2,1) ${delay}s` }} />
+    </div>
   )
 }
 
@@ -249,12 +250,8 @@ function Page({ children, frame = "bracket", roses = 6, minH = true, className =
   const vh = 560
   return (
     <section ref={ref as any} className={"relative flex items-center justify-center px-4 py-12 overflow-hidden " + (minH ? "min-h-[100svh] " : "") + className} style={{ background: SILVER }}>
-      <div className="absolute left-0 bottom-0 pointer-events-none" style={{ height: vh }}>
-        <Vine h={vh} on={on} seed={3} roses={roses} />
-      </div>
-      <div className="absolute right-0 bottom-0 pointer-events-none" style={{ height: vh }}>
-        <Vine h={vh} on={on} seed={8} roses={roses} flip />
-      </div>
+      <Stem on={on} side="l" h={Math.min(vh, 300 + roses * 14)} />
+      <Stem on={on} side="r" h={Math.min(vh, 280 + roses * 14)} delay={0.2} />
       {frame === "columns" && (
         <>
           <div className="absolute left-3 bottom-8 pointer-events-none vt-col" style={{ transform: on ? "none" : "translateY(40px)", opacity: on ? 1 : 0, transition: "transform 1.2s ease, opacity 1s ease" }}>
@@ -285,16 +282,16 @@ function Page({ children, frame = "bracket", roses = 6, minH = true, className =
       </div>
       {frame !== "columns" && (
         <>
-          <div className="absolute -top-12 -left-10 pointer-events-none">
-            <Corner on={on} rot={-10} delay={0.5} />
+          <div className="absolute -top-20 -left-14 pointer-events-none">
+            <Corner on={on} rot={-28} delay={0.5} size={92} />
           </div>
-          <div className="absolute -top-12 -right-10 pointer-events-none">
-            <Corner on={on} rot={10} flip delay={0.65} />
+          <div className="absolute -top-20 -right-14 pointer-events-none">
+            <Corner on={on} rot={28} flip delay={0.65} size={92} />
           </div>
         </>
       )}
-      <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 pointer-events-none">
-        <Corner on={on} rot={180} delay={0.8} size={130} />
+      <div className="absolute -bottom-28 left-1/2 -translate-x-1/2 pointer-events-none">
+        <Corner on={on} rot={90} delay={0.8} size={96} />
       </div>
       </div></Raised>
     </section>
@@ -416,12 +413,8 @@ function Cover({ c, opened }: { c: { bride: string; groom: string; start: Date |
   const ini = (n: string) => (n.split(/\s+/).pop() || "").charAt(0)
   return (
     <section className="relative min-h-[100svh] flex flex-col items-center justify-center px-4 pt-10 pb-4 overflow-hidden" style={{ background: SILVER }}>
-      <div className="absolute left-0 bottom-0 pointer-events-none" style={{ height: 620 }}>
-        <Vine h={620} on={opened} seed={2} roses={7} />
-      </div>
-      <div className="absolute right-0 bottom-0 pointer-events-none" style={{ height: 620 }}>
-        <Vine h={620} on={opened} seed={9} roses={7} flip />
-      </div>
+      <Stem on={opened} side="l" h={420} delay={0.6} />
+      <Stem on={opened} side="r" h={380} delay={0.8} />
       <Raised max={5} thick={1.4} className="w-full max-w-[320px]"><div className="relative w-full max-w-[320px]">
       <div className="relative w-full text-center px-6 pt-14 pb-6 flex flex-col items-center" style={{ minHeight: "70svh", background: C.cream, clipPath: BRACKET, outline: `1px solid ${C.gold}` }}>
         <p className="text-[12px] tracking-[0.3em] uppercase" style={{ fontFamily: SC, fontWeight: 700, color: C.gold, opacity: opened ? 1 : 0, transition: "opacity 1s ease .4s" }}>
@@ -452,20 +445,20 @@ function Cover({ c, opened }: { c: { bride: string; groom: string; start: Date |
           <Fountain />
         </div>
       </div>
-      <div className="absolute -top-14 -left-12 pointer-events-none">
-        <Corner on={opened} rot={-10} delay={0.9} size={140} />
+      <div className="absolute -top-24 -left-16 pointer-events-none">
+        <Corner on={opened} rot={-28} delay={0.9} size={104} />
       </div>
-      <div className="absolute -top-14 -right-12 pointer-events-none">
-        <Corner on={opened} rot={10} flip delay={1.05} size={140} />
+      <div className="absolute -top-24 -right-16 pointer-events-none">
+        <Corner on={opened} rot={28} flip delay={1.05} size={104} />
       </div>
-      <div className="absolute -bottom-10 -left-12 pointer-events-none">
-        <Corner on={opened} rot={200} delay={1.2} size={130} />
+      <div className="absolute -bottom-24 -left-16 pointer-events-none">
+        <Corner on={opened} rot={-150} delay={1.2} size={96} />
       </div>
-      <div className="absolute -bottom-10 -right-12 pointer-events-none">
-        <Corner on={opened} rot={160} flip delay={1.3} size={130} />
+      <div className="absolute -bottom-24 -right-16 pointer-events-none">
+        <Corner on={opened} rot={150} flip delay={1.3} size={96} />
       </div>
       </div></Raised>
-      <Butterflies n={5} />
+      <Butterflies n={3} />
     </section>
   )
 }
@@ -747,7 +740,7 @@ export function VioletPage({ core, opened }: { core: Core; opened: boolean }) {
                   </button>
                 ))}
               </div>
-              <Butterflies n={3} />
+              <Butterflies n={2} />
             </section>
           )}
 
