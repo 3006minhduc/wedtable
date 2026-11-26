@@ -27,6 +27,7 @@ import { FREE_TEMPLATE, TEMPLATES, templateOf } from "@/lib/inviteThemes"
 import NewInvite, { NEW_LOOKS } from "./NewInvite"
 import { StainedThumb } from "./Stained"
 import { SatinThumb } from "./Satin"
+import { VioletThumb } from "./Violet"
 import type { InviteStyle, Palette } from "@/lib/inviteThemes"
 
 const DEFAULT_MESSAGE =
@@ -367,6 +368,7 @@ const LOOKS: Partial<Record<InviteStyle, Look>> = {
 export function TemplateCover({ id, palette, event, cover, second }: { id: InviteStyle; palette: string; event: any; cover?: string; second?: string }) {
   if (id === "stained") return <StainedThumb event={event} />
   if (id === "satin") return <SatinThumb event={event} />
+  if (id === "violet") return <VioletThumb event={event} />
   const L = (LOOKS[id] ?? LOOKS.floral)!
   const p = (THEMES[palette] ?? THEMES[TEMPLATES[id].palette] ?? THEMES.classic).p
   const start = eventStart(event.event_date, event.event_time)

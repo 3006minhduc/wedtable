@@ -74,43 +74,34 @@ function rng(seed: number) {
   }
 }
 
-/** Crumpled satin: soft fractal folds lit from the top left, with a specular sheen */
-function satinSvg(w: number, h: number, base: string, seed = 3, fold = 0.006, depth = 16) {
+/** Crumpled satin: broad soft folds lit from the top left. The base colour stays dominant
+ *  (base x (0.66 + 0.4 x light)) and a gentle specular sheen sits on the fold crests. */
+function satinSvg(w: number, h: number, base: string, seed = 3, fold = 0.0035, depth = 7) {
   return (
     `<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}' viewBox='0 0 ${w} ${h}'>` +
     `<filter id='s' x='0' y='0' width='100%' height='100%' color-interpolation-filters='sRGB'>` +
-    `<feTurbulence type='fractalNoise' baseFrequency='${fold} ${fold * 2.2}' numOctaves='3' seed='${seed}' result='n'/>` +
-    `<feGaussianBlur in='n' stdDeviation='5' result='nb'/>` +
-    `<feDiffuseLighting in='nb' surfaceScale='${depth}' diffuseConstant='1.05' lighting-color='#fff' result='d'><feDistantLight azimuth='235' elevation='40'/></feDiffuseLighting>` +
-    `<feSpecularLighting in='nb' surfaceScale='${depth}' specularConstant='.75' specularExponent='14' lighting-color='#fff' result='sp'><feDistantLight azimuth='235' elevation='48'/></feSpecularLighting>` +
+    `<feTurbulence type='fractalNoise' baseFrequency='${fold} ${fold * 1.8}' numOctaves='2' seed='${seed}' result='n'/>` +
+    `<feGaussianBlur in='n' stdDeviation='9' result='nb'/>` +
+    `<feDiffuseLighting in='nb' surfaceScale='${depth}' diffuseConstant='1' lighting-color='#fff' result='d'><feDistantLight azimuth='235' elevation='52'/></feDiffuseLighting>` +
+    `<feSpecularLighting in='nb' surfaceScale='${depth}' specularConstant='.45' specularExponent='20' lighting-color='#fff' result='sp'><feDistantLight azimuth='235' elevation='56'/></feSpecularLighting>` +
     `<feFlood flood-color='${base}' result='c'/>` +
-    `<feComposite in='c' in2='d' operator='arithmetic' k1='1.12' k2='0' k3='0' k4='0' result='cd'/>` +
-    `<feComposite in='cd' in2='sp' operator='arithmetic' k1='0' k2='1' k3='.55' k4='0'/>` +
+    `<feComposite in='c' in2='d' operator='arithmetic' k1='.4' k2='.66' k3='0' k4='0' result='cd'/>` +
+    `<feComposite in='cd' in2='sp' operator='arithmetic' k1='0' k2='1' k3='.28' k4='0'/>` +
     `</filter><rect width='${w}' height='${h}' filter='url(#s)'/></svg>`
   )
 }
 
-/** Ginkgo-like fan petal with ribs, raised from its base to its scalloped rim */
+/** A fan of long petals (lily-like) spreading from one point, each with a raised midrib */
 function fan(cx: number, cy: number, r: number, rot: number) {
   let s = `<g transform="translate(${f(cx)} ${f(cy)}) rotate(${f(rot)})">`
-  const lobes = 5
-  let d = `M0 0 L${f(-r * 0.62)} ${f(-r * 0.78)}`
-  for (let i = 0; i < lobes; i++) {
-    const a0 = -0.9 + (1.8 * i) / lobes
-    const a1 = -0.9 + (1.8 * (i + 1)) / lobes
-    const p1 = [Math.sin(a0) * r, -Math.cos(a0) * r]
-    const p2 = [Math.sin(a1) * r, -Math.cos(a1) * r]
-    const mid = (a0 + a1) / 2
-    d += ` Q${f(Math.sin(mid) * r * 1.12)} ${f(-Math.cos(mid) * r * 1.12)} ${f(p2[0])} ${f(p2[1])}`
-    if (i === 0) d = `M0 0 L${f(p1[0])} ${f(p1[1])}` + d.slice(d.indexOf(" Q"))
+  const n = 7
+  for (let i = 0; i < n; i++) {
+    const a = -54 + (108 * i) / (n - 1)
+    const L = r * (0.78 + 0.22 * Math.cos((a * Math.PI) / 180))
+    const W = L * 0.2
+    s += `<g transform="rotate(${f(a)})"><path d="M0 0 C${f(W)} ${f(-L * 0.3)} ${f(W * 1.15)} ${f(-L * 0.7)} 0 ${f(-L)} C${f(-W * 1.15)} ${f(-L * 0.7)} ${f(-W)} ${f(-L * 0.3)} 0 0Z" fill="${g(0.48)}" stroke="${g(0.3)}" stroke-width="2"/><path d="M0 ${f(-L * 0.08)} L0 ${f(-L * 0.9)}" stroke="${g(0.7)}" stroke-width="2.4" stroke-linecap="round"/></g>`
   }
-  d += " Z"
-  s += `<path d="${d}" fill="${g(0.5)}" stroke="${g(0.36)}" stroke-width="2"/>`
-  for (let i = 0; i <= 9; i++) {
-    const a = -0.85 + (1.7 * i) / 9
-    s += `<path d="M0 0 L${f(Math.sin(a) * r * 0.97)} ${f(-Math.cos(a) * r * 0.97)}" stroke="${g(0.66)}" stroke-width="1.6"/>`
-  }
-  s += `<circle r="${f(r * 0.12)}" fill="${g(0.7)}"/>`
+  s += `<circle r="${f(r * 0.09)}" fill="${g(0.72)}"/>`
   return s + "</g>"
 }
 
@@ -181,7 +172,7 @@ function foliageArt(w: number, h: number) {
   return s
 }
 
-function useSatin(w: number, h: number, base: string, seed = 3, fold = 0.006) {
+function useSatin(w: number, h: number, base: string, seed = 3, fold = 0.0035) {
   return useEmbossUrl(() => satinSvg(w, h, base, seed, fold), [w, h, base, seed, fold])
 }
 function useRelief(w: number, h: number, art: () => string, depth = 3.2, key = "") {
@@ -307,7 +298,7 @@ export function SatinIntro({ core, onOpened, onReveal }: { core: Core; onOpened:
   const { phase, tap } = useOpening(3800, onOpened, 2600, onReveal)
   const W = 480, H = 900
   const satin = useSatin(W, H, C.satin, 4)
-  const lining = useSatin(W, H, C.satinLight, 9, 0.008)
+  const lining = useSatin(W, H, C.satinLight, 9, 0.005)
   const relief = useRelief(W, H, () => envelopeArt(W, H), 3.6, "env")
   const flapRelief = useRelief(W, 560, () => envelopeArt(W, 560), 3.6, "flap")
   const initials = `${(core.bride.split(/\s+/).pop() || "").charAt(0)}${(core.groom.split(/\s+/).pop() || "").charAt(0)}`
@@ -353,7 +344,7 @@ export function SatinIntro({ core, onOpened, onReveal }: { core: Core; onOpened:
         </div>
       </div>
       <style>{`
-        .st-intro{transition:opacity .6s ease;background:${C.paper}}
+        .st-intro{transition:opacity .6s ease}
         .st-out{opacity:0;pointer-events:none}
         .st-flap{transition:transform 1.3s cubic-bezier(.55,.05,.3,1) .15s;transform-style:preserve-3d}
         .st-run .st-flap{transform:rotateX(178deg)}

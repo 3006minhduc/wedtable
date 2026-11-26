@@ -9,7 +9,7 @@ export type Palette = {
 
 /** Invite template = intro effect + decorations + layout (events.invite_template).
  *  Colors are chosen separately (events.invite_theme), every palette works with every template. */
-export type InviteStyle = "stained" | "satin" | "floral" | "gilded" | "glass" | "emboss" | "daisy" | "veil" | "vinyl" | "scrapbook"
+export type InviteStyle = "stained" | "satin" | "violet" | "floral" | "gilded" | "glass" | "emboss" | "daisy" | "veil" | "vinyl" | "scrapbook"
 
 export type TemplateGroup = "classic" | "traditional" | "modern" | "photo"
 export const TEMPLATE_GROUPS: Record<TemplateGroup, string> = { classic: "Thanh lịch", traditional: "Truyền thống", modern: "Hiện đại", photo: "Ảnh cưới" }
@@ -21,6 +21,7 @@ export const TEMPLATE_GROUPS: Record<TemplateGroup, string> = { classic: "Thanh 
 export const TEMPLATES: Record<InviteStyle, { label: string; desc: string; palette: string; palettes: string[]; group: TemplateGroup; free?: boolean; retired?: boolean; fixed?: boolean }> = {
   stained: { label: "Kính màu", desc: "Hai cánh cửa kính màu hoa hồng, chạm huy chương để mở. Bên trong: cửa vòm kính, tấm gương phủ kính mờ lau tay để lộ ảnh, chương trình là dòng sâm panh chảy theo khi cuộn.", palette: "classic", palettes: [], group: "classic", free: true, fixed: true },
   satin: { label: "Lụa dập nổi", desc: "Phong bì lụa dập nổi cánh hoa, dấu sáp màu mận. Chạm vào: nắp lật lên, nơ tuột ra, lớp lót lụa trượt xuống để lộ tấm thiệp khung baroque nổi. Đếm ngược trên dải giấy xé, ảnh trong huy chương rõ dần khi cuộn.", palette: "classic", palettes: [], group: "classic", fixed: true },
+  violet: { label: "Vườn tím", desc: "Thiệp gập hai cánh in hoa tulip, ruy băng và dấu sáp vàng. Chạm vào: ruy băng tuột, cổng mở ra từng trang khung kem với hoa hồng tím leo lên, cột vàng, đài phun nước và bướm vàng bay; chữ hiện từng dòng.", palette: "classic", palettes: [], group: "classic", fixed: true },
   floral: { label: "Ngà dập nổi", desc: "Phong bì giấy ngà dập nổi hoa mẫu đơn, dấu sáp, tên khách in ngay trên phong bì. Chạm vào, bốn nắp lần lượt mở ra ảnh cưới.", palette: "ngaxam", palettes: ["ngaxam", "classic", "blush", "sage"], group: "classic", retired: true },
   gilded: { label: "Hỷ sơn mài", desc: "Cửa gỗ sơn mài đỏ chạm hoa mẫu đơn, mây vàng; núm chữ Hỷ vàng. Chạm vào, hai cánh cửa mở ra ánh đèn ấm.", palette: "son", palettes: ["son", "bordeaux", "noir"], group: "traditional", retired: true },
   glass: { label: "Cuộn phim", desc: "Như chiếu phim nhựa cũ: đếm ngược 3-2-1, đèn chớp rồi ảnh cưới hiện trong khung phim có lỗ răng cưa. Album là một dải phim.", palette: "noir", palettes: ["noir", "navy", "forest", "ivory"], group: "photo", retired: true },
