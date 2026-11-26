@@ -19,7 +19,7 @@ import { WaxSeal } from "./Looks"
 import { MiniBow } from "./Silk"
 import { embossSvg, bloom, leaf } from "./emboss"
 import { useEmbossUrl } from "./useEmboss"
-import { Core, RsvpForm, eventStart, googleCalendarUrl, p2, useCountdown, useOpening, useScrollProgress, useSeen, weekday } from "./kit"
+import { Core, Raised, RsvpForm, eventStart, googleCalendarUrl, p2, useCountdown, useOpening, useScrollProgress, useSeen, weekday } from "./kit"
 
 // ---------------------------------------------------------------- palette
 
@@ -413,7 +413,7 @@ function Countdown({ start, dayOver }: { start: Date; dayOver: boolean }) {
   return (
     <div ref={ref} className="px-5 py-12 text-center" style={{ background: C.indigo }}>
       <Title light>{dayOver ? "Cảm ơn bạn" : "Đếm ngược"}</Title>
-      <div className="mt-6 mx-auto max-w-[360px] px-4 py-6" style={{ background: C.cream, clipPath: seen ? torn(11) : "inset(0 50% 0 50%)", transition: "clip-path 1.1s cubic-bezier(.6,.05,.3,1)" }}>
+      <Raised max={8}><div className="mt-6 mx-auto max-w-[360px] px-4 py-6" style={{ background: C.cream, clipPath: seen ? torn(11) : "inset(0 50% 0 50%)", transition: "clip-path 1.1s cubic-bezier(.6,.05,.3,1)" }}>
         {cd && !cd.over ? (
           <div className="flex items-center justify-center gap-2" style={{ color: C.indigo }}>
             {[
@@ -440,7 +440,7 @@ function Countdown({ start, dayOver }: { start: Date; dayOver: boolean }) {
             {cd?.over ? "Hôm nay là ngày cưới!" : " "}
           </p>
         )}
-      </div>
+      </div></Raised>
     </div>
   )
 }
@@ -479,10 +479,10 @@ function DrapeCard({ children }: { children: React.ReactNode }) {
   const W = 380, H = 620
   const drape = useRelief(W, H, () => drapeArt(W, H), 4, "drape")
   return (
-    <div className="relative mx-auto max-w-[380px]" style={{ background: C.satinLight }}>
+    <Raised max={4} thick={1.4}><div className="relative mx-auto max-w-[380px]" style={{ background: C.satinLight }}>
       <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: drape, backgroundSize: "100% 100%", mixBlendMode: "multiply" }} aria-hidden />
       <div className="relative px-14 pt-20 pb-12">{children}</div>
-    </div>
+    </div></Raised>
   )
 }
 
@@ -490,24 +490,24 @@ function FoliageCard({ children }: { children: React.ReactNode }) {
   const W = 380, H = 520
   const leaves = useRelief(W, H, () => foliageArt(W, H), 3.4, "leaves")
   return (
-    <div className="relative mx-auto max-w-[380px]" style={{ background: C.card }}>
+    <Raised max={4} thick={1.3}><div className="relative mx-auto max-w-[380px]" style={{ background: C.card }}>
       <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: leaves, backgroundSize: "100% 100%", mixBlendMode: "multiply" }} aria-hidden />
       <div className="relative px-10 py-14">{children}</div>
-    </div>
+    </div></Raised>
   )
 }
 
 function ThinFrame({ children, seal }: { children: React.ReactNode; seal?: string }) {
   const [ref, seen] = useSeen<HTMLDivElement>(0.35)
   return (
-    <div ref={ref} className="relative mx-auto max-w-[360px] px-6 py-10" style={{ boxShadow: `inset 0 0 0 1px ${C.plumSoft}, inset 0 0 0 6px ${C.paper}, inset 0 0 0 7px ${C.plumSoft}`, borderRadius: "46px 46px 8px 8px", background: C.paper }}>
+    <Raised shine thick={1.1}><div ref={ref} className="relative mx-auto max-w-[360px] px-6 py-10" style={{ boxShadow: `inset 0 0 0 1px ${C.plumSoft}, inset 0 0 0 6px ${C.paper}, inset 0 0 0 7px ${C.plumSoft}`, borderRadius: "46px 46px 8px 8px", background: C.paper }}>
       {children}
       {seal && (
         <div className="absolute -bottom-6 -right-4" style={{ transform: seen ? "scale(1) rotate(-8deg)" : "scale(1.6) rotate(-20deg)", opacity: seen ? 1 : 0, transition: "transform .5s cubic-bezier(.3,1.5,.5,1) .5s, opacity .3s ease .5s", filter: "drop-shadow(0 6px 8px rgba(60,30,40,.35))" }}>
           <WaxSeal text={seal} size={82} color={C.plum} />
         </div>
       )}
-    </div>
+    </div></Raised>
   )
 }
 
@@ -538,8 +538,6 @@ export function SatinPage({ core, opened }: { core: Core; opened: boolean }) {
       <div className="min-h-screen" style={{ background: C.card, color: C.ink, fontFamily: SERIF }}>
         <main className="mx-auto max-w-[480px] overflow-hidden" style={{ background: C.paper, boxShadow: "0 0 60px rgba(70,40,50,.15)" }}>
           <Cover c={core} opened={opened} />
-
-          {s && <Countdown start={s} dayOver={core.dayOver} />}
 
           {/* ---- photo medallion on crumpled satin */}
           <Scene className="px-5 py-14 text-center" style={{ backgroundImage: silk, backgroundSize: "cover", backgroundColor: C.satin }}>
@@ -619,6 +617,8 @@ export function SatinPage({ core, opened }: { core: Core; opened: boolean }) {
               })}
             </div>
           </Scene>
+
+          {s && <Countdown start={s} dayOver={core.dayOver} />}
 
           {/* ---- programme under drapery */}
           {core.timeline.length > 0 && (
@@ -704,6 +704,38 @@ export function SatinPage({ core, opened }: { core: Core; opened: boolean }) {
             </Scene>
           )}
 
+          {core.faq.length > 0 && (
+            <Scene className="px-6 py-12 text-center">
+              <Title>Bạn cần biết</Title>
+              <div className="mt-6 text-left">
+                <FaqList items={core.faq} />
+              </div>
+            </Scene>
+          )}
+
+          {/* ---- RSVP on indigo with a torn edge */}
+          <Scene className="relative pt-10" style={{ background: C.indigo }}>
+            <div className="absolute inset-x-0 -top-px h-6" style={{ background: C.paper, clipPath: torn(3) }} aria-hidden />
+            <div className="px-5 pt-8 pb-14 text-center">
+              <Kicker light>Hồi âm</Kicker>
+              <Title light>Xác nhận tham dự</Title>
+              <Raised max={3} thick={1.3}><div className="mt-7 p-5" style={{ background: C.cream }}>
+                <RsvpForm core={core} tone={tone} button="rounded-none" />
+              </div></Raised>
+            </div>
+          </Scene>
+
+          {/* ---- guestbook in a leafy frame */}
+          <Scene className="px-3 py-12 text-center">
+            <FoliageCard>
+              <Kicker>Sổ lưu bút</Kicker>
+              <Title>Gửi lời chúc</Title>
+              <div className="mt-6">
+                <Guestbook code={core.guest.code} guestName={core.guest.name} preview={core.preview} />
+              </div>
+            </FoliageCard>
+          </Scene>
+
           {video && (
             <Scene className="px-5 py-12 text-center">
               <Title>Thước phim</Title>
@@ -717,7 +749,7 @@ export function SatinPage({ core, opened }: { core: Core; opened: boolean }) {
           {(core.gifts.length > 0 || core.giftQr) && (
             <Scene className="px-6 py-14 text-center">
               <div className="flex justify-center">
-                <Stamp />
+                <Raised max={14}><Stamp /></Raised>
               </div>
               <Title>Mừng cưới</Title>
               <p className="mt-2 mb-6 text-[16px]" style={{ color: C.muted }}>
@@ -726,38 +758,6 @@ export function SatinPage({ core, opened }: { core: Core; opened: boolean }) {
               <GiftAccounts accounts={core.gifts} fallbackQr={core.giftQr} />
             </Scene>
           )}
-
-          {core.faq.length > 0 && (
-            <Scene className="px-6 py-12 text-center">
-              <Title>Bạn cần biết</Title>
-              <div className="mt-6 text-left">
-                <FaqList items={core.faq} />
-              </div>
-            </Scene>
-          )}
-
-          {/* ---- guestbook in a leafy frame */}
-          <Scene className="px-3 py-12 text-center">
-            <FoliageCard>
-              <Kicker>Sổ lưu bút</Kicker>
-              <Title>Gửi lời chúc</Title>
-              <div className="mt-6">
-                <Guestbook code={core.guest.code} guestName={core.guest.name} preview={core.preview} />
-              </div>
-            </FoliageCard>
-          </Scene>
-
-          {/* ---- RSVP on indigo with a torn edge */}
-          <Scene className="relative pt-10" style={{ background: C.indigo }}>
-            <div className="absolute inset-x-0 -top-px h-6" style={{ background: C.paper, clipPath: torn(3) }} aria-hidden />
-            <div className="px-5 pt-8 pb-14 text-center">
-              <Kicker light>Hồi âm</Kicker>
-              <Title light>Xác nhận tham dự</Title>
-              <div className="mt-7 p-5" style={{ background: C.cream }}>
-                <RsvpForm core={core} tone={tone} button="rounded-none" />
-              </div>
-            </div>
-          </Scene>
 
           <footer className="text-center px-6 pt-12 pb-10" style={{ background: C.card }}>
             <div className="flex justify-center">

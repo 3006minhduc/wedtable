@@ -15,7 +15,7 @@ import { PaletteProvider } from "./Ornaments"
 import { GiftAccounts, Guestbook, Milestones } from "./Sections"
 import { FaqList, MusicToggle } from "./Extras"
 import { Lightbox } from "./Album"
-import { Core, RsvpForm, eventStart, googleCalendarUrl, p2, useCountdown, useOpening, useSeen, weekday } from "./kit"
+import { Core, Raised, RsvpForm, eventStart, googleCalendarUrl, p2, useCountdown, useOpening, useSeen, weekday } from "./kit"
 
 const C = {
   plum: "#4E2A4F",
@@ -265,7 +265,7 @@ function Page({ children, frame = "bracket", roses = 6, minH = true, className =
           </div>
         </>
       )}
-      <div className="relative w-full max-w-[340px]">
+      <Raised max={5} thick={1.3} className="w-full max-w-[340px]"><div className="relative w-full max-w-[340px]">
       <div
         className="relative w-full text-center flex flex-col justify-center"
         style={{
@@ -296,7 +296,7 @@ function Page({ children, frame = "bracket", roses = 6, minH = true, className =
       <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 pointer-events-none">
         <Corner on={on} rot={180} delay={0.8} size={130} />
       </div>
-      </div>
+      </div></Raised>
     </section>
   )
 }
@@ -422,7 +422,7 @@ function Cover({ c, opened }: { c: { bride: string; groom: string; start: Date |
       <div className="absolute right-0 bottom-0 pointer-events-none" style={{ height: 620 }}>
         <Vine h={620} on={opened} seed={9} roses={7} flip />
       </div>
-      <div className="relative w-full max-w-[320px]">
+      <Raised max={5} thick={1.4} className="w-full max-w-[320px]"><div className="relative w-full max-w-[320px]">
       <div className="relative w-full text-center px-6 pt-14 pb-6 flex flex-col items-center" style={{ minHeight: "70svh", background: C.cream, clipPath: BRACKET, outline: `1px solid ${C.gold}` }}>
         <p className="text-[12px] tracking-[0.3em] uppercase" style={{ fontFamily: SC, fontWeight: 700, color: C.gold, opacity: opened ? 1 : 0, transition: "opacity 1s ease .4s" }}>
           Trân trọng báo tin lễ thành hôn
@@ -464,7 +464,7 @@ function Cover({ c, opened }: { c: { bride: string; groom: string; start: Date |
       <div className="absolute -bottom-10 -right-12 pointer-events-none">
         <Corner on={opened} rot={160} flip delay={1.3} size={130} />
       </div>
-      </div>
+      </div></Raised>
       <Butterflies n={5} />
     </section>
   )
@@ -513,6 +513,35 @@ export function VioletPage({ core, opened }: { core: Core; opened: boolean }) {
             )}
           </Page>
 
+          {/* families */}
+          {hasFamilies && (
+            <Page frame="bracket" roses={5}>
+              {(on) => (
+                <Lines on={on} start={0.3} step={0.2}>
+                  {[
+                    <Kicker key="k">Hai gia đình</Kicker>,
+                    <Title key="t">Trân trọng báo tin</Title>,
+                    <div key="f" className="mt-6 flex flex-col gap-6">
+                      {families.map((fm) => (
+                        <div key={fm.k}>
+                          <p className={kick} style={{ fontFamily: SC, fontWeight: 700, color: C.gold }}>
+                            {fm.k}
+                          </p>
+                          <p className="mt-1 text-[16px] whitespace-pre-line leading-relaxed">{fm.v}</p>
+                          {fm.name && (
+                            <p className="mt-2 text-[28px] leading-tight" style={{ fontFamily: SCRIPT, color: C.purple }}>
+                              {fm.role} {fm.name}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>,
+                  ]}
+                </Lines>
+              )}
+            </Page>
+          )}
+
           {/* the couple and the day, in an oval wreath */}
           <Page frame="oval" roses={7}>
             {(on) => (
@@ -554,68 +583,6 @@ export function VioletPage({ core, opened }: { core: Core; opened: boolean }) {
             )}
           </Page>
 
-          {/* countdown */}
-          {s && cd && !cd.over && (
-            <Page frame="arch" roses={4}>
-              {(on) => (
-                <Lines on={on} start={0.3} step={0.2}>
-                  {[
-                    <Kicker key="k">Còn</Kicker>,
-                    <div key="n" className="mt-4 grid grid-cols-2 gap-3">
-                      {[
-                        [cd.d, "ngày"],
-                        [cd.h, "giờ"],
-                        [cd.m, "phút"],
-                        [cd.s, "giây"],
-                      ].map(([v, l]) => (
-                        <div key={l as string} className="py-3" style={{ boxShadow: `inset 0 0 0 1px ${C.gold}`, borderRadius: 12 }}>
-                          <p className="text-[34px] leading-none tabular-nums" style={{ fontFamily: SERIF, color: C.purple }}>
-                            {p2(v as number)}
-                          </p>
-                          <p className="mt-1 text-[11px] tracking-[0.18em] uppercase" style={{ fontFamily: SC, fontWeight: 700, color: C.muted }}>
-                            {l}
-                          </p>
-                        </div>
-                      ))}
-                    </div>,
-                    <p key="t" className="mt-5 text-[30px]" style={{ fontFamily: SCRIPT, color: C.purple }}>
-                      đến ngày chung đôi
-                    </p>,
-                  ]}
-                </Lines>
-              )}
-            </Page>
-          )}
-
-          {/* families */}
-          {hasFamilies && (
-            <Page frame="bracket" roses={5}>
-              {(on) => (
-                <Lines on={on} start={0.3} step={0.2}>
-                  {[
-                    <Kicker key="k">Hai gia đình</Kicker>,
-                    <Title key="t">Trân trọng báo tin</Title>,
-                    <div key="f" className="mt-6 flex flex-col gap-6">
-                      {families.map((fm) => (
-                        <div key={fm.k}>
-                          <p className={kick} style={{ fontFamily: SC, fontWeight: 700, color: C.gold }}>
-                            {fm.k}
-                          </p>
-                          <p className="mt-1 text-[16px] whitespace-pre-line leading-relaxed">{fm.v}</p>
-                          {fm.name && (
-                            <p className="mt-2 text-[28px] leading-tight" style={{ fontFamily: SCRIPT, color: C.purple }}>
-                              {fm.role} {fm.name}
-                            </p>
-                          )}
-                        </div>
-                      ))}
-                    </div>,
-                  ]}
-                </Lines>
-              )}
-            </Page>
-          )}
-
           {/* ceremonies */}
           {core.ceremonies.length > 0 && (
             <Page frame="bracket" roses={5}>
@@ -651,6 +618,39 @@ export function VioletPage({ core, opened }: { core: Core; opened: boolean }) {
                         </div>
                       )
                     }),
+                  ]}
+                </Lines>
+              )}
+            </Page>
+          )}
+
+          {/* countdown */}
+          {s && cd && !cd.over && (
+            <Page frame="arch" roses={4}>
+              {(on) => (
+                <Lines on={on} start={0.3} step={0.2}>
+                  {[
+                    <Kicker key="k">Còn</Kicker>,
+                    <div key="n" className="mt-4 grid grid-cols-2 gap-3">
+                      {[
+                        [cd.d, "ngày"],
+                        [cd.h, "giờ"],
+                        [cd.m, "phút"],
+                        [cd.s, "giây"],
+                      ].map(([v, l]) => (
+                        <div key={l as string} className="py-3" style={{ boxShadow: `inset 0 0 0 1px ${C.gold}`, borderRadius: 12 }}>
+                          <p className="text-[34px] leading-none tabular-nums" style={{ fontFamily: SERIF, color: C.purple }}>
+                            {p2(v as number)}
+                          </p>
+                          <p className="mt-1 text-[11px] tracking-[0.18em] uppercase" style={{ fontFamily: SC, fontWeight: 700, color: C.muted }}>
+                            {l}
+                          </p>
+                        </div>
+                      ))}
+                    </div>,
+                    <p key="t" className="mt-5 text-[30px]" style={{ fontFamily: SCRIPT, color: C.purple }}>
+                      đến ngày chung đôi
+                    </p>,
                   ]}
                 </Lines>
               )}
@@ -751,6 +751,35 @@ export function VioletPage({ core, opened }: { core: Core; opened: boolean }) {
             </section>
           )}
 
+          {core.faq.length > 0 && (
+            <section className="px-5 py-12 text-center" style={{ background: SILVER }}>
+              <Raised max={4} thick={1.2}><div className="px-5 py-10" style={{ background: C.cream, clipPath: BRACKET, outline: `1px solid ${C.gold}` }}>
+                <Title>Bạn cần biết</Title>
+                <div className="mt-5 text-left">
+                  <FaqList items={core.faq} />
+                </div>
+              </div></Raised>
+            </section>
+          )}
+          <section className="px-5 py-14 text-center" style={{ background: SILVER }}>
+            <Raised max={4} thick={1.2}><div className="px-5 py-10" style={{ background: C.cream, clipPath: BRACKET }}>
+              <Kicker>Hồi âm</Kicker>
+              <Title>Xác nhận tham dự</Title>
+              <div className="mt-6">
+                <RsvpForm core={core} tone={tone} />
+              </div>
+            </div></Raised>
+          </section>
+
+          <section className="px-5 py-12 text-center" style={{ background: SILVER }}>
+            <Raised max={4} thick={1.2}><div className="px-5 py-10" style={{ background: C.cream, clipPath: BRACKET, outline: `1px solid ${C.gold}` }}>
+              <Kicker>Sổ lưu bút</Kicker>
+              <Title>Gửi lời chúc</Title>
+              <div className="mt-5">
+                <Guestbook code={core.guest.code} guestName={core.guest.name} preview={core.preview} />
+              </div>
+            </div></Raised>
+          </section>
           {video && (
             <section className="px-5 py-12 text-center" style={{ background: SILVER }}>
               <Title>Thước phim</Title>
@@ -763,44 +792,15 @@ export function VioletPage({ core, opened }: { core: Core; opened: boolean }) {
           {/* gifts, faq, guestbook, rsvp: cream cards on silver */}
           {(core.gifts.length > 0 || core.giftQr) && (
             <section className="px-5 py-14 text-center" style={{ background: SILVER }}>
-              <div className="px-5 py-10" style={{ background: C.cream, clipPath: BRACKET, outline: `1px solid ${C.gold}` }}>
+              <Raised max={4} thick={1.2}><div className="px-5 py-10" style={{ background: C.cream, clipPath: BRACKET, outline: `1px solid ${C.gold}` }}>
                 <Kicker>Gửi yêu thương</Kicker>
                 <Title>Mừng cưới</Title>
                 <div className="mt-6">
                   <GiftAccounts accounts={core.gifts} fallbackQr={core.giftQr} />
                 </div>
-              </div>
+              </div></Raised>
             </section>
           )}
-          {core.faq.length > 0 && (
-            <section className="px-5 py-12 text-center" style={{ background: SILVER }}>
-              <div className="px-5 py-10" style={{ background: C.cream, clipPath: BRACKET, outline: `1px solid ${C.gold}` }}>
-                <Title>Bạn cần biết</Title>
-                <div className="mt-5 text-left">
-                  <FaqList items={core.faq} />
-                </div>
-              </div>
-            </section>
-          )}
-          <section className="px-5 py-12 text-center" style={{ background: SILVER }}>
-            <div className="px-5 py-10" style={{ background: C.cream, clipPath: BRACKET, outline: `1px solid ${C.gold}` }}>
-              <Kicker>Sổ lưu bút</Kicker>
-              <Title>Gửi lời chúc</Title>
-              <div className="mt-5">
-                <Guestbook code={core.guest.code} guestName={core.guest.name} preview={core.preview} />
-              </div>
-            </div>
-          </section>
-          <section className="px-5 py-14 text-center" style={{ background: `linear-gradient(180deg, ${C.silverBot}, ${C.plum} 30%)` }}>
-            <div className="px-5 py-10" style={{ background: C.cream, clipPath: BRACKET }}>
-              <Kicker>Hồi âm</Kicker>
-              <Title>Xác nhận tham dự</Title>
-              <div className="mt-6">
-                <RsvpForm core={core} tone={tone} />
-              </div>
-            </div>
-          </section>
-
           <footer className="relative text-center px-6 pt-14 pb-12 overflow-hidden" style={{ background: C.plum, color: C.cream }}>
             <p className="text-[46px] leading-tight" style={{ fontFamily: SCRIPT, color: C.goldLight }}>
               Hẹn gặp bạn

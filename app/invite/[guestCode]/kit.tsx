@@ -319,3 +319,66 @@ export function useOpening(total: number, onOpened: () => void, revealAt = 0, on
   tapRef.current = tap
   return { phase, tap }
 }
+
+/**
+ * A raised 3D block: the card has real thickness (stacked drop shadows that follow its shape, also
+ * for cut corners), stands up from a tilted-back position as it scrolls in, then follows the finger,
+ * the mouse or the phone's tilt a few degrees, with a light sheen sliding over its face (`shine`).
+ * Reduced motion keeps the thickness and drops the movement.
+ */
+export function Raised({ children, className = "", max = 7, shine = false, thick = 1, style }: { children: React.ReactNode; className?: string; max?: number; shine?: boolean; thick?: number; style?: React.CSSProperties }) {
+  const [wrap, seen] = useSeen<HTMLDivElement>(0.12)
+  const tilt = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    const el = tilt.current
+    if (!el || reducedMotion()) return
+    let raf = 0
+    const apply = (x: number, y: number) => {
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(() => {
+        el.style.transform = `rotateX(${(-y * max).toFixed(2)}deg) rotateY(${(x * max).toFixed(2)}deg)`
+        el.style.setProperty("--rx", x.toFixed(3))
+        el.style.setProperty("--ry", y.toFixed(3))
+      })
+    }
+    const onMove = (e: PointerEvent) => {
+      const r = el.getBoundingClientRect()
+      if (e.clientY < r.top - 120 || e.clientY > r.bottom + 120) return
+      apply(Math.max(-1, Math.min(1, ((e.clientX - r.left) / r.width) * 2 - 1)), Math.max(-1, Math.min(1, ((e.clientY - r.top) / r.height) * 2 - 1)))
+    }
+    const onTilt = (e: DeviceOrientationEvent) => {
+      if (e.gamma == null || e.beta == null) return
+      apply(Math.max(-1, Math.min(1, e.gamma / 22)), Math.max(-1, Math.min(1, (e.beta - 50) / 22)))
+    }
+    const reset = () => apply(0, 0)
+    window.addEventListener("pointermove", onMove, { passive: true })
+    window.addEventListener("pointerup", reset)
+    document.addEventListener("pointerleave", reset)
+    window.addEventListener("deviceorientation", onTilt)
+    return () => {
+      cancelAnimationFrame(raf)
+      window.removeEventListener("pointermove", onMove)
+      window.removeEventListener("pointerup", reset)
+      document.removeEventListener("pointerleave", reset)
+      window.removeEventListener("deviceorientation", onTilt)
+    }
+  }, [max])
+  const t = thick
+  const depth = `drop-shadow(0 ${1 * t}px 0 rgba(0,0,0,.10)) drop-shadow(0 ${2 * t}px 0 rgba(0,0,0,.08)) drop-shadow(0 ${3 * t}px 0 rgba(0,0,0,.06)) drop-shadow(0 ${16 * t}px ${14 * t}px rgba(30,15,25,.32))`
+  return (
+    <div ref={wrap} className={className} style={{ perspective: 1000, ...style }}>
+      <div style={{ transform: seen ? "none" : "rotateX(24deg) translateY(36px) scale(.96)", transformOrigin: "50% 100%", opacity: seen ? 1 : 0, transition: "transform 1.1s cubic-bezier(.2,.8,.2,1), opacity .8s ease" }}>
+        <div ref={tilt} className="relative" style={{ transition: "transform .45s cubic-bezier(.2,.7,.2,1)", filter: depth, transformStyle: "preserve-3d" }}>
+          {children}
+          {shine && (
+            <span
+              aria-hidden
+              className="absolute inset-0 pointer-events-none"
+              style={{ borderRadius: "inherit", mixBlendMode: "soft-light", background: "radial-gradient(60% 50% at calc(50% + var(--rx, 0) * 40%) calc(30% + var(--ry, 0) * 40%), rgba(255,255,255,.75), rgba(255,255,255,0) 70%)" }}
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}

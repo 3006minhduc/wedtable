@@ -15,7 +15,7 @@ import { PaletteProvider } from "./Ornaments"
 import { GiftAccounts, Guestbook, Milestones } from "./Sections"
 import { FaqList, MusicToggle } from "./Extras"
 import { Lightbox } from "./Album"
-import { Core, RsvpForm, eventStart, googleCalendarUrl, p2, useCountdown, useOpening, useScrollProgress, useSeen, weekday } from "./kit"
+import { Core, Raised, RsvpForm, eventStart, googleCalendarUrl, p2, useCountdown, useOpening, useScrollProgress, useSeen, weekday } from "./kit"
 
 // ---------------------------------------------------------------- palette
 
@@ -758,9 +758,9 @@ function ScratchMirror({ photo }: { photo?: string }) {
 
 function GlassFrameBox({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative mx-auto max-w-[360px]" style={{ borderStyle: "solid", borderWidth: 24, borderImageSource: PANE_FRAME, borderImageSlice: 24, borderImageRepeat: "round", background: "#FFFDFC", boxShadow: "0 18px 30px -22px rgba(120,60,60,.45)" }}>
+    <Raised shine thick={1.2}><div className="relative mx-auto max-w-[360px]" style={{ borderStyle: "solid", borderWidth: 24, borderImageSource: PANE_FRAME, borderImageSlice: 24, borderImageRepeat: "round", background: "#FFFDFC", boxShadow: "0 18px 30px -22px rgba(120,60,60,.45)" }}>
       <div className="px-5 py-7 text-center">{children}</div>
-    </div>
+    </div></Raised>
   )
 }
 
@@ -887,7 +887,7 @@ export function StainedPage({ core, opened }: { core: Core; opened: boolean }) {
 
           {/* ---- olive card: thanks + the mirror */}
           <Scene className="px-4 pt-4 pb-14">
-            <div className="rounded-t-[200px] rounded-b-[28px] px-6 pt-14 pb-12 text-center" style={{ background: C.olive, color: C.cream }}>
+            <Raised max={5} thick={1.5}><div className="rounded-t-[200px] rounded-b-[28px] px-6 pt-14 pb-12 text-center" style={{ background: C.olive, color: C.cream }}>
               <div className="flex justify-center">
                 <RoseSprig w={110} />
               </div>
@@ -903,7 +903,7 @@ export function StainedPage({ core, opened }: { core: Core; opened: boolean }) {
               <p className="mt-16 text-[13px] tracking-[0.22em] uppercase" style={{ fontFamily: SC, fontWeight: 700, color: "rgba(247,238,228,.7)" }}>
                 Kính gửi {core.guest.name}
               </p>
-            </div>
+            </div></Raised>
           </Scene>
 
           {/* ---- families */}
@@ -952,7 +952,7 @@ export function StainedPage({ core, opened }: { core: Core; opened: boolean }) {
             <Scene className="px-5 pb-14 text-center">
               <Kicker>{core.dayOver ? "Cảm ơn bạn" : "Còn"}</Kicker>
               {!cd.over ? (
-                <div className="mt-5 flex justify-center gap-3">
+                <Raised max={9}><div className="mt-5 flex justify-center gap-3">
                   {[
                     [cd.d, "ngày"],
                     [cd.h, "giờ"],
@@ -968,12 +968,23 @@ export function StainedPage({ core, opened }: { core: Core; opened: boolean }) {
                       </span>
                     </div>
                   ))}
-                </div>
+                </div></Raised>
               ) : (
                 <p className="mt-3 text-[34px]" style={{ fontFamily: SCRIPT, color: C.roseDeep }}>
                   {core.dayOver ? "Cảm ơn bạn đã đến chung vui" : "Hôm nay là ngày cưới!"}
                 </p>
               )}
+            </Scene>
+          )}
+
+          {/* ---- programme */}
+          {core.timeline.length > 0 && (
+            <Scene className="px-4 pb-10 text-center">
+              <Title>Chương trình</Title>
+              <Kicker>Diễn biến ngày vui</Kicker>
+              <div className="mt-4">
+                <Programme items={core.timeline} />
+              </div>
             </Scene>
           )}
 
@@ -993,17 +1004,6 @@ export function StainedPage({ core, opened }: { core: Core; opened: boolean }) {
                 </div>
               )}
               <StringLights />
-            </Scene>
-          )}
-
-          {/* ---- programme */}
-          {core.timeline.length > 0 && (
-            <Scene className="px-4 pb-10 text-center">
-              <Title>Chương trình</Title>
-              <Kicker>Diễn biến ngày vui</Kicker>
-              <div className="mt-4">
-                <Programme items={core.timeline} />
-              </div>
             </Scene>
           )}
 
@@ -1037,6 +1037,38 @@ export function StainedPage({ core, opened }: { core: Core; opened: boolean }) {
             </Scene>
           )}
 
+          {/* ---- faq */}
+          {core.faq.length > 0 && (
+            <Scene className="px-6 pb-14 text-center">
+              <Kicker>Hỏi đáp</Kicker>
+              <Title>Bạn cần biết</Title>
+              <div className="mt-6 text-left">
+                <FaqList items={core.faq} />
+              </div>
+            </Scene>
+          )}
+
+          {/* ---- RSVP: olive band under a scalloped glass border */}
+          <Scene className="pt-[46px]" style={{ background: C.olive }}>
+            <div className="absolute inset-x-0 top-0 h-[46px]" style={{ backgroundImage: SCALLOP, backgroundSize: "80px 46px", backgroundRepeat: "repeat-x", backgroundColor: C.paper }} aria-hidden />
+            <div className="px-5 pt-10 pb-14 text-center">
+              <Kicker light>Hồi âm</Kicker>
+              <Title light>Xác nhận tham dự</Title>
+              <Raised max={3} thick={1.3}><div className="mt-7 rounded-[22px] p-5" style={{ background: "#FFFBF8" }}>
+                <RsvpForm core={core} tone={tone} />
+              </div></Raised>
+            </div>
+          </Scene>
+
+          {/* ---- guestbook */}
+          <Scene className="px-5 pb-14 text-center">
+            <Kicker>Sổ lưu bút</Kicker>
+            <Title>Gửi lời chúc</Title>
+            <div className="mt-6">
+              <Guestbook code={core.guest.code} guestName={core.guest.name} preview={core.preview} />
+            </div>
+          </Scene>
+
           {/* ---- video */}
           {video && (
             <Scene className="px-5 pb-14 text-center">
@@ -1051,7 +1083,7 @@ export function StainedPage({ core, opened }: { core: Core; opened: boolean }) {
           {(core.gifts.length > 0 || core.giftQr) && (
             <Scene className="mx-4 mb-14 px-5 py-12 text-center rounded-[6px]" style={{ background: "#F1E6DD" }}>
               <div className="flex justify-center">
-                <GiftBox />
+                <Raised max={12}><GiftBox /></Raised>
               </div>
               <Title>Mừng cưới</Title>
               <p className="mt-2 mb-6 text-[16px]" style={{ color: C.muted }}>
@@ -1061,41 +1093,9 @@ export function StainedPage({ core, opened }: { core: Core; opened: boolean }) {
             </Scene>
           )}
 
-          {/* ---- faq */}
-          {core.faq.length > 0 && (
-            <Scene className="px-6 pb-14 text-center">
-              <Kicker>Hỏi đáp</Kicker>
-              <Title>Bạn cần biết</Title>
-              <div className="mt-6 text-left">
-                <FaqList items={core.faq} />
-              </div>
-            </Scene>
-          )}
-
-          {/* ---- guestbook */}
-          <Scene className="px-5 pb-14 text-center">
-            <Kicker>Sổ lưu bút</Kicker>
-            <Title>Gửi lời chúc</Title>
-            <div className="mt-6">
-              <Guestbook code={core.guest.code} guestName={core.guest.name} preview={core.preview} />
-            </div>
-          </Scene>
-
-          {/* ---- RSVP: olive band under a scalloped glass border */}
-          <Scene className="pt-[46px]" style={{ background: C.olive }}>
-            <div className="absolute inset-x-0 top-0 h-[46px]" style={{ backgroundImage: SCALLOP, backgroundSize: "80px 46px", backgroundRepeat: "repeat-x", backgroundColor: C.paper }} aria-hidden />
-            <div className="px-5 pt-10 pb-14 text-center">
-              <Kicker light>Hồi âm</Kicker>
-              <Title light>Xác nhận tham dự</Title>
-              <div className="mt-7 rounded-[22px] p-5" style={{ background: "#FFFBF8" }}>
-                <RsvpForm core={core} tone={tone} />
-              </div>
-            </div>
-          </Scene>
-
           {/* ---- footer */}
           <footer className="relative text-center px-6 pt-[70px] pb-10" style={{ background: C.paper }}>
-            <div className="absolute inset-x-0 top-0 h-[46px] rotate-180" style={{ backgroundImage: SCALLOP, backgroundSize: "80px 46px", backgroundRepeat: "repeat-x", backgroundColor: C.olive }} aria-hidden />
+            <div className="absolute inset-x-0 top-0 h-[46px] rotate-180" style={{ backgroundImage: SCALLOP, backgroundSize: "80px 46px", backgroundRepeat: "repeat-x", backgroundColor: C.paper }} aria-hidden />
             <div className="flex justify-center">
               <GlassRose size={70} />
             </div>
