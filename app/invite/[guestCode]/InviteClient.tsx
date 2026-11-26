@@ -28,6 +28,7 @@ import NewInvite, { NEW_LOOKS } from "./NewInvite"
 import { StainedThumb } from "./Stained"
 import { SatinThumb } from "./Satin"
 import { VioletThumb } from "./Violet"
+import { GiltThumb } from "./Gilt"
 import type { InviteStyle, Palette } from "@/lib/inviteThemes"
 
 const DEFAULT_MESSAGE =
@@ -370,6 +371,7 @@ export function TemplateCover({ id, palette, event, cover, second }: { id: Invit
   if (id === "stained") return <div className={fontVars}><StainedThumb event={event} /></div>
   if (id === "satin") return <div className={fontVars}><SatinThumb event={event} /></div>
   if (id === "violet") return <div className={fontVars}><VioletThumb event={event} /></div>
+  if (id === "gilt") return <div className={fontVars}><GiltThumb event={event} /></div>
   const L = (LOOKS[id] ?? LOOKS.floral)!
   const p = (THEMES[palette] ?? THEMES[TEMPLATES[id].palette] ?? THEMES.classic).p
   const start = eventStart(event.event_date, event.event_time)

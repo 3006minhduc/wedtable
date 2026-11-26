@@ -8,12 +8,14 @@ import type { InviteInput } from "./kit"
 import { StainedIntro, StainedPage } from "./Stained"
 import { SatinIntro, SatinPage } from "./Satin"
 import { VioletIntro, VioletPage } from "./Violet"
+import { GiltIntro, GiltPage } from "./Gilt"
 
-export const NEW_LOOKS = ["stained", "satin", "violet"] as const
+export const NEW_LOOKS = ["gilt", "stained", "satin", "violet"] as const
 const SCENES: Record<string, { Intro: typeof StainedIntro; Page: typeof StainedPage }> = {
   stained: { Intro: StainedIntro, Page: StainedPage },
   satin: { Intro: SatinIntro, Page: SatinPage },
   violet: { Intro: VioletIntro, Page: VioletPage },
+  gilt: { Intro: GiltIntro, Page: GiltPage },
 }
 
 export default function NewInvite(props: InviteInput & { look: string; skipIntro?: boolean }) {

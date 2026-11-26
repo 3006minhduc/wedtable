@@ -9,7 +9,7 @@ export type Palette = {
 
 /** Invite template = intro effect + decorations + layout (events.invite_template).
  *  Colors are chosen separately (events.invite_theme), every palette works with every template. */
-export type InviteStyle = "stained" | "satin" | "violet" | "floral" | "gilded" | "glass" | "emboss" | "daisy" | "veil" | "vinyl" | "scrapbook"
+export type InviteStyle = "gilt" | "stained" | "satin" | "violet" | "floral" | "gilded" | "glass" | "emboss" | "daisy" | "veil" | "vinyl" | "scrapbook"
 
 export type TemplateGroup = "classic" | "traditional" | "modern" | "photo"
 export const TEMPLATE_GROUPS: Record<TemplateGroup, string> = { classic: "Thanh lịch", traditional: "Truyền thống", modern: "Hiện đại", photo: "Ảnh cưới" }
@@ -19,6 +19,7 @@ export const TEMPLATE_GROUPS: Record<TemplateGroup, string> = { classic: "Thanh 
 // 2026-11-26: the old eight are retired (hidden from the picker, existing invitations move to the
 // default); the new set draws its own art and colours (fixed: no colour choice).
 export const TEMPLATES: Record<InviteStyle, { label: string; desc: string; palette: string; palettes: string[]; group: TemplateGroup; free?: boolean; retired?: boolean; fixed?: boolean }> = {
+  gilt: { label: "Ngà & Nhũ", desc: "Phong bì ngà đặt trên vải lanh, dấu sáp nhũ vàng. Chạm vào: nắp mở, tấm thiệp có ảnh cưới trượt lên rồi tan thành ảnh bìa toàn màn hình. Bên trong một nền giấy ngà, mực nâu, nhũ sâm panh, nhiều khoảng trắng.", palette: "classic", palettes: [], group: "classic", fixed: true },
   stained: { label: "Kính màu", desc: "Hai cánh cửa kính màu hoa hồng, chạm huy chương để mở. Bên trong: cửa vòm kính, tấm gương phủ kính mờ lau tay để lộ ảnh, chương trình là dòng sâm panh chảy theo khi cuộn.", palette: "classic", palettes: [], group: "classic", free: true, fixed: true },
   satin: { label: "Lụa dập nổi", desc: "Phong bì lụa dập nổi cánh hoa, dấu sáp màu mận. Chạm vào: nắp lật lên, nơ tuột ra, lớp lót lụa trượt xuống để lộ tấm thiệp khung baroque nổi. Đếm ngược trên dải giấy xé, ảnh trong huy chương rõ dần khi cuộn.", palette: "classic", palettes: [], group: "classic", fixed: true },
   violet: { label: "Vườn tím", desc: "Thiệp gập hai cánh in hoa tulip, ruy băng và dấu sáp vàng. Chạm vào: ruy băng tuột, cổng mở ra từng trang khung kem với hoa hồng tím leo lên, cột vàng, đài phun nước và bướm vàng bay; chữ hiện từng dòng.", palette: "classic", palettes: [], group: "classic", fixed: true },
