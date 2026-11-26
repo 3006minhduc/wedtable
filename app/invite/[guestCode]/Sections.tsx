@@ -224,7 +224,7 @@ export function SidePicker({ value, onChange }: { value: string; onChange: (v: s
 
 type Wish = { id: string; name: string; message: string; pinned: boolean; created_at: string; mine?: boolean }
 
-const SAMPLE_WISHES: Wish[] = [
+export const SAMPLE_WISHES: Wish[] = [
   { id: "s1", name: "Bạn thân Thu Trang", message: "Chúc hai bạn trăm năm hạnh phúc, mãi nắm tay nhau như ngày đầu!", pinned: true, created_at: "" },
   { id: "s2", name: "Gia đình chú Hùng", message: "Mừng hai cháu nên duyên vợ chồng, sớm có tin vui nhé.", pinned: false, created_at: "" },
 ]

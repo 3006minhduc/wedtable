@@ -15,7 +15,7 @@ import { PaletteProvider } from "./Ornaments"
 import { GiftAccounts, Guestbook, Milestones } from "./Sections"
 import { FaqList, MusicToggle } from "./Extras"
 import { Lightbox } from "./Album"
-import { Core, Painted, Raised, RsvpForm, eventStart, googleCalendarUrl, p2, useCountdown, useOpening, useSeen, weekday } from "./kit"
+import { ActionBar, Core, Painted, Raised, RsvpForm, eventStart, googleCalendarUrl, p2, useCountdown, useOpening, useSeen, weekday } from "./kit"
 
 const C = {
   plum: "#4E2A4F",
@@ -408,7 +408,7 @@ export function VioletIntro({ core, onOpened, onReveal }: { core: Core; onOpened
 
 // ---------------------------------------------------------------- cover page
 
-function Cover({ c, opened }: { c: { bride: string; groom: string; start: Date | null }; opened: boolean }) {
+function Cover({ c, opened, photo }: { c: { bride: string; groom: string; start: Date | null }; opened: boolean; photo?: string }) {
   const s = c.start
   const ini = (n: string) => (n.split(/\s+/).pop() || "").charAt(0)
   return (
@@ -420,18 +420,17 @@ function Cover({ c, opened }: { c: { bride: string; groom: string; start: Date |
         <p className="text-[12px] tracking-[0.3em] uppercase" style={{ fontFamily: SC, fontWeight: 700, color: C.gold, opacity: opened ? 1 : 0, transition: "opacity 1s ease .4s" }}>
           Trân trọng báo tin lễ thành hôn
         </p>
+        <div className="mt-6 w-[74%] aspect-[3/4] rounded-t-full overflow-hidden" style={{ background: "#EEE6EE", boxShadow: `0 0 0 1px ${C.gold}, 0 0 0 6px ${C.cream}, 0 0 0 7px ${C.gold}` }}>
+          {photo && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={photo} alt="" className="w-full h-full object-cover" style={{ filter: opened ? "saturate(.8) contrast(.96) sepia(.1) brightness(1.03)" : "saturate(.8) contrast(.96) sepia(.1) brightness(1.03) blur(10px)", transform: opened ? "scale(1)" : "scale(1.08)", transition: "filter 2.4s ease, transform 3s cubic-bezier(.2,.65,.2,1)" }} />
+          )}
+        </div>
         <div className="flex-1 flex flex-col justify-center">
-        <Lines on={opened} start={0.6} step={0.35}>
+        <Lines on={opened} start={0.8} step={0.3}>
           {[
-            <p key="m" className="text-[78px] leading-[0.9]" style={{ fontFamily: SCRIPT, color: C.purple }}>
-              {ini(c.bride)}
-              <span className="text-[44px] mx-1" style={{ color: C.gold }}>
-                &
-              </span>
-              {ini(c.groom)}
-            </p>,
-            <p key="n" className="mt-4 text-[19px] tracking-[0.12em] uppercase" style={{ fontFamily: SC, fontWeight: 700, color: C.ink }}>
-              {c.bride} <span style={{ color: C.gold }}>|</span> {c.groom}
+            <p key="m" className="mt-4 text-[44px] leading-[1]" style={{ fontFamily: SCRIPT, color: C.purple }}>
+              {c.bride} <span className="text-[26px]" style={{ color: C.gold }}>&</span> {c.groom}
             </p>,
             s ? (
               <p key="d" className="mt-2 text-[14px] tracking-[0.18em] uppercase" style={{ fontFamily: SC, fontWeight: 700, color: C.muted }}>
@@ -440,9 +439,6 @@ function Cover({ c, opened }: { c: { bride: string; groom: string; start: Date |
             ) : null,
           ]}
         </Lines>
-        </div>
-        <div className="relative" style={{ opacity: opened ? 1 : 0, transform: opened ? "none" : "translateY(20px)", transition: "opacity 1s ease 1.4s, transform 1.2s ease 1.4s" }}>
-          <Fountain />
         </div>
       </div>
       <div className="absolute -top-24 -left-16 pointer-events-none">
@@ -484,7 +480,7 @@ export function VioletPage({ core, opened }: { core: Core; opened: boolean }) {
       <VioletDefs />
       <div className="min-h-screen" style={{ background: "#E7E6EB", color: C.ink, fontFamily: SERIF }}>
         <main className="relative mx-auto max-w-[480px] overflow-hidden" style={{ boxShadow: "0 0 60px rgba(60,30,70,.15)" }}>
-          <Cover c={core} opened={opened} />
+          <Cover c={core} opened={opened} photo={core.gallery[0]} />
 
           {/* invitation between gold columns */}
           <Page frame="columns" roses={5}>
@@ -740,6 +736,9 @@ export function VioletPage({ core, opened }: { core: Core; opened: boolean }) {
                   </button>
                 ))}
               </div>
+              <div className="mt-8 flex justify-center">
+                <Fountain />
+              </div>
               <Butterflies n={2} />
             </section>
           )}
@@ -754,6 +753,7 @@ export function VioletPage({ core, opened }: { core: Core; opened: boolean }) {
               </div></Raised>
             </section>
           )}
+          <div id="rsvp" className="scroll-mt-4" />
           <section className="px-5 py-14 text-center" style={{ background: SILVER }}>
             <Raised max={4} thick={1.2}><div className="px-5 py-10" style={{ background: C.cream, clipPath: BRACKET }}>
               <Kicker>Hồi âm</Kicker>
@@ -764,6 +764,7 @@ export function VioletPage({ core, opened }: { core: Core; opened: boolean }) {
             </div></Raised>
           </section>
 
+          <div id="wishes" className="scroll-mt-4" />
           <section className="px-5 py-12 text-center" style={{ background: SILVER }}>
             <Raised max={4} thick={1.2}><div className="px-5 py-10" style={{ background: C.cream, clipPath: BRACKET, outline: `1px solid ${C.gold}` }}>
               <Kicker>Sổ lưu bút</Kicker>
@@ -782,6 +783,7 @@ export function VioletPage({ core, opened }: { core: Core; opened: boolean }) {
             </section>
           )}
 
+          <div id="gifts" className="scroll-mt-4" />
           {/* gifts, faq, guestbook, rsvp: cream cards on silver */}
           {(core.gifts.length > 0 || core.giftQr) && (
             <section className="px-5 py-14 text-center" style={{ background: SILVER }}>
@@ -794,8 +796,8 @@ export function VioletPage({ core, opened }: { core: Core; opened: boolean }) {
               </div></Raised>
             </section>
           )}
-          <footer className="em-dark relative text-center px-6 pt-14 pb-12 overflow-hidden" style={{ background: C.plum, color: C.cream }}>
-            <p className="text-[46px] leading-tight" style={{ fontFamily: SCRIPT, color: C.goldLight }}>
+          <footer className="relative text-center px-6 pt-14 pb-12 overflow-hidden" style={{ background: SILVER, color: C.ink }}>
+            <p className="text-[46px] leading-tight" style={{ fontFamily: SCRIPT, color: C.purple }}>
               Hẹn gặp bạn
             </p>
             <p className="mt-2 text-[17px] tracking-[0.12em] uppercase" style={{ fontFamily: SC, fontWeight: 700 }}>
@@ -812,6 +814,7 @@ export function VioletPage({ core, opened }: { core: Core; opened: boolean }) {
         </main>
       </div>
       {core.musicUrl && opened && <MusicToggle src={core.musicUrl} start={opened} />}
+      {opened && <ActionBar core={core} accent={C.purple} onAccent={C.cream} ink={C.ink} ground="rgba(248,240,232,.92)" />}
       {viewer !== null && <Lightbox photos={core.gallery} index={viewer} onClose={() => setViewer(null)} onIndex={setViewer} />}
       <style>{`
         @keyframes vtFlyR{0%{transform:translate(0,0)}25%{transform:translate(30vw,-30px)}50%{transform:translate(60vw,20px)}75%{transform:translate(90vw,-20px)}100%{transform:translate(125vw,0)}}
@@ -829,7 +832,7 @@ export function VioletThumb({ event }: { event: any }) {
   return (
     <div style={{ fontFamily: SERIF }}>
       <VioletDefs />
-      <Cover c={c} opened />
+      <Cover c={c} opened photo={Array.isArray(event.gallery) ? event.gallery[0] : undefined} />
     </div>
   )
 }

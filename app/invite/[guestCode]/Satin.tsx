@@ -19,7 +19,7 @@ import { WaxSeal } from "./Looks"
 import { MiniBow } from "./Silk"
 import { embossSvg, bloom, leaf } from "./emboss"
 import { useEmbossUrl } from "./useEmboss"
-import { Core, Painted, Raised, RsvpForm, eventStart, googleCalendarUrl, p2, useCountdown, useOpening, useScrollProgress, useSeen, weekday } from "./kit"
+import { ActionBar, Core, Painted, Raised, RsvpForm, eventStart, googleCalendarUrl, p2, useCountdown, useOpening, useScrollProgress, useSeen, weekday } from "./kit"
 
 // ---------------------------------------------------------------- palette
 
@@ -370,7 +370,7 @@ export function SatinIntro({ core, onOpened, onReveal }: { core: Core; onOpened:
 
 // ---------------------------------------------------------------- cover: matte card in a baroque frame
 
-function Cover({ c, opened }: { c: { bride: string; groom: string; start: Date | null }; opened: boolean }) {
+function Cover({ c, opened, photo }: { c: { bride: string; groom: string; start: Date | null }; opened: boolean; photo?: string }) {
   const W = 360, H = 640
   const frame = useRelief(W, H, () => baroqueArt(W, H), 3.4, "cover")
   const s = c.start
@@ -378,21 +378,27 @@ function Cover({ c, opened }: { c: { bride: string; groom: string; start: Date |
     <section className="relative min-h-[100svh] flex items-center justify-center px-3 py-6 overflow-hidden" style={{ background: C.card }}>
       <div className="relative w-full max-w-[380px]" style={{ aspectRatio: `${W} / ${H}`, backgroundImage: frame, backgroundSize: "100% 100%", mixBlendMode: "multiply" }} aria-hidden />
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div className="w-full max-w-[380px] px-12 text-center" style={{ aspectRatio: `${W} / ${H}`, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-          <p className={"text-[12px] tracking-[0.26em] uppercase st-fade " + (opened ? "st-on" : "")} style={{ fontFamily: SC, fontWeight: 700, color: C.muted, transitionDelay: ".5s" }}>
+        <div className="w-full max-w-[380px] px-14 pt-[22%] text-center" style={{ aspectRatio: `${W} / ${H}`, display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <div className="w-[68%] aspect-[3/4] rounded-t-full overflow-hidden" style={{ background: C.satinLight, boxShadow: `0 0 0 1px ${C.plumSoft}, 0 0 0 6px ${C.card}, 0 0 0 7px ${C.plumSoft}` }}>
+            {photo && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={photo} alt="" className="w-full h-full object-cover" style={{ filter: opened ? "saturate(.8) contrast(.96) sepia(.1) brightness(1.03)" : "saturate(.8) contrast(.96) sepia(.1) brightness(1.03) blur(10px)", transform: opened ? "scale(1)" : "scale(1.08)", transition: "filter 2.4s ease, transform 3s cubic-bezier(.2,.65,.2,1)" }} />
+            )}
+          </div>
+          <p className={"mt-6 text-[11px] tracking-[0.34em] uppercase st-fade " + (opened ? "st-on" : "")} style={{ fontFamily: SC, fontWeight: 700, color: C.muted, transitionDelay: ".8s" }}>
             Trân trọng báo tin lễ thành hôn
           </p>
-          <h1 className="mt-5 leading-[1.02]" style={{ fontFamily: SCRIPT, color: C.plum }}>
-            <Letters text={c.bride} on={opened} delay={0.9} step={0.07} className="block text-[54px]" />
-            <Letters text="&" on={opened} delay={1.2} className="block text-[30px] my-1" style={{ color: C.plumSoft }} />
-            <Letters text={c.groom} on={opened} delay={1.5} step={0.07} className="block text-[54px]" />
+          <h1 className="mt-2 leading-[1]" style={{ fontFamily: SCRIPT, color: C.plum }}>
+            <Letters text={c.bride} on={opened} delay={1.1} step={0.07} className="inline-block text-[40px]" />
+            <Letters text=" & " on={opened} delay={1.4} className="inline-block text-[24px] mx-1" style={{ color: C.plumSoft }} />
+            <Letters text={c.groom} on={opened} delay={1.6} step={0.07} className="inline-block text-[40px]" />
           </h1>
           {s && (
-            <div className={"mt-6 st-fade " + (opened ? "st-on" : "")} style={{ transitionDelay: "2.2s" }}>
-              <p className="text-[17px] tracking-[0.2em]" style={{ fontFamily: SC, fontWeight: 700, color: C.ink }}>
-                {weekday(s)} · {p2(s.getDate())}.{p2(s.getMonth() + 1)}.{s.getFullYear()}
+            <div className={"mt-2 st-fade " + (opened ? "st-on" : "")} style={{ transitionDelay: "2.2s" }}>
+              <p className="text-[13px] tracking-[0.3em]" style={{ fontFamily: SC, fontWeight: 700, color: C.ink }}>
+                {p2(s.getDate())} · {p2(s.getMonth() + 1)} · {s.getFullYear()}
               </p>
-              <p className="mt-1 text-[15px] italic" style={{ fontFamily: SERIF, color: C.muted }}>
+              <p className="mt-0.5 text-[13px] italic" style={{ fontFamily: SERIF, color: C.muted }}>
                 {lunarLine(s)}
               </p>
             </div>
@@ -415,8 +421,8 @@ function Countdown({ start, dayOver }: { start: Date; dayOver: boolean }) {
   const cd = useCountdown(start)
   const [ref, seen] = useSeen<HTMLDivElement>(0.3)
   return (
-    <div ref={ref} className="px-5 py-12 text-center em-dark" style={{ background: C.indigo }}>
-      <Title light>{dayOver ? "Cảm ơn bạn" : "Đếm ngược"}</Title>
+    <div ref={ref} className="px-5 py-12 text-center" style={{ background: C.paper }}>
+      <Title>{dayOver ? "Cảm ơn bạn" : "Đếm ngược"}</Title>
       <Raised max={8}><div className="mt-6 mx-auto max-w-[360px] px-4 py-6" style={{ background: C.cream, clipPath: seen ? torn(11) : "inset(0 50% 0 50%)", transition: "clip-path 1.1s cubic-bezier(.6,.05,.3,1)" }}>
         {cd && !cd.over ? (
           <div className="flex items-center justify-center gap-2" style={{ color: C.indigo }}>
@@ -523,8 +529,8 @@ function ThinFrame({ children, seal }: { children: React.ReactNode; seal?: strin
 export function SatinPage({ core, opened }: { core: Core; opened: boolean }) {
   const s = core.start
   const silk = useSatin(480, 900, C.satin, 12)
-  const photo = core.gallery[0]
-  const album = core.gallery.slice(1)
+  const photo = core.gallery[1] || core.gallery[0]
+  const album = core.gallery.slice(2)
   const [viewer, setViewer] = useState<number | null>(null)
   const video = videoEmbed(core.event.video_url)
   const initials = `${(core.bride.split(/\s+/).pop() || "").charAt(0)}${(core.groom.split(/\s+/).pop() || "").charAt(0)}`
@@ -544,7 +550,7 @@ export function SatinPage({ core, opened }: { core: Core; opened: boolean }) {
     <PaletteProvider value={PAL}>
       <div className="min-h-screen" style={{ background: C.card, color: C.ink, fontFamily: SERIF }}>
         <main className="mx-auto max-w-[480px] overflow-hidden" style={{ background: C.paper, boxShadow: "0 0 60px rgba(70,40,50,.15)" }}>
-          <Cover c={core} opened={opened} />
+          <Cover c={core} opened={opened} photo={core.gallery[0]} />
 
           {/* ---- photo medallion on crumpled satin */}
           <Scene className="px-5 py-14 text-center" style={{ backgroundImage: silk, backgroundSize: "cover", backgroundColor: C.satin }}>
@@ -720,18 +726,19 @@ export function SatinPage({ core, opened }: { core: Core; opened: boolean }) {
             </Scene>
           )}
 
+          <div id="rsvp" className="scroll-mt-4" />
           {/* ---- RSVP on indigo with a torn edge */}
-          <Scene className="relative pt-10 em-dark" style={{ background: C.indigo }}>
-            <div className="absolute inset-x-0 -top-px h-6" style={{ background: C.paper, clipPath: torn(3) }} aria-hidden />
+          <Scene className="relative pt-6" style={{ background: C.paper }}>
             <div className="px-5 pt-8 pb-14 text-center">
-              <Kicker light>Hồi âm</Kicker>
-              <Title light>Xác nhận tham dự</Title>
-              <Raised max={3} thick={1.3}><div className="mt-7 p-5" style={{ background: C.cream }}>
+              <Kicker>Hồi âm</Kicker>
+              <Title>Xác nhận tham dự</Title>
+              <Raised max={3} thick={1.3}><div className="mt-7 p-5" style={{ background: "#FFFFFF", boxShadow: `inset 0 0 0 1px ${C.line}` }}>
                 <RsvpForm core={core} tone={tone} button="rounded-none" />
               </div></Raised>
             </div>
           </Scene>
 
+          <div id="wishes" className="scroll-mt-4" />
           {/* ---- guestbook in a leafy frame */}
           <Scene className="px-3 py-12 text-center">
             <FoliageCard>
@@ -752,6 +759,7 @@ export function SatinPage({ core, opened }: { core: Core; opened: boolean }) {
             </Scene>
           )}
 
+          <div id="gifts" className="scroll-mt-4" />
           {/* ---- gifts */}
           {(core.gifts.length > 0 || core.giftQr) && (
             <Scene className="px-6 py-14 text-center">
@@ -790,6 +798,7 @@ export function SatinPage({ core, opened }: { core: Core; opened: boolean }) {
         </main>
       </div>
       {core.musicUrl && opened && <MusicToggle src={core.musicUrl} start={opened} />}
+      {opened && <ActionBar core={core} accent={C.indigo} onAccent={C.cream} ink={C.ink} ground="rgba(244,236,238,.92)" />}
       {viewer !== null && <Lightbox photos={core.gallery} index={viewer} onClose={() => setViewer(null)} onIndex={setViewer} />}
       <style>{`
         .st-scene{opacity:0;transform:translateY(20px);transition:opacity 1s ease,transform 1.1s cubic-bezier(.2,.7,.2,1)}
@@ -815,7 +824,7 @@ export function SatinThumb({ event }: { event: any }) {
   const c = { bride: event.bride_name || "", groom: event.groom_name || "", start: eventStart(event.event_date, event.event_time) }
   return (
     <div style={{ fontFamily: SERIF }}>
-      <Cover c={c} opened />
+      <Cover c={c} opened photo={Array.isArray(event.gallery) ? event.gallery[0] : undefined} />
       <style>{`.st-fade{opacity:1!important;transform:none!important}`}</style>
     </div>
   )

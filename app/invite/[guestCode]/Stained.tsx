@@ -15,7 +15,7 @@ import { PaletteProvider } from "./Ornaments"
 import { GiftAccounts, Guestbook, Milestones } from "./Sections"
 import { FaqList, MusicToggle } from "./Extras"
 import { Lightbox } from "./Album"
-import { Core, Painted, Raised, RsvpForm, eventStart, googleCalendarUrl, p2, useCountdown, useOpening, useScrollProgress, useSeen, weekday } from "./kit"
+import { ActionBar, Core, Painted, Raised, RsvpForm, eventStart, googleCalendarUrl, p2, useCountdown, useOpening, useScrollProgress, useSeen, weekday } from "./kit"
 
 // ---------------------------------------------------------------- palette
 
@@ -594,73 +594,57 @@ function Medallion({ initials }: { initials: string }) {
 
 // ---------------------------------------------------------------- cover: the arched window
 
-function Cover({ core, opened }: { core: Pick<Core, "bride" | "groom" | "start">; opened: boolean }) {
-  const W = 320, H = 470
+/** Muted, slightly warm grading for photos (editorial look) */
+const GRADE = "saturate(.8) contrast(.96) sepia(.1) brightness(1.03)"
+
+function Cover({ core, opened, photo }: { core: Pick<Core, "bride" | "groom" | "start">; opened: boolean; photo?: string }) {
+  const W = 320, H = 420
   const s = core.start
   return (
-    <section className="relative min-h-[100svh] flex items-center justify-center px-5 py-10 overflow-hidden" style={{ background: `radial-gradient(120% 80% at 50% 10%, #FFFFFF, ${C.blush})` }}>
-      <div className="relative w-full max-w-[360px]" style={{ aspectRatio: `${W} / ${H}` }}>
-        <svg viewBox={`0 0 ${W} ${H}`} className="absolute inset-0 w-full h-full" aria-hidden>
+    <section className="relative min-h-[100svh] flex flex-col items-center justify-center px-6 pt-12 pb-10 overflow-hidden" style={{ background: C.paper }}>
+      <div className="relative w-full max-w-[300px]" style={{ aspectRatio: `${W} / ${H}` }}>
+        <svg viewBox={`0 0 ${W} ${H}`} className="absolute inset-0 w-full h-full em-flat" aria-hidden>
           <defs>
             <clipPath id="sgArch">
               <path d={`M30 ${H - 8}V${W / 2} A${W / 2 - 30} ${W / 2 - 30} 0 0 1 ${W - 30} ${W / 2}V${H - 8}Z`} />
             </clipPath>
           </defs>
-          <defs>
-            <radialGradient id="sgInside" cx="50%" cy="18%" r="85%">
-              <stop offset="0" stopColor="#FFFFFF" />
-              <stop offset=".45" stopColor="#FCEDEE" />
-              <stop offset="1" stopColor="#F2D4D7" />
-            </radialGradient>
-          </defs>
           <g clipPath="url(#sgArch)">
-            <rect width={W} height={H} fill="url(#sgInside)" />
+            <rect width={W} height={H} fill={C.blush} />
+            {photo && (
+              <image href={photo} x="0" y="0" width={W} height={H} preserveAspectRatio="xMidYMid slice" style={{ filter: opened ? GRADE : `${GRADE} blur(10px)`, transform: opened ? "scale(1)" : "scale(1.08)", transformOrigin: "50% 50%", transition: "filter 2.4s ease, transform 3.2s cubic-bezier(.2,.65,.2,1)" }} />
+            )}
           </g>
           <g className={opened ? "sg-panes-on" : ""}>
             <ArchPanes w={W} h={H} draw />
           </g>
         </svg>
-        {/* climbing roses at the arch springs and the sill */}
-        <div className={"absolute -left-16 top-[4%] sg-bloom " + (opened ? "sg-bloom-on" : "")} style={{ transitionDelay: "1s" }}>
-          <RoseSpray size={96} rot={-18} />
+        <div className={"absolute -left-14 bottom-0 sg-bloom " + (opened ? "sg-bloom-on" : "")} style={{ transitionDelay: "1.2s" }}>
+          <RoseSpray size={88} rot={8} />
         </div>
-        <div className={"absolute -right-16 top-[4%] sg-bloom " + (opened ? "sg-bloom-on" : "")} style={{ transitionDelay: "1.15s" }}>
-          <RoseSpray size={96} rot={18} flip />
-        </div>
-        <div className={"absolute left-1/2 -translate-x-1/2 -top-24 sg-bloom " + (opened ? "sg-bloom-on" : "")} style={{ transitionDelay: "1.25s" }}>
-          <RoseSpray size={84} rot={0} />
-        </div>
-        <div className={"absolute -left-20 -bottom-16 sg-bloom " + (opened ? "sg-bloom-on" : "")} style={{ transitionDelay: "1.35s" }}>
-          <RoseSpray size={120} rot={12} />
-        </div>
-        <div className={"absolute -right-20 -bottom-16 sg-bloom " + (opened ? "sg-bloom-on" : "")} style={{ transitionDelay: "1.5s" }}>
-          <RoseSpray size={120} rot={-12} flip />
-        </div>
-        <div className="absolute inset-x-[15%] top-[26%] bottom-[14%] flex flex-col items-center justify-center text-center">
-          <p className={"text-[12px] tracking-[0.26em] uppercase sg-fade " + (opened ? "sg-on" : "")} style={{ fontFamily: SC, fontWeight: 700, color: C.muted, transitionDelay: ".9s" }}>
-            Trân trọng báo tin lễ thành hôn
-          </p>
-          <h1 className="mt-4 leading-[1.02]" style={{ fontFamily: SCRIPT, color: C.roseDeep }}>
-            <Letters text={core.bride} on={opened} delay={1.3} step={0.07} className="block text-[52px]" />
-            <Letters text="&" on={opened} delay={1.6} className="block text-[30px] my-1" style={{ color: C.lead }} />
-            <Letters text={core.groom} on={opened} delay={1.9} step={0.07} className="block text-[52px]" />
-          </h1>
-          {s && (
-            <div className={"mt-5 sg-fade " + (opened ? "sg-on" : "")} style={{ transitionDelay: "2.6s" }}>
-              <p className="text-[17px] tracking-[0.2em]" style={{ fontFamily: SC, fontWeight: 700, color: C.ink }}>
-                {weekday(s)} · {p2(s.getDate())}.{p2(s.getMonth() + 1)}.{s.getFullYear()}
-              </p>
-              <p className="mt-1 text-[15px] italic" style={{ fontFamily: SERIF, color: C.muted }}>
-                {lunarLine(s)}
-              </p>
-            </div>
-          )}
+        <div className={"absolute -right-14 bottom-0 sg-bloom " + (opened ? "sg-bloom-on" : "")} style={{ transitionDelay: "1.4s" }}>
+          <RoseSpray size={88} rot={-8} flip />
         </div>
       </div>
-      <div className={"absolute bottom-5 inset-x-0 text-center sg-fade " + (opened ? "sg-on" : "")} style={{ transitionDelay: "3.2s" }}>
-        <span className="text-[12px] tracking-[0.24em] uppercase" style={{ fontFamily: SC, fontWeight: 700, color: C.muted }}>
-          Cuộn xuống
-        </span>
+      <div className="relative mt-9 text-center">
+        <p className={"text-[11px] tracking-[0.34em] uppercase sg-fade " + (opened ? "sg-on" : "")} style={{ fontFamily: SC, fontWeight: 700, color: C.muted, transitionDelay: "1s" }}>
+          Trân trọng báo tin lễ thành hôn
+        </p>
+        <h1 className="mt-3 leading-[1]" style={{ fontFamily: SCRIPT, color: C.roseDeep }}>
+          <Letters text={core.bride} on={opened} delay={1.4} step={0.07} className="inline-block text-[46px]" />
+          <Letters text=" & " on={opened} delay={1.7} className="inline-block text-[28px] mx-1" style={{ color: C.lead }} />
+          <Letters text={core.groom} on={opened} delay={1.9} step={0.07} className="inline-block text-[46px]" />
+        </h1>
+        {s && (
+          <div className={"mt-3 sg-fade " + (opened ? "sg-on" : "")} style={{ transitionDelay: "2.6s" }}>
+            <p className="text-[14px] tracking-[0.3em]" style={{ fontFamily: SC, fontWeight: 700, color: C.ink }}>
+              {p2(s.getDate())} · {p2(s.getMonth() + 1)} · {s.getFullYear()}
+            </p>
+            <p className="mt-1 text-[14px] italic" style={{ fontFamily: SERIF, color: C.muted }}>
+              {weekday(s)}, {lunarLine(s).replace(/^T/, "t")}
+            </p>
+          </div>
+        )}
       </div>
     </section>
   )
@@ -891,7 +875,7 @@ export function StainedPage({ core, opened }: { core: Core; opened: boolean }) {
       <GlassDefs />
       <div className="min-h-screen" style={{ background: C.paper, color: C.ink, fontFamily: SERIF }}>
         <main className="mx-auto max-w-[480px] overflow-hidden" style={{ background: C.paper, boxShadow: "0 0 60px rgba(120,60,60,.12)" }}>
-          <Cover core={core} opened={opened} />
+          <Cover core={core} opened={opened} photo={core.gallery[0]} />
 
           {/* ---- olive card: thanks + the mirror */}
           <Scene className="px-4 pt-4 pb-14">
@@ -1056,18 +1040,20 @@ export function StainedPage({ core, opened }: { core: Core; opened: boolean }) {
             </Scene>
           )}
 
+          <div id="rsvp" className="scroll-mt-4" />
           {/* ---- RSVP: olive band under a scalloped glass border */}
-          <Scene className="pt-[46px] em-dark" style={{ background: C.olive }}>
+          <Scene className="pt-[46px]" style={{ background: C.paper }}>
             <div className="absolute inset-x-0 top-0 h-[46px]" style={{ backgroundImage: SCALLOP, backgroundSize: "80px 46px", backgroundRepeat: "repeat-x", backgroundColor: C.paper }} aria-hidden />
             <div className="px-5 pt-10 pb-14 text-center">
-              <Kicker light>Hồi âm</Kicker>
-              <Title light>Xác nhận tham dự</Title>
-              <Raised max={3} thick={1.3}><div className="mt-7 rounded-[22px] p-5" style={{ background: "#FFFBF8" }}>
+              <Kicker>Hồi âm</Kicker>
+              <Title>Xác nhận tham dự</Title>
+              <Raised max={3} thick={1.3}><div className="mt-7 rounded-[22px] p-5" style={{ background: "#FFFFFF", boxShadow: `inset 0 0 0 1px ${PAL.line}` }}>
                 <RsvpForm core={core} tone={tone} />
               </div></Raised>
             </div>
           </Scene>
 
+          <div id="wishes" className="scroll-mt-4" />
           {/* ---- guestbook */}
           <Scene className="px-5 pb-14 text-center">
             <Kicker>Sổ lưu bút</Kicker>
@@ -1087,9 +1073,10 @@ export function StainedPage({ core, opened }: { core: Core; opened: boolean }) {
             </Scene>
           )}
 
+          <div id="gifts" className="scroll-mt-4" />
           {/* ---- gifts */}
           {(core.gifts.length > 0 || core.giftQr) && (
-            <Scene className="mx-4 mb-14 px-5 py-12 text-center rounded-[6px]" style={{ background: "#F1E6DD" }}>
+            <Scene className="mx-4 mb-14 px-5 py-12 text-center rounded-[6px]" style={{ boxShadow: `inset 0 0 0 1px ${PAL.line}` }}>
               <div className="flex justify-center">
                 <Raised max={12}><GiftBox /></Raised>
               </div>
@@ -1122,6 +1109,7 @@ export function StainedPage({ core, opened }: { core: Core; opened: boolean }) {
         </main>
       </div>
       {core.musicUrl && opened && <MusicToggle src={core.musicUrl} start={opened} />}
+      {opened && <ActionBar core={core} accent={C.olive} onAccent={C.cream} ink={C.ink} ground="rgba(251,244,242,.92)" />}
       {viewer !== null && <Lightbox photos={core.gallery} index={viewer} onClose={() => setViewer(null)} onIndex={setViewer} />}
       <style>{`
         .sg-scene{opacity:0;transform:translateY(22px);filter:blur(3px);transition:opacity .9s ease,transform 1s cubic-bezier(.2,.7,.2,1),filter .9s ease}
@@ -1153,7 +1141,7 @@ export function StainedThumb({ event }: { event: any }) {
   return (
     <div style={{ fontFamily: SERIF }}>
       <GlassDefs />
-      <Cover core={c} opened />
+      <Cover core={c} opened photo={Array.isArray(event.gallery) ? event.gallery[0] : undefined} />
       <style>{`.sg-fade{opacity:1!important;transform:none!important}.sg-bloom{opacity:1!important;transform:none!important}.sg-pane{opacity:1!important}`}</style>
     </div>
   )

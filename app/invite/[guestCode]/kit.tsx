@@ -336,7 +336,8 @@ export function Raised({ children, className = "", max = 3, shine = false, thick
     const apply = (x: number, y: number) => {
       cancelAnimationFrame(raf)
       raf = requestAnimationFrame(() => {
-        el.style.transform = `rotateX(${(-y * max).toFixed(2)}deg) rotateY(${(x * max).toFixed(2)}deg)`
+        const m = Math.min(max, 3)
+        el.style.transform = `rotateX(${(-y * m).toFixed(2)}deg) rotateY(${(x * m).toFixed(2)}deg)`
         el.style.setProperty("--rx", x.toFixed(3))
         el.style.setProperty("--ry", y.toFixed(3))
       })
@@ -367,7 +368,7 @@ export function Raised({ children, className = "", max = 3, shine = false, thick
   const depth = `drop-shadow(0 ${1 * t}px 0 rgba(0,0,0,.07)) drop-shadow(0 ${2 * t}px 0 rgba(0,0,0,.05)) drop-shadow(0 ${14 * t}px ${16 * t}px rgba(30,15,25,.22))`
   return (
     <div ref={wrap} className={className} style={{ perspective: 1000, ...style }}>
-      <div style={{ transform: seen ? "none" : "rotateX(14deg) translateY(24px) scale(.98)", transformOrigin: "50% 100%", opacity: seen ? 1 : 0, transition: "transform 1.1s cubic-bezier(.2,.8,.2,1), opacity .8s ease" }}>
+      <div style={{ transform: seen ? "none" : "translateY(14px)", transformOrigin: "50% 100%", opacity: seen ? 1 : 0, transition: "transform 1.1s cubic-bezier(.2,.8,.2,1), opacity .8s ease" }}>
         <div ref={tilt} className="relative" style={{ transition: "transform .45s cubic-bezier(.2,.7,.2,1)", filter: depth, transformStyle: "preserve-3d" }}>
           {children}
           {shine && (
@@ -410,7 +411,83 @@ export function Painted({ src, className = "", style, shadow = true }: { src: st
       draggable={false}
       decoding="async"
       className={"pointer-events-none select-none " + className}
-      style={{ filter: shadow ? "drop-shadow(0 8px 10px rgba(40,20,30,.22))" : undefined, ...style }}
+      style={{ filter: (shadow ? "drop-shadow(0 6px 8px rgba(40,20,30,.16)) " : "") + "saturate(.82)", ...style }}
     />
+  )
+}
+
+/**
+ * Fixed bar at the foot of the invitation (as on the best Vietnamese online invites): RSVP, wishes,
+ * gifts, each jumping to its section (#rsvp, #wishes, #gifts). Shows once the cover has scrolled
+ * away, hides while the RSVP itself is on screen. Recent wishes from other guests drift up above
+ * it one at a time.
+ */
+export function ActionBar({ core, accent, onAccent, ink, ground }: { core: Core; accent: string; onAccent: string; ink: string; ground: string }) {
+  const [show, setShow] = useState(false)
+  const [wishes, setWishes] = useState<{ name: string; message: string }[]>([])
+  const [k, setK] = useState(0)
+  const hasGift = core.gifts.length > 0 || !!core.giftQr
+  useEffect(() => {
+    const on = () => {
+      const r = document.getElementById("rsvp")?.getBoundingClientRect()
+      const atRsvp = !!r && r.top < window.innerHeight * 0.8 && r.bottom > window.innerHeight * 0.2
+      setShow(window.scrollY > window.innerHeight * 0.8 && !atRsvp)
+    }
+    on()
+    window.addEventListener("scroll", on, { passive: true })
+    return () => window.removeEventListener("scroll", on)
+  }, [])
+  useEffect(() => {
+    let alive = true
+    if (core.preview) {
+      import("./Sections").then((m) => alive && setWishes(m.SAMPLE_WISHES))
+    } else {
+      import("./actions").then((m) => m.getWishes(core.guest.code)).then((w) => alive && setWishes(w.filter((x) => !x.mine).slice(0, 12)))
+    }
+    return () => {
+      alive = false
+    }
+  }, [core.preview, core.guest.code])
+  useEffect(() => {
+    if (wishes.length < 1 || reducedMotion()) return
+    const t = setInterval(() => setK((x) => x + 1), 4500)
+    return () => clearInterval(t)
+  }, [wishes.length])
+  const go = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: reducedMotion() ? "auto" : "smooth", block: "start" })
+  const w = wishes.length ? wishes[k % wishes.length] : null
+  const btn = "h-11 px-4 rounded-full text-[14px] font-medium inline-flex items-center gap-1.5 whitespace-nowrap"
+  return (
+    <div className="fixed inset-x-0 bottom-0 z-40 pointer-events-none" style={{ transform: show ? "none" : "translateY(120%)", transition: "transform .45s cubic-bezier(.2,.8,.2,1)" }}>
+      <div className="mx-auto max-w-[480px] px-3 pb-[max(10px,env(safe-area-inset-bottom))]">
+        {w && (
+          <div key={k} className="mb-2 max-w-[86%] rounded-2xl px-3.5 py-2 text-[13px] leading-snug wt-wish" style={{ background: "rgba(255,255,255,.92)", color: ink, boxShadow: "0 6px 16px -8px rgba(30,15,25,.35)", backdropFilter: "blur(6px)" }}>
+            <span className="font-semibold">{w.name}: </span>
+            <span className="opacity-80">{w.message.length > 70 ? w.message.slice(0, 70) + "…" : w.message}</span>
+          </div>
+        )}
+        <div className="pointer-events-auto flex items-center gap-2 rounded-full p-1.5 wt-sans" style={{ background: ground, boxShadow: "0 10px 24px -10px rgba(30,15,25,.45), inset 0 0 0 1px rgba(0,0,0,.06)", backdropFilter: "blur(8px)" }}>
+          {!core.locked && (
+            <button type="button" onClick={() => go("rsvp")} className={btn + " flex-1 justify-center"} style={{ background: accent, color: onAccent }}>
+              Xác nhận tham dự
+            </button>
+          )}
+          <button type="button" onClick={() => go("wishes")} className={btn + (core.locked ? " flex-1 justify-center" : "")} style={{ color: ink, boxShadow: "inset 0 0 0 1px rgba(0,0,0,.12)" }} aria-label="Gửi lời chúc">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M20 12a8 8 0 0 1-11.6 7.1L4 20l1-4.2A8 8 0 1 1 20 12z" />
+            </svg>
+            Lời chúc
+          </button>
+          {hasGift && (
+            <button type="button" onClick={() => go("gifts")} className="w-11 h-11 rounded-full inline-flex items-center justify-center" style={{ color: ink, boxShadow: "inset 0 0 0 1px rgba(0,0,0,.12)" }} aria-label="Mừng cưới">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <rect x="3" y="9" width="18" height="12" rx="1" />
+                <path d="M3 13h18M12 9v12M12 9C10 5 6 5 7 8s5 1 5 1zM12 9c2-4 6-4 5-1s-5 1-5 1z" />
+              </svg>
+            </button>
+          )}
+        </div>
+      </div>
+      <style>{`.wt-wish{animation:wtWish 4.5s ease both}@keyframes wtWish{0%{opacity:0;transform:translateY(10px)}12%{opacity:1;transform:none}82%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-8px)}}.em-root button[aria-label="Tắt nhạc"],.em-root button[aria-label="Bật nhạc"]{bottom:86px!important}`}</style>
+    </div>
   )
 }
