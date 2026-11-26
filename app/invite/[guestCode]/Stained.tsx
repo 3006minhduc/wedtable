@@ -758,7 +758,7 @@ function ScratchMirror({ photo }: { photo?: string }) {
 
 function GlassFrameBox({ children }: { children: React.ReactNode }) {
   return (
-    <Raised shine thick={1.2}><div className="relative mx-auto max-w-[360px]" style={{ borderStyle: "solid", borderWidth: 24, borderImageSource: PANE_FRAME, borderImageSlice: 24, borderImageRepeat: "round", background: "#FFFDFC", boxShadow: "0 18px 30px -22px rgba(120,60,60,.45)" }}>
+    <Raised shine thick={1.2}><div className="relative mx-auto max-w-[360px]" style={{ borderStyle: "solid", borderWidth: 24, borderImageSource: PANE_FRAME, borderImageSlice: 24, borderImageRepeat: "round", background: "#FFFDFC", boxShadow: "inset 0 2px 3px rgba(255,255,255,.85), inset 0 -2px 4px rgba(60,30,40,.12), inset 3px 0 6px rgba(60,30,40,.06), inset -3px 0 6px rgba(60,30,40,.06)" }}>
       <div className="px-5 py-7 text-center">{children}</div>
     </div></Raised>
   )
@@ -887,7 +887,7 @@ export function StainedPage({ core, opened }: { core: Core; opened: boolean }) {
 
           {/* ---- olive card: thanks + the mirror */}
           <Scene className="px-4 pt-4 pb-14">
-            <Raised max={5} thick={1.5}><div className="rounded-t-[200px] rounded-b-[28px] px-6 pt-14 pb-12 text-center" style={{ background: C.olive, color: C.cream }}>
+            <Raised max={5} thick={1.5}><div className="em-dark rounded-t-[200px] rounded-b-[28px] px-6 pt-14 pb-12 text-center" style={{ background: C.olive, color: C.cream }}>
               <div className="flex justify-center">
                 <RoseSprig w={110} />
               </div>
@@ -959,7 +959,7 @@ export function StainedPage({ core, opened }: { core: Core; opened: boolean }) {
                     [cd.m, "phút"],
                     [cd.s, "giây"],
                   ].map(([v, l]) => (
-                    <div key={l as string} className="w-[74px] h-[74px] rounded-full flex flex-col items-center justify-center" style={{ backgroundImage: FROST, backgroundSize: "220px 220px, cover, cover, cover", boxShadow: `inset 0 0 0 2px ${C.lead}, 0 10px 18px -12px rgba(120,60,60,.5)` }}>
+                    <div key={l as string} className="w-[74px] h-[74px] rounded-full flex flex-col items-center justify-center" style={{ backgroundImage: FROST, backgroundSize: "220px 220px, cover, cover, cover", boxShadow: `inset 0 0 0 2px ${C.lead}, inset 0 3px 4px rgba(255,255,255,.8), inset 0 -4px 6px rgba(120,60,60,.25), 0 3px 0 ${C.leadDark}, 0 12px 18px -10px rgba(120,60,60,.55)` }}>
                       <span className="text-[26px] leading-none tabular-nums" style={{ fontFamily: SC, fontWeight: 700, color: C.roseDeep }}>
                         {p2(v as number)}
                       </span>
@@ -1049,7 +1049,7 @@ export function StainedPage({ core, opened }: { core: Core; opened: boolean }) {
           )}
 
           {/* ---- RSVP: olive band under a scalloped glass border */}
-          <Scene className="pt-[46px]" style={{ background: C.olive }}>
+          <Scene className="pt-[46px] em-dark" style={{ background: C.olive }}>
             <div className="absolute inset-x-0 top-0 h-[46px]" style={{ backgroundImage: SCALLOP, backgroundSize: "80px 46px", backgroundRepeat: "repeat-x", backgroundColor: C.paper }} aria-hidden />
             <div className="px-5 pt-10 pb-14 text-center">
               <Kicker light>Hồi âm</Kicker>

@@ -274,7 +274,7 @@ function Page({ children, frame = "bracket", roses = 6, minH = true, className =
           clipPath: frame === "bracket" || frame === "columns" ? BRACKET : undefined,
           borderRadius: frame === "arch" ? "170px 170px 10px 10px" : frame === "oval" ? "50%" : undefined,
           padding: frame === "oval" ? "84px 38px" : frame === "arch" ? "70px 26px 34px" : "40px 26px",
-          boxShadow: `0 0 0 1px ${C.gold}`,
+          boxShadow: `0 0 0 1px ${C.gold}, inset 0 2px 3px rgba(255,255,255,.85), inset 0 -2px 4px rgba(60,30,40,.12), inset 3px 0 6px rgba(60,30,40,.06), inset -3px 0 6px rgba(60,30,40,.06)`,
           outline: frame === "bracket" || frame === "columns" ? `1px solid ${C.gold}` : undefined,
           opacity: on ? 1 : 0,
           transform: on ? "none" : "scale(.97)",
@@ -801,7 +801,7 @@ export function VioletPage({ core, opened }: { core: Core; opened: boolean }) {
               </div></Raised>
             </section>
           )}
-          <footer className="relative text-center px-6 pt-14 pb-12 overflow-hidden" style={{ background: C.plum, color: C.cream }}>
+          <footer className="em-dark relative text-center px-6 pt-14 pb-12 overflow-hidden" style={{ background: C.plum, color: C.cream }}>
             <p className="text-[46px] leading-tight" style={{ fontFamily: SCRIPT, color: C.goldLight }}>
               Hẹn gặp bạn
             </p>

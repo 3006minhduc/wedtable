@@ -411,7 +411,7 @@ function Countdown({ start, dayOver }: { start: Date; dayOver: boolean }) {
   const cd = useCountdown(start)
   const [ref, seen] = useSeen<HTMLDivElement>(0.3)
   return (
-    <div ref={ref} className="px-5 py-12 text-center" style={{ background: C.indigo }}>
+    <div ref={ref} className="px-5 py-12 text-center em-dark" style={{ background: C.indigo }}>
       <Title light>{dayOver ? "Cảm ơn bạn" : "Đếm ngược"}</Title>
       <Raised max={8}><div className="mt-6 mx-auto max-w-[360px] px-4 py-6" style={{ background: C.cream, clipPath: seen ? torn(11) : "inset(0 50% 0 50%)", transition: "clip-path 1.1s cubic-bezier(.6,.05,.3,1)" }}>
         {cd && !cd.over ? (
@@ -500,7 +500,7 @@ function FoliageCard({ children }: { children: React.ReactNode }) {
 function ThinFrame({ children, seal }: { children: React.ReactNode; seal?: string }) {
   const [ref, seen] = useSeen<HTMLDivElement>(0.35)
   return (
-    <Raised shine thick={1.1}><div ref={ref} className="relative mx-auto max-w-[360px] px-6 py-10" style={{ boxShadow: `inset 0 0 0 1px ${C.plumSoft}, inset 0 0 0 6px ${C.paper}, inset 0 0 0 7px ${C.plumSoft}`, borderRadius: "46px 46px 8px 8px", background: C.paper }}>
+    <Raised shine thick={1.1}><div ref={ref} className="relative mx-auto max-w-[360px] px-6 py-10" style={{ boxShadow: `inset 0 0 0 1px ${C.plumSoft}, inset 0 0 0 6px ${C.paper}, inset 0 0 0 7px ${C.plumSoft}, ${"inset 0 2px 3px rgba(255,255,255,.85), inset 0 -2px 4px rgba(60,30,40,.12), inset 3px 0 6px rgba(60,30,40,.06), inset -3px 0 6px rgba(60,30,40,.06)"}`, borderRadius: "46px 46px 8px 8px", background: C.paper }}>
       {children}
       {seal && (
         <div className="absolute -bottom-6 -right-4" style={{ transform: seen ? "scale(1) rotate(-8deg)" : "scale(1.6) rotate(-20deg)", opacity: seen ? 1 : 0, transition: "transform .5s cubic-bezier(.3,1.5,.5,1) .5s, opacity .3s ease .5s", filter: "drop-shadow(0 6px 8px rgba(60,30,40,.35))" }}>
@@ -714,7 +714,7 @@ export function SatinPage({ core, opened }: { core: Core; opened: boolean }) {
           )}
 
           {/* ---- RSVP on indigo with a torn edge */}
-          <Scene className="relative pt-10" style={{ background: C.indigo }}>
+          <Scene className="relative pt-10 em-dark" style={{ background: C.indigo }}>
             <div className="absolute inset-x-0 -top-px h-6" style={{ background: C.paper, clipPath: torn(3) }} aria-hidden />
             <div className="px-5 pt-8 pb-14 text-center">
               <Kicker light>Hồi âm</Kicker>

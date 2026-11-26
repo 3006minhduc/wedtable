@@ -382,3 +382,21 @@ export function Raised({ children, className = "", max = 7, shine = false, thick
     </div>
   )
 }
+
+/**
+ * Embossing for the whole invitation (class `em-root` on the wrapper): titles, names and small caps
+ * get a raised edge (light from the top left, shadow bottom right), drawings stand off the paper,
+ * link buttons are bevelled, album photos sit in a raised mount. Inside `.em-dark` (olive, indigo,
+ * plum bands) the light and shadow are re-balanced for a dark ground. Body text stays flat for reading.
+ */
+export const EMBOSS_CSS = `
+.em-root h1,.em-root h2,.em-root [style*="--iv-pinyon"],.em-root [style*="--iv-sc"]{text-shadow:-1px -1px 0 rgba(255,255,255,.85),1px 1px 0 rgba(0,0,0,.16),1px 2px 4px rgba(40,20,30,.18)}
+.em-root .em-dark h1,.em-root .em-dark h2,.em-root .em-dark [style*="--iv-pinyon"],.em-root .em-dark [style*="--iv-sc"]{text-shadow:-1px -1px 0 rgba(255,255,255,.22),1px 1px 0 rgba(0,0,0,.5),2px 3px 6px rgba(0,0,0,.4)}
+.em-root main svg:not(.em-flat),.em-root .em-art svg{filter:drop-shadow(-1px -1px 0 rgba(255,255,255,.7)) drop-shadow(1px 1.5px 0 rgba(0,0,0,.2)) drop-shadow(2px 4px 5px rgba(40,20,30,.2))}
+.em-root .em-dark svg:not(.em-flat){filter:drop-shadow(-1px -1px 0 rgba(255,255,255,.2)) drop-shadow(1px 2px 0 rgba(0,0,0,.45)) drop-shadow(2px 5px 6px rgba(0,0,0,.4))}
+.em-root main a.inline-flex{box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 -2px 0 rgba(0,0,0,.22),0 2px 0 rgba(0,0,0,.18),0 7px 12px -5px rgba(30,15,25,.45);transition:transform .15s ease,box-shadow .15s ease}
+.em-root main a.inline-flex:active{transform:translateY(2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),inset 0 -1px 0 rgba(0,0,0,.2),0 0 0 rgba(0,0,0,0),0 3px 6px -3px rgba(30,15,25,.4)}
+.em-root main button[aria-label="Xem ảnh"]{box-shadow:inset 0 0 0 1px rgba(255,255,255,.4),0 2px 0 rgba(0,0,0,.12),0 14px 20px -12px rgba(30,15,25,.55)!important}
+.em-root main button[aria-label="Xem ảnh"] img{box-shadow:inset 0 2px 6px rgba(0,0,0,.35)}
+@media (prefers-reduced-transparency: reduce){.em-root main svg{filter:none}}
+`

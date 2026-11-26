@@ -3,7 +3,7 @@
 // Renders one of the 2026-11-26 templates: its opening over the page, then the page itself.
 import { useState } from "react"
 import { caps, display, hand, pinyon, script, serif, sans, smallcaps } from "./fonts"
-import { useInviteCore, useLockScroll } from "./kit"
+import { EMBOSS_CSS, useInviteCore, useLockScroll } from "./kit"
 import type { InviteInput } from "./kit"
 import { StainedIntro, StainedPage } from "./Stained"
 import { SatinIntro, SatinPage } from "./Satin"
@@ -28,7 +28,8 @@ export default function NewInvite(props: InviteInput & { look: string; skipIntro
     setOpened(true)
   }
   return (
-    <div className={fonts}>
+    <div className={fonts + " em-root"}>
+      <style>{EMBOSS_CSS}</style>
       {!opened && <L.Intro core={core} onOpened={done} onReveal={() => setRevealed(true)} />}
       <L.Page core={core} opened={revealed} />
     </div>
